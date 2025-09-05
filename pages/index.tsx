@@ -5,13 +5,16 @@ import ChatInput from '@components/ChatInput';
 import SearchPanel from '@components/SearchPanel';
 import { Components } from 'react-markdown';
 import { getOrCreateSessionId } from '../utils/session';
-import { v4 as uuidv4 } from 'uuid';  // Import uuidv4 to generate UUIDs
+import { v4 as uuidv4 } from 'uuid';
 import remarkBreaks from 'remark-breaks';
 
-export default function Home() {
+/**
+ * ChatModule — self-contained chat UI + logic.
+ * Modularized from the previous inline implementation.
+ */
+function ChatModule({ sid }: { sid: string }) {
   const [messages, setMessages] = useState<{ sender: 'user' | 'agent'; text: string; id: string }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const sid = getOrCreateSessionId(); // Generate once per component render
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -19,16 +22,20 @@ export default function Home() {
 
   useEffect(() => {
     (async () => {
-      const r = await fetch(`/api/chat-logs?sessionId=${encodeURIComponent(sid)}`);
-      const j = await r.json();
-      const loaded = (j.messages || []).map((m: any) => ({
-        sender: m.sender,
-        text: m.text,
-        id: m.id,
-      }));
-      setMessages(loaded);
+      try {
+        const r = await fetch(`/api/chat-logs?sessionId=${encodeURIComponent(sid)}`);
+        const j = await r.json();
+        const loaded = (j.messages || []).map((m: any) => ({
+          sender: m.sender,
+          text: m.text,
+          id: m.id,
+        }));
+        setMessages(loaded);
+      } catch (e) {
+        console.error('Failed to load chat logs', e);
+      }
     })();
-  }, []);
+  }, [sid]);
 
   const markdownComponents: Components = {
     pre: ({ node, ...props }) => (
@@ -85,15 +92,13 @@ export default function Home() {
   };
 
   const handleSend = async (message: string) => {
-    // Generate UUID for each message
     const userMessageId = uuidv4();
     const agentMessageId = uuidv4();
 
-    // Append user message locally
+    // Optimistic append of user message
     setMessages((prev) => [...prev, { sender: 'user', text: message, id: userMessageId }]);
 
     try {
-      // Send user message to agent
       const res = await fetch('/api/agent-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,10 +108,10 @@ export default function Home() {
       const data = await res.json();
       const agentReply = data.reply ?? '';
 
-      // Append agent message locally
+      // Append agent reply
       setMessages((prev) => [...prev, { sender: 'agent', text: agentReply, id: agentMessageId }]);
 
-      // ✅ Save both user and agent messages to /api/chat-logs
+      // Persist both messages
       await fetch('/api/chat-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,6 +129,83 @@ export default function Home() {
   };
 
   return (
+    <main
+      style={{
+        flexGrow: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '768px',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          padding: '24px 16px',
+        }}
+      >
+        {/* Messages */}
+        <div
+          style={{
+            flexGrow: 1,
+            overflowY: 'auto',
+            backgroundColor: '#000000ff',
+            padding: 16,
+            borderRadius: 8,
+            marginBottom: 12,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          {messages.map(({ sender, text, id }) => (
+            <div
+              key={id}
+              style={{
+                maxWidth: '100%',
+                alignSelf: sender === 'user' ? 'flex-end' : 'flex-start',
+                backgroundColor: sender === 'user' ? '#0a74da' : '#2f2f2f',
+                color: sender === 'user' ? '#ffffff' : '#ffffffff',
+                padding: 12,
+                borderRadius: 12,
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+                fontSize: 15,
+                lineHeight: 1.5,
+              }}
+            >
+              <div className="react-markdown">
+                <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} components={markdownComponents}>
+                  {text}
+                </ReactMarkdown>
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <ChatInput onSend={handleSend} />
+      </div>
+    </main>
+  );
+}
+
+/**
+ * Home — orchestrates modules.
+ * activeModule drives whether Chat is visible. You can expand this to more modules later.
+ */
+export default function Home() {
+  const sid = getOrCreateSessionId();
+  const [activeModule, setActiveModule] = useState<'core' | 'chat'>('core');
+
+  const isChatActive = activeModule === 'chat';
+
+  return (
     <div
       style={{
         display: 'flex',
@@ -134,73 +216,59 @@ export default function Home() {
         overflow: 'hidden',
       }}
     >
-      {/* Main Chat Column */}
-      <main
-        style={{
-          flexGrow: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          overflow: 'hidden',
-        }}
-      >
-        <div
+      {/* Left: either Core (placeholder) or Chat */}
+      <div style={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
+        {/* Toggle button (top-right of main pane) */}
+        <button
+          onClick={() => setActiveModule((m) => (m === 'chat' ? 'core' : 'chat'))}
+          aria-pressed={isChatActive}
           style={{
-            width: '100%',
-            maxWidth: '768px',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            padding: '24px 16px',
+            position: 'fixed',
+            top: 12,
+            right: 30,
+            zIndex: 1000,
+            background: '#0a74da',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '8px 12px',
+            fontWeight: 600,
+            cursor: 'pointer',
           }}
         >
-          {/* Message Scrollable Area */}
-          <div
+          {isChatActive ? 'Close Chat' : 'Open Chat'}
+        </button>
+
+        {/* Render the active module */}
+        {isChatActive ? (
+          <ChatModule sid={sid} />
+        ) : (
+          <main
             style={{
               flexGrow: 1,
-              overflowY: 'auto',
-              backgroundColor: '#000000ff',
-              padding: 16,
-              borderRadius: 8,
-              marginBottom: 12,
               display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+              padding: 24,
             }}
           >
-            {messages.map(({ sender, text, id }) => (
-              <div
-                key={id} // Use UUID as key
-                style={{
-                  maxWidth: '100%',
-                  alignSelf: sender === 'user' ? 'flex-end' : 'flex-start',
-                  backgroundColor: sender === 'user' ? '#0a74da' : '#2f2f2f',
-                  color: sender === 'user' ? '#ffffff' : '#ffffffff',
-                  padding: 12,
-                  borderRadius: 12,
-                  whiteSpace: 'pre-wrap',
-                  wordWrap: 'break-word',
-                  fontSize: 15,
-                  lineHeight: 1.5,
-                }}
-              >
-                <div className="react-markdown">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm, remarkBreaks]}
-                    components={markdownComponents}
-                  >
-                    {text}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Box */}
-          <ChatInput onSend={handleSend} />
-        </div>
-      </main>
+            {/* Core Module placeholder (replace with your core UI) */}
+            <div
+              style={{
+                maxWidth: 720,
+                textAlign: 'center',
+                opacity: 0.9,
+              }}
+            >
+              <h1 style={{ marginTop: 0, marginBottom: 8 }}>Apex Core</h1>
+              <p style={{ margin: 0 }}>
+                This is your non-chat module area. Click <strong>Open Chat</strong> to toggle the chat module.
+              </p>
+            </div>
+          </main>
+        )}
+      </div>
 
       {/* Top-left UI symbol */}
       <div
@@ -219,10 +287,11 @@ export default function Home() {
         ▲
       </div>
 
-      {/* Sidebar Search Panel */}
+      {/* Sidebar: Search Panel remains constant */}
       <aside>
         <SearchPanel sessionId={sid} />
       </aside>
     </div>
   );
 }
+
