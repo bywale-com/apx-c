@@ -1,5 +1,9 @@
-venv/
-*.log
+# Node / Next
+node_modules/
+.next/
+.turbo/
+dist/
+coverage/
+# Env & OS
+.env*
 .DS_Store
-__pycache__/
-.env
