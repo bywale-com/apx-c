@@ -11,3 +11,6 @@ coverage/
 .env
 .env.*
 !.env.example
+.env
+.env.*
+apx-b-t
