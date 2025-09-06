@@ -20,6 +20,7 @@
     "remark-gfm": "^4.0.1",
     "slate": "^0.118.1",
     "slate-react": "^0.117.4",
+    "swr": "^2.3.6",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

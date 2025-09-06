@@ -1,3 +1,4 @@
+// pages/index.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -8,9 +9,13 @@ import { getOrCreateSessionId } from '../utils/session';
 import { v4 as uuidv4 } from 'uuid';
 import remarkBreaks from 'remark-breaks';
 
+// NEW: import Observe module (create modules/ObserveModule.tsx)
+import dynamic from 'next/dynamic';
+const ObserveModule = dynamic(() => import('../modules/ObserveModule'), { ssr: false });
+
 /**
  * ChatModule — self-contained chat UI + logic.
- * Modularized from the previous inline implementation.
+ * (Unchanged from your version)
  */
 function ChatModule({ sid }: { sid: string }) {
   const [messages, setMessages] = useState<{ sender: 'user' | 'agent'; text: string; id: string }[]>([]);
@@ -95,7 +100,6 @@ function ChatModule({ sid }: { sid: string }) {
     const userMessageId = uuidv4();
     const agentMessageId = uuidv4();
 
-    // Optimistic append of user message
     setMessages((prev) => [...prev, { sender: 'user', text: message, id: userMessageId }]);
 
     try {
@@ -108,10 +112,8 @@ function ChatModule({ sid }: { sid: string }) {
       const data = await res.json();
       const agentReply = data.reply ?? '';
 
-      // Append agent reply
       setMessages((prev) => [...prev, { sender: 'agent', text: agentReply, id: agentMessageId }]);
 
-      // Persist both messages
       await fetch('/api/chat-logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,7 +150,6 @@ function ChatModule({ sid }: { sid: string }) {
           padding: '24px 16px',
         }}
       >
-        {/* Messages */}
         <div
           style={{
             flexGrow: 1,
@@ -188,7 +189,6 @@ function ChatModule({ sid }: { sid: string }) {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
         <ChatInput onSend={handleSend} />
       </div>
     </main>
@@ -196,14 +196,11 @@ function ChatModule({ sid }: { sid: string }) {
 }
 
 /**
- * Home — orchestrates modules.
- * activeModule drives whether Chat is visible. You can expand this to more modules later.
+ * Home — orchestrates modules (Core | Chat | Observe).
  */
 export default function Home() {
   const sid = getOrCreateSessionId();
-  const [activeModule, setActiveModule] = useState<'core' | 'chat'>('core');
-
-  const isChatActive = activeModule === 'chat';
+  const [activeModule, setActiveModule] = useState<'core' | 'chat' | 'observe'>('core');
 
   return (
     <div
@@ -216,32 +213,35 @@ export default function Home() {
         overflow: 'hidden',
       }}
     >
-      {/* Left: either Core (placeholder) or Chat */}
+      {/* Left: active module */}
       <div style={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
-        {/* Toggle button (top-right of main pane) */}
-        <button
-          onClick={() => setActiveModule((m) => (m === 'chat' ? 'core' : 'chat'))}
-          aria-pressed={isChatActive}
-          style={{
-            position: 'fixed',
-            top: 12,
-            right: 30,
-            zIndex: 1000,
-            background: '#0a74da',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 8,
-            padding: '8px 12px',
-            fontWeight: 600,
-            cursor: 'pointer',
-          }}
-        >
-          {isChatActive ? 'Close Chat' : 'Open Chat'}
-        </button>
+        {/* Top-right module switcher */}
+        <div style={{ position: 'fixed', top: 12, right: 30, zIndex: 1000, display: 'flex', gap: 8 }}>
+          {(['core','chat','observe'] as const).map((k) => (
+            <button
+              key={k}
+              onClick={() => setActiveModule(k)}
+              aria-pressed={activeModule === k}
+              style={{
+                background: activeModule === k ? '#fff' : '#0a74da',
+                color: activeModule === k ? '#000' : '#fff',
+                border: 'none',
+                borderRadius: 8,
+                padding: '8px 12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              {k === 'core' ? 'Core' : k === 'chat' ? 'Chat' : 'Observe'}
+            </button>
+          ))}
+        </div>
 
         {/* Render the active module */}
-        {isChatActive ? (
+        {activeModule === 'chat' ? (
           <ChatModule sid={sid} />
+        ) : activeModule === 'observe' ? (
+          <ObserveModule />
         ) : (
           <main
             style={{
@@ -253,17 +253,11 @@ export default function Home() {
               padding: 24,
             }}
           >
-            {/* Core Module placeholder (replace with your core UI) */}
-            <div
-              style={{
-                maxWidth: 720,
-                textAlign: 'center',
-                opacity: 0.9,
-              }}
-            >
+            <div style={{ maxWidth: 720, textAlign: 'center', opacity: 0.9 }}>
               <h1 style={{ marginTop: 0, marginBottom: 8 }}>Apex Core</h1>
               <p style={{ margin: 0 }}>
-                This is your non-chat module area. Click <strong>Open Chat</strong> to toggle the chat module.
+                This is your non-chat module area. Use the buttons above to open <strong>Chat</strong> or{' '}
+                <strong>Observe</strong>.
               </p>
             </div>
           </main>
@@ -294,4 +288,3 @@ export default function Home() {
     </div>
   );
 }
-
