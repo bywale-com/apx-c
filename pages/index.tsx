@@ -334,8 +334,9 @@ export default function Home() {
           </button>
         </div>
 
+        :
         {/* Active module */}
-        <div style={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
+        <div style={{ flexGrow: 1, display: 'flex', position: 'relative', minHeight: 0 }}>
           {activeModule === 'chat' ? (
             <ChatModule sid={sid} />
           ) : activeModule === 'observe' ? (

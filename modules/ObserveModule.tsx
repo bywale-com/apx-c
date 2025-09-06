@@ -25,9 +25,7 @@ export default function ObserveModule() {
   );
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [modal, setModal] = useState<null | { episodeId: string; url: string; steps: Step[] }>(
-    null
-  );
+  const [modal, setModal] = useState<null | { episodeId: string; url: string; steps: Step[] }>(null);
   const [banner, setBanner] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [url, setUrl] = useState('https://example.com/form'); // demo seeder URL
@@ -72,7 +70,18 @@ export default function ObserveModule() {
   }
 
   return (
-    <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', padding: 24, position: 'relative' }}>
+    <main
+      style={{
+        flexGrow: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        padding: 24,
+        position: 'relative',
+        height: '100%',
+        minHeight: 0,           // allow child to shrink (needed for scrolling)
+        overflow: 'hidden',     // we'll scroll an inner container
+      }}
+    >
       <h2 style={{ marginTop: 0, marginBottom: 12 }}>Observe • Watch + Ask</h2>
 
       {/* Banner */}
@@ -127,112 +136,125 @@ export default function ObserveModule() {
         </button>
       </div>
 
-      {/* Episodes */}
-      <div style={{ display: 'grid', gap: 12 }}>
-        {Object.entries(groups).map(([ep, rows]) => {
-          const url = rows[0]?.app?.url ?? '';
-          const asks = deriveAskLabels(rows);
-          return (
-            <div key={ep} style={{ border: '1px solid #222', borderRadius: 12, padding: 12, background: '#0b0b0b' }}>
-              <div style={{ fontSize: 12, color: '#aaa', marginBottom: 6 }}>
-                {url} — {rows.length} events
-              </div>
+      {/* SCROLL CONTAINER for everything below (episodes + saved rules) */}
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,        // critical for flex children to become scrollable
+          overflowY: 'auto',
+          paddingRight: 4,     // keep scrollbar off content a bit
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 16,
+        }}
+      >
+        {/* Episodes */}
+        <div style={{ display: 'grid', gap: 12 }}>
+          {Object.entries(groups).map(([ep, rows]) => {
+            const url = rows[0]?.app?.url ?? '';
+            const asks = deriveAskLabels(rows);
+            return (
+              <div key={ep} style={{ border: '1px solid #222', borderRadius: 12, padding: 12, background: '#0b0b0b' }}>
+                <div style={{ fontSize: 12, color: '#aaa', marginBottom: 6 }}>
+                  {url} — {rows.length} events
+                </div>
 
-              {/* Event list (click to expand details) */}
-              <ul style={{ fontSize: 12, color: '#ccc', maxHeight: 220, overflow: 'auto', margin: 0, paddingLeft: 16 }}>
-                {rows.map((r) => {
-                  const isOpen = !!expanded[r.id];
-                  return (
-                    <li key={r.id} style={{ marginBottom: isOpen ? 6 : 2 }}>
-                      <span
-                        role="button"
-                        onClick={() => setExpanded((s) => ({ ...s, [r.id]: !s[r.id] }))}
-                        style={{ cursor: 'pointer', textDecoration: 'underline dotted' }}
-                        title="Click to toggle details"
-                      >
-                        {r.ts} — {r.action?.type}
-                      </span>
-                      {isOpen && (
-                        <pre
-                          style={{
-                            whiteSpace: 'pre-wrap',
-                            background: '#111',
-                            color: '#9fe',
-                            padding: 8,
-                            borderRadius: 8,
-                            marginTop: 6,
-                            overflowX: 'auto',
-                          }}
+                {/* Event list (click to expand details) — keeps its own small scroll to avoid giant cards */}
+                <ul style={{ fontSize: 12, color: '#ccc', maxHeight: 220, overflow: 'auto', margin: 0, paddingLeft: 16 }}>
+                  {rows.map((r) => {
+                    const isOpen = !!expanded[r.id];
+                    return (
+                      <li key={r.id} style={{ marginBottom: isOpen ? 6 : 2 }}>
+                        <span
+                          role="button"
+                          onClick={() => setExpanded((s) => ({ ...s, [r.id]: !s[r.id] }))}
+                          style={{ cursor: 'pointer', textDecoration: 'underline dotted' }}
+                          title="Click to toggle details"
                         >
+                          {r.ts} — {r.action?.type}
+                        </span>
+                        {isOpen && (
+                          <pre
+                            style={{
+                              whiteSpace: 'pre-wrap',
+                              background: '#111',
+                              color: '#9fe',
+                              padding: 8,
+                              borderRadius: 8,
+                              marginTop: 6,
+                              overflowX: 'auto',
+                            }}
+                          >
 {JSON.stringify(r.action, null, 2)}
-                        </pre>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
+                          </pre>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
 
-              {/* Ask buttons → open modal */}
-              {asks.length > 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ color: '#fff', fontSize: 13, marginBottom: 6 }}>Ask (Suggestions)</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {asks.map((label, i) => (
-                      <button
-                        key={i}
-                        style={{
-                          background: '#fff',
-                          color: '#000',
-                          border: 0,
-                          borderRadius: 8,
-                          padding: '6px 10px',
-                          fontSize: 12,
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => onAsk(ep, rows)}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                {/* Ask buttons → open modal */}
+                {asks.length > 0 && (
+                  <div style={{ marginTop: 10 }}>
+                    <div style={{ color: '#fff', fontSize: 13, marginBottom: 6 }}>Ask (Suggestions)</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {asks.map((label, i) => (
+                        <button
+                          key={i}
+                          style={{
+                            background: '#fff',
+                            color: '#000',
+                            border: 0,
+                            borderRadius: 8,
+                            padding: '6px 10px',
+                            fontSize: 12,
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => onAsk(ep, rows)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            );
+          })}
+          {Object.keys(groups).length === 0 && (
+            <div style={{ color: '#aaa', fontSize: 13 }}>
+              No episodes yet. Use the app normally or click <b>Run Demo</b>.
             </div>
-          );
-        })}
-        {Object.keys(groups).length === 0 && (
-          <div style={{ color: '#aaa', fontSize: 13 }}>
-            No episodes yet. Use the app normally or click <b>Run Demo</b>.
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Saved rules list */}
-      <div style={{ marginTop: 16 }}>
-        <div style={{ fontWeight: 700, marginBottom: 6 }}>Saved rules</div>
-        {ruleData?.rows?.length ? (
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0, fontSize: 12, color: '#ccc' }}>
-            {ruleData.rows.map((r: any) => (
-              <li
-                key={r.id}
-                style={{
-                  padding: '6px 8px',
-                  border: '1px solid #222',
-                  borderRadius: 8,
-                  background: '#0b0b0b',
-                  marginBottom: 6,
-                }}
-              >
-                <div style={{ color: '#fff' }}>{r.name}</div>
-                <div style={{ fontSize: 11, color: '#9aa' }}>
-                  {new Date(r.created_at).toLocaleString()} • {Array.isArray(r.steps) ? r.steps.length : 0} steps
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div style={{ fontSize: 12, color: '#888' }}>None saved yet.</div>
-        )}
+        {/* Saved rules list */}
+        <div>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>Saved rules</div>
+          {ruleData?.rows?.length ? (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, fontSize: 12, color: '#ccc' }}>
+              {ruleData.rows.map((r: any) => (
+                <li
+                  key={r.id}
+                  style={{
+                    padding: '6px 8px',
+                    border: '1px solid #222',
+                    borderRadius: 8,
+                    background: '#0b0b0b',
+                    marginBottom: 6,
+                  }}
+                >
+                  <div style={{ color: '#fff' }}>{r.name}</div>
+                  <div style={{ fontSize: 11, color: '#9aa' }}>
+                    {new Date(r.created_at).toLocaleString()} • {Array.isArray(r.steps) ? r.steps.length : 0} steps
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div style={{ fontSize: 12, color: '#888' }}>None saved yet.</div>
+          )}
+        </div>
       </div>
 
       {modal && (
