@@ -3,7 +3,6 @@ import React, { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { runRule, type RunnerStep } from '../utils/ruleRunner';
 
-
 type Row = { id: string; ts: string; episode_id: string; action: any; app: any };
 type Step = {
   type: 'navigate' | 'input' | 'click' | 'submit';
@@ -520,7 +519,6 @@ function RuleModal({
             </div>
           )}
 
-          {/* Preview block stays as-is when you click "Run (preview)" */}
           {preview.length > 0 && (
             <div style={{ marginTop: 8 }}>
               <div style={{ color: '#fff', fontSize: 13, marginBottom: 6 }}>Preview</div>
