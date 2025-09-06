@@ -2,18 +2,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+import dynamic from 'next/dynamic';
+
 import ChatInput from '@components/ChatInput';
 import SearchPanel from '@components/SearchPanel';
-import { Components } from 'react-markdown';
 import { getOrCreateSessionId } from '../utils/session';
 import { v4 as uuidv4 } from 'uuid';
-import remarkBreaks from 'remark-breaks';
+
+// Mounts the Observe UI (lists episodes + Ask buttons)
+const ObserveModule = dynamic(() => import('../modules/ObserveModule'), { ssr: false });
+// In-app watcher that captures real clicks/inputs within Apex
 import ObserveCapture from '../components/ObserveCapture';
 
-
-// NEW: import Observe module (create modules/ObserveModule.tsx)
-import dynamic from 'next/dynamic';
-const ObserveModule = dynamic(() => import('../modules/ObserveModule'), { ssr: false });
+const SIDEBAR_W = 360; // keep in sync with SearchPanel width when expanded
 
 /**
  * ChatModule — self-contained chat UI + logic.
@@ -44,8 +46,8 @@ function ChatModule({ sid }: { sid: string }) {
     })();
   }, [sid]);
 
-  const markdownComponents: Components = {
-    pre: ({ node, ...props }) => (
+  const markdownComponents = {
+    pre: ({ node, ...props }: any) => (
       <pre
         style={{
           backgroundColor: '#282c34',
@@ -96,7 +98,7 @@ function ChatModule({ sid }: { sid: string }) {
         </code>
       );
     },
-  };
+  } as any;
 
   const handleSend = async (message: string) => {
     const userMessageId = uuidv4();
@@ -198,18 +200,16 @@ function ChatModule({ sid }: { sid: string }) {
 }
 
 /**
- * Home — orchestrates modules (Core | Chat | Observe).
+ * Home — orchestrates modules (Core | Chat | Observe) with a right sidebar SearchPanel.
+ * This version reserves horizontal space for the sidebar and offsets fixed UI accordingly.
  */
 export default function Home() {
   const sid = getOrCreateSessionId();
   const [activeModule, setActiveModule] = useState<'core' | 'chat' | 'observe'>('core');
 
-  
-
   return (
     <div
       style={{
-        display: 'flex',
         height: '100vh',
         width: '100vw',
         backgroundColor: '#000',
@@ -217,11 +217,31 @@ export default function Home() {
         overflow: 'hidden',
       }}
     >
-      {/* Left: active module */}
-      <div style={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
-        {/* Top-right module switcher */}
-        <div style={{ position: 'fixed', top: 12, right: 30, zIndex: 1000, display: 'flex', gap: 8 }}>
-          {(['core','chat','observe'] as const).map((k) => (
+      {/* Main content area — reserve space so nothing sits under the sidebar */}
+      <div
+        style={{
+          height: '100%',
+          paddingRight: SIDEBAR_W,
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* In-app watcher */}
+        <ObserveCapture />
+
+        {/* Top-right module switcher — offset by the sidebar width */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 12,
+            right: SIDEBAR_W + 30,
+            zIndex: 1500, // above sidebar
+            display: 'flex',
+            gap: 8,
+          }}
+        >
+          {(['core', 'chat', 'observe'] as const).map((k) => (
             <button
               key={k}
               onClick={() => setActiveModule(k)}
@@ -241,57 +261,69 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Render the active module */}
-	<ObserveCapture />
-        {activeModule === 'chat' ? (
-          <ChatModule sid={sid} />
-        ) : activeModule === 'observe' ? (
-          <ObserveModule />
-        ) : (
-          <main
-            style={{
-              flexGrow: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
-              padding: 24,
-            }}
-          >
-            <div style={{ maxWidth: 720, textAlign: 'center', opacity: 0.9 }}>
-              <h1 style={{ marginTop: 0, marginBottom: 8 }}>Apex Core</h1>
-              <p style={{ margin: 0 }}>
-                This is your non-chat module area. Use the buttons above to open <strong>Chat</strong> or{' '}
-                <strong>Observe</strong>.
-              </p>
-            </div>
-          </main>
-        )}
+        {/* Active module */}
+        <div style={{ flexGrow: 1, display: 'flex', position: 'relative' }}>
+          {activeModule === 'chat' ? (
+            <ChatModule sid={sid} />
+          ) : activeModule === 'observe' ? (
+            <ObserveModule />
+          ) : (
+            <main
+              style={{
+                flexGrow: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
+                padding: 24,
+              }}
+            >
+              <div style={{ maxWidth: 720, textAlign: 'center', opacity: 0.9 }}>
+                <h1 style={{ marginTop: 0, marginBottom: 8 }}>Apex Core</h1>
+                <p style={{ margin: 0 }}>
+                  This is your non-chat module area. Use the buttons above to open <strong>Chat</strong> or{' '}
+                  <strong>Observe</strong>.
+                </p>
+              </div>
+            </main>
+          )}
+        </div>
+
+        {/* Top-left UI symbol */}
+        <div
+          style={{
+            position: 'fixed',
+            top: 12,
+            left: 30,
+            zIndex: 1200,
+            fontSize: 34,
+            color: '#0a74da',
+            fontWeight: 'bold',
+            userSelect: 'none',
+            fontFamily: `'Segoe UI Symbol', sans-serif`,
+          }}
+        >
+          ▲
+        </div>
       </div>
 
-      {/* Top-left UI symbol */}
-      <div
+      {/* Right sidebar (fixed). Lower z-index than modals/switcher */}
+      <aside
         style={{
           position: 'fixed',
-          top: 12,
-          left: 30,
-          zIndex: 999,
-          fontSize: 34,
-          color: '#0a74da',
-          fontWeight: 'bold',
-          userSelect: 'none',
-          fontFamily: `'Segoe UI Symbol', sans-serif`,
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: SIDEBAR_W,
+          zIndex: 1000,
+          borderLeft: '1px solid #222',
+          background: '#0b0b0b',
+          overflow: 'auto',
         }}
       >
-        ▲
-      </div>
-
-      {/* Sidebar: Search Panel remains constant */}
-      <aside>
         <SearchPanel sessionId={sid} />
       </aside>
     </div>
   );
 }
-
 
