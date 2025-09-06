@@ -202,6 +202,8 @@ export default function Home() {
   const sid = getOrCreateSessionId();
   const [activeModule, setActiveModule] = useState<'core' | 'chat' | 'observe'>('core');
 
+  
+
   return (
     <div
       style={{
@@ -288,3 +290,5 @@ export default function Home() {
     </div>
   );
 }
+
+
