@@ -1,6 +1,8 @@
 // modules/ObserveModule.tsx
 import React, { useMemo, useState } from 'react';
 import useSWR from 'swr';
+import { runRule, type RunnerStep } from '../utils/ruleRunner';
+
 
 type Row = { id: string; ts: string; episode_id: string; action: any; app: any };
 type Step = {
@@ -345,6 +347,8 @@ function RuleModal({
   const [json, setJson] = useState<string>(JSON.stringify(initialSteps ?? [], null, 2));
   const [saving, setSaving] = useState(false);
   const [preview, setPreview] = useState<string[]>([]);
+  const [running, setRunning] = useState(false);
+  const [runLog, setRunLog] = useState<string[]>([]);
 
   function runPreview() {
     try {
@@ -353,7 +357,9 @@ function RuleModal({
         if (s.type === 'navigate') return `${i + 1}. navigate → ${s.url}`;
         if (s.type === 'input') return `${i + 1}. input → ${s.selector} = ${truncate(s.value, 40)}`;
         if (s.type === 'click') return `${i + 1}. click → ${s.selector}`;
-        if (s.type === 'submit') return `${i + 1}. submit → ${s.selector}`;
+        if (s.type === 'submit') return `${i + 1}. submit → ${s.selector ?? '(auto)'}`;
+        if ((s as any).type === 'openTab') return `${i + 1}. openTab → ${(s as any).url}`;
+        if ((s as any).type === 'wait') return `${i + 1}. wait → ${(s as any).ms}ms`;
         return `${i + 1}. ${s.type}`;
       });
       setPreview(lines);
@@ -371,16 +377,33 @@ function RuleModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, episode_id: episodeId, steps }),
       });
-      if (!r.ok) {
-        const t = await r.text();
-        throw new Error(t || `HTTP ${r.status}`);
-      }
+      if (!r.ok) throw new Error(await r.text());
       onSaved(name);
       onClose();
     } catch (e: any) {
       alert(`Save failed: ${e.message ?? e}`);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function runNow() {
+    setRunning(true);
+    setRunLog([]);
+    const append = (m: string) => setRunLog((p) => [...p, m]);
+    try {
+      const steps = JSON.parse(json) as RunnerStep[];
+      append(`Running ${steps.length} step(s)…`);
+      const res = await runRule(steps, {
+        maxOpenTabs: 20,
+        emitEvents: true,
+        onUpdate: append,
+      });
+      append(res.ok ? '✔ Completed' : `✖ Stopped: ${res.error || 'unknown error'}`);
+    } catch (e: any) {
+      setRunLog((p) => [...p, `✖ Failed: ${e?.message || e}`]);
+    } finally {
+      setRunning(false);
     }
   }
 
@@ -398,8 +421,8 @@ function RuleModal({
     >
       <div
         style={{
-          width: 720,
-          maxWidth: '90vw',
+          width: 820,
+          maxWidth: '92vw',
           background: '#0b0b0b',
           border: '1px solid #333',
           borderRadius: 12,
@@ -416,7 +439,7 @@ function RuleModal({
           </button>
         </div>
 
-        <div style={{ display: 'grid', gap: 8 }}>
+        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: '1fr', gridAutoRows: 'min-content' }}>
           <label style={{ fontSize: 13, color: '#ccc' }}>
             Name
             <input
@@ -454,12 +477,20 @@ function RuleModal({
             />
           </label>
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button
               onClick={runPreview}
               style={{ background: '#fff', color: '#000', border: 0, borderRadius: 8, padding: '8px 12px', fontWeight: 600, cursor: 'pointer' }}
             >
               Run (preview)
+            </button>
+            <button
+              onClick={runNow}
+              disabled={running}
+              style={{ background: '#12a150', color: '#fff', border: 0, borderRadius: 8, padding: '8px 12px', fontWeight: 600, cursor: 'pointer' }}
+              title="Execute the steps in this page"
+            >
+              {running ? 'Running…' : 'Run now (real)'}
             </button>
             <button
               onClick={saveRule}
@@ -470,6 +501,26 @@ function RuleModal({
             </button>
           </div>
 
+          {(running || runLog.length > 0) && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ color: '#fff', fontSize: 13, marginBottom: 6 }}>Run log</div>
+              <pre
+                style={{
+                  background: '#111',
+                  color: '#ddd',
+                  padding: 10,
+                  borderRadius: 8,
+                  maxHeight: 220,
+                  overflowY: 'auto',
+                  fontSize: 12,
+                }}
+              >
+{runLog.join('\n')}
+              </pre>
+            </div>
+          )}
+
+          {/* Preview block stays as-is when you click "Run (preview)" */}
           {preview.length > 0 && (
             <div style={{ marginTop: 8 }}>
               <div style={{ color: '#fff', fontSize: 13, marginBottom: 6 }}>Preview</div>
