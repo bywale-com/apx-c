@@ -8,6 +8,8 @@ import { Components } from 'react-markdown';
 import { getOrCreateSessionId } from '../utils/session';
 import { v4 as uuidv4 } from 'uuid';
 import remarkBreaks from 'remark-breaks';
+import ObserveCapture from '../components/ObserveCapture';
+
 
 // NEW: import Observe module (create modules/ObserveModule.tsx)
 import dynamic from 'next/dynamic';
@@ -240,6 +242,7 @@ export default function Home() {
         </div>
 
         {/* Render the active module */}
+	<ObserveCapture />
         {activeModule === 'chat' ? (
           <ChatModule sid={sid} />
         ) : activeModule === 'observe' ? (
