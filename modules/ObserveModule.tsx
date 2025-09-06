@@ -78,8 +78,8 @@ export default function ObserveModule() {
         padding: 24,
         position: 'relative',
         height: '100%',
-        minHeight: 0,           // allow child to shrink (needed for scrolling)
-        overflow: 'hidden',     // we'll scroll an inner container
+        minHeight: 0,
+        overflow: 'hidden',
       }}
     >
       <h2 style={{ marginTop: 0, marginBottom: 12 }}>Observe • Watch + Ask</h2>
@@ -104,7 +104,7 @@ export default function ObserveModule() {
         </div>
       )}
 
-      {/* Demo controls (no devtools needed) */}
+      {/* Demo controls */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
         <input
           value={url}
@@ -136,13 +136,13 @@ export default function ObserveModule() {
         </button>
       </div>
 
-      {/* SCROLL CONTAINER for everything below (episodes + saved rules) */}
+      {/* Scroll container (episodes + saved rules) */}
       <div
         style={{
           flex: 1,
-          minHeight: 0,        // critical for flex children to become scrollable
+          minHeight: 0,
           overflowY: 'auto',
-          paddingRight: 4,     // keep scrollbar off content a bit
+          paddingRight: 4,
           display: 'flex',
           flexDirection: 'column',
           gap: 16,
@@ -159,7 +159,7 @@ export default function ObserveModule() {
                   {url} — {rows.length} events
                 </div>
 
-                {/* Event list (click to expand details) — keeps its own small scroll to avoid giant cards */}
+                {/* Event list (expandable) */}
                 <ul style={{ fontSize: 12, color: '#ccc', maxHeight: 220, overflow: 'auto', margin: 0, paddingLeft: 16 }}>
                   {rows.map((r) => {
                     const isOpen = !!expanded[r.id];
@@ -286,53 +286,89 @@ function deriveAskLabels(rows: Row[]): string[] {
   return asks;
 }
 
+const GENERIC_TAGS = new Set([
+  'div',
+  'p',
+  'span',
+  'button',
+  'input',
+  'textarea',
+  'a',
+  'label',
+  'section',
+  'main',
+  'form',
+  'ul',
+  'li',
+]);
+
 function stableSelector(sel?: string, role?: string, name?: string) {
-  if (sel && sel !== 'input' && sel !== 'button' && !sel.startsWith('unknown')) return sel;
-  if (role && name) return `${role}[name="${String(name).slice(0, 40)}"]`;
+  const hasSpecificity = !!sel && (sel.startsWith('#') || sel.includes('.') || sel.includes('['));
+  const isGeneric = !sel || GENERIC_TAGS.has(sel);
+  // Prefer role[name] for generic/weak selectors
+  if ((isGeneric || !hasSpecificity) && role) {
+    const trimmed = (name ?? '').trim();
+    if (role === 'textbox') {
+      // Short/volatile names (like current typed snippet) are flaky -> allow bare 'textbox'
+      if (!trimmed || trimmed.length < 4) return 'textbox';
+      return `textbox[name="${trimmed.slice(0, 40)}"]`;
+    }
+    if (trimmed) return `${role}[name="${trimmed.slice(0, 40)}"]`;
+    return role;
+  }
   return sel || role || 'unknown';
 }
 
 function deriveSteps(rows: Row[]): Step[] {
-  const steps: Step[] = [];
-  const latestValueBySel = new Map<string, string>();
+  const structural: Step[] = []; // navigate + clicks (no submit)
+  const submits: Step[] = [];
+  const bestValueBySel = new Map<string, { val: string; score: number }>();
 
   for (const r of rows) {
     const a = r.action;
     if (!a) continue;
 
     if (a.type === 'navigate') {
-      steps.push({ type: 'navigate', url: a.url || r.app?.url });
+      structural.push({ type: 'navigate', url: a.url || r.app?.url });
       continue;
     }
 
     if (a.type === 'input') {
       const sel = stableSelector(a.target?.selector, a.target?.role, a.target?.name);
       if (!sel) continue;
-      if (!a.redacted && typeof a.value === 'string') latestValueBySel.set(sel, a.value);
+      if (!a.redacted && typeof a.value === 'string') {
+        const v = a.value ?? '';
+        const score = v.length > 0 ? v.length : 0; // prefer longest non-empty sample
+        const prev = bestValueBySel.get(sel);
+        if (!prev || score > prev.score) bestValueBySel.set(sel, { val: v, score });
+      }
       continue;
     }
 
     if (a.type === 'click') {
       const sel = stableSelector(a.target?.selector, a.target?.role, a.target?.name);
-      steps.push({ type: 'click', selector: sel, name: a.target?.name });
+      structural.push({ type: 'click', selector: sel, name: a.target?.name });
       continue;
     }
 
     if (a.type === 'submit') {
       const sel = stableSelector(a.target?.selector, a.target?.role, a.target?.name);
-      steps.push({ type: 'submit', selector: sel, name: a.target?.name });
+      submits.push({ type: 'submit', selector: sel, name: a.target?.name });
       continue;
     }
   }
 
-  // Merge inputs (keep only latest value per selector)
-  for (const [sel, val] of latestValueBySel.entries()) {
-    steps.push({ type: 'input', selector: sel, value: val });
+  // Emit inputs after clicks (so elements exist) but before submits
+  const inputs: Step[] = [];
+  for (const [sel, { val }] of bestValueBySel.entries()) {
+    inputs.push({ type: 'input', selector: sel, value: val });
   }
+
+  const combined: Step[] = [...structural, ...inputs, ...submits];
 
   // Drop adjacent duplicate clicks
   const cleaned: Step[] = [];
-  for (const s of steps) {
+  for (const s of combined) {
     const prev = cleaned[cleaned.length - 1];
     if (prev && prev.type === 'click' && s.type === 'click' && prev.selector === s.selector) continue;
     cleaned.push(s);
