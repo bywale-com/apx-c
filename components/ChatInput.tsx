@@ -298,14 +298,15 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
         />
       </Slate>
       <button
+        title="Send message"
         type="button"
         onClick={handleSend}
-        disabled={serialize(value).trim().length === 0}
+        // disabled={serialize(value).trim().length === 0}
         style={{
           marginTop: 6,
           padding: '6px 12px',
           fontSize: 14,
-          cursor: serialize(value).trim().length === 0 ? 'not-allowed' : 'pointer',
+          // cursor: serialize(value).trim().length === 0 ? 'not-allowed' : 'pointer',
           alignSelf: 'flex-end',
         }}
       >

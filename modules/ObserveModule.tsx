@@ -136,7 +136,7 @@ export default function ObserveModule() {
         </button>
       </div>
 
-      {/* Scroll container (episodes + saved rules) */}
+      {/* Outer scroll area: episodes + saved rules */}
       <div
         style={{
           flex: 1,
@@ -159,7 +159,7 @@ export default function ObserveModule() {
                   {url} — {rows.length} events
                 </div>
 
-                {/* Event list (expandable) */}
+                {/* Event list (expandable; inner scroll) */}
                 <ul style={{ fontSize: 12, color: '#ccc', maxHeight: 220, overflow: 'auto', margin: 0, paddingLeft: 16 }}>
                   {rows.map((r) => {
                     const isOpen = !!expanded[r.id];
@@ -286,42 +286,54 @@ function deriveAskLabels(rows: Row[]): string[] {
   return asks;
 }
 
-const GENERIC_TAGS = new Set([
-  'div',
-  'p',
-  'span',
-  'button',
-  'input',
-  'textarea',
-  'a',
-  'label',
-  'section',
-  'main',
-  'form',
-  'ul',
-  'li',
-]);
+/* ---------- Selector building ---------- */
 
-function stableSelector(sel?: string, role?: string, name?: string) {
-  const hasSpecificity = !!sel && (sel.startsWith('#') || sel.includes('.') || sel.includes('['));
-  const isGeneric = !sel || GENERIC_TAGS.has(sel);
-  // Prefer role[name] for generic/weak selectors
-  if ((isGeneric || !hasSpecificity) && role) {
-    const trimmed = (name ?? '').trim();
-    if (role === 'textbox') {
-      // Short/volatile names (like current typed snippet) are flaky -> allow bare 'textbox'
-      if (!trimmed || trimmed.length < 4) return 'textbox';
-      return `textbox[name="${trimmed.slice(0, 40)}"]`;
-    }
-    if (trimmed) return `${role}[name="${trimmed.slice(0, 40)}"]`;
-    return role;
-  }
-  return sel || role || 'unknown';
+const GENERIC_TAGS = new Set(['div', 'p', 'span', 'button', 'input', 'textarea', 'a', 'label', 'section', 'main', 'form', 'ul', 'li']);
+
+function hasSpecificity(sel?: string) {
+  return !!sel && (sel.startsWith('#') || sel.includes('.') || sel.includes('['));
 }
 
+function stableSelector(sel?: string, role?: string, name?: string) {
+  const tag = (sel || '').toLowerCase();
+  const roleL = (role || '').toLowerCase();
+  const trimmed = (name || '').trim();
+
+  // If we already have a specific CSS selector (id/class/attr), keep it.
+  if (hasSpecificity(sel) && !GENERIC_TAGS.has(tag)) return sel as string;
+
+  // Textboxes are special: NEVER use the live text as a selector (it changes as you type).
+  // Prefer plain 'textbox' for contenteditable/generic nodes; keep specific selectors if present.
+  if (roleL === 'textbox') {
+    if (!hasSpecificity(sel) || GENERIC_TAGS.has(tag)) return 'textbox';
+    return sel || 'textbox';
+  }
+
+  // For other roles, role[name="..."] is usually stable (e.g., buttons/links with visible text).
+  if (roleL && roleL !== 'unknown') {
+    if (trimmed) return `${roleL}[name="${trimmed.slice(0, 40)}"]`;
+    return roleL;
+  }
+
+  // Fallbacks
+  return sel || roleL || 'unknown';
+}
+
+/* Submit-like clicks go AFTER inputs (Send/Submit/Search/etc.) */
+function isSubmitLike(name?: string, selector?: string) {
+  const t = (name || '').toLowerCase().trim();
+  if (/^(send|submit|save|search|go|apply|continue|next|post|enter)$/.test(t)) return true;
+  if ((selector || '').toLowerCase().includes('[type="submit"]')) return true;
+  return false;
+}
+
+/* ---------- Step synthesis ---------- */
+
 function deriveSteps(rows: Row[]): Step[] {
-  const structural: Step[] = []; // navigate + clicks (no submit)
-  const submits: Step[] = [];
+  const navigates: Step[] = [];
+  const preClicks: Step[] = [];
+  const postClicks: Step[] = [];
+  const submits: Step[] = []; // explicit 'submit' events (rare in our capture)
   const bestValueBySel = new Map<string, { val: string; score: number }>();
 
   for (const r of rows) {
@@ -329,25 +341,25 @@ function deriveSteps(rows: Row[]): Step[] {
     if (!a) continue;
 
     if (a.type === 'navigate') {
-      structural.push({ type: 'navigate', url: a.url || r.app?.url });
-      continue;
-    }
-
-    if (a.type === 'input') {
-      const sel = stableSelector(a.target?.selector, a.target?.role, a.target?.name);
-      if (!sel) continue;
-      if (!a.redacted && typeof a.value === 'string') {
-        const v = a.value ?? '';
-        const score = v.length > 0 ? v.length : 0; // prefer longest non-empty sample
-        const prev = bestValueBySel.get(sel);
-        if (!prev || score > prev.score) bestValueBySel.set(sel, { val: v, score });
-      }
+      navigates.push({ type: 'navigate', url: a.url || r.app?.url });
       continue;
     }
 
     if (a.type === 'click') {
       const sel = stableSelector(a.target?.selector, a.target?.role, a.target?.name);
-      structural.push({ type: 'click', selector: sel, name: a.target?.name });
+      const step: Step = { type: 'click', selector: sel, name: a.target?.name };
+      if (isSubmitLike(a.target?.name, sel)) postClicks.push(step);
+      else preClicks.push(step);
+      continue;
+    }
+
+    if (a.type === 'input') {
+      const sel = stableSelector(a.target?.selector, a.target?.role, a.target?.name);
+      if (!sel || a.redacted || typeof a.value !== 'string') continue;
+      const v = a.value ?? '';
+      const score = v.length > 0 ? v.length : 0; // prefer the longest final text
+      const prev = bestValueBySel.get(sel);
+      if (!prev || score > prev.score) bestValueBySel.set(sel, { val: v, score });
       continue;
     }
 
@@ -358,17 +370,19 @@ function deriveSteps(rows: Row[]): Step[] {
     }
   }
 
-  // Emit inputs after clicks (so elements exist) but before submits
+  // Emit one input per selector (final/longest)
   const inputs: Step[] = [];
   for (const [sel, { val }] of bestValueBySel.entries()) {
     inputs.push({ type: 'input', selector: sel, value: val });
   }
 
-  const combined: Step[] = [...structural, ...inputs, ...submits];
+  // Compose: navigate + preClicks (open UI), then inputs, then postClicks (send), then submits
+  const ordered: Step[] = [...navigates, ...preClicks, ...inputs, ...postClicks, ...submits];
 
-  // Drop adjacent duplicate clicks
+  // Cleanup: drop adjacent duplicate clicks and unknown/no-op clicks
   const cleaned: Step[] = [];
-  for (const s of combined) {
+  for (const s of ordered) {
+    if (s.type === 'click' && (!s.selector || s.selector === 'unknown' || s.selector.startsWith('unknown['))) continue;
     const prev = cleaned[cleaned.length - 1];
     if (prev && prev.type === 'click' && s.type === 'click' && prev.selector === s.selector) continue;
     cleaned.push(s);
@@ -597,4 +611,3 @@ function truncate(s?: string, n = 40) {
   if (!s) return '';
   return s.length > n ? s.slice(0, n) + '…' : s;
 }
-

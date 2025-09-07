@@ -53,7 +53,6 @@ function makeEventLine(getEpisodeId: () => string) {
   };
 }
 
-// Treat navigate to the same URL (ignoring hash) as a no-op
 function sameUrl(a: string, b: string) {
   try {
     const A = new URL(a, location.href);
