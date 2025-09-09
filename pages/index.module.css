@@ -1,0 +1,32 @@
+.btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink-high);
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+}
+.btn:hover { border-color: #ffffff33; }
+
+.cta {
+  font-weight: 800;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #fff;
+  color: #000;
+  text-decoration: none;
+  display: inline-block;
+}
+.cta:active { transform: translateY(1px); }
+
+.ghost {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--ink-high);
+  text-decoration: none;
+  display: inline-block;
+  backdrop-filter: blur(10px);
+}

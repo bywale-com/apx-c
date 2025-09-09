@@ -1,35 +1,33 @@
+// pages/app.tsx
 import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
-import dynamic from 'next/dynamic';
-
-import ChatInput from '@components/ChatInput';
-import SearchPanel from '@components/SearchPanel';
-import { getOrCreateSessionId } from '../utils/session';
 import { v4 as uuidv4 } from 'uuid';
-import ObserveCapture from '../components/ObserveCapture';
 
-// Mounts the Observe UI (lists episodes + Ask buttons)
+import ChatInput from '../components/ChatInput';
+import SearchPanel from '../components/SearchPanel';
+import ObserveCapture from '../components/ObserveCapture';
+import GlobeBackdrop from '../components/GlobeBackdrop';
+import Tile from '../components/Tile';
+import { getOrCreateSessionId } from '../utils/session';
+
 const ObserveModule = dynamic(() => import('../modules/ObserveModule'), { ssr: false });
 
 const SIDEBAR_W = 360;
 
 declare global {
   interface Window {
-    apxObserve?: {
-      recording: boolean;
-      start: (opts?: { label?: string }) => void;
-      stop: () => void;
-    };
+    apxObserve?: { recording: boolean; start: (opts?: { label?: string }) => void; stop: () => void };
   }
 }
 
-/**
- * ChatModule — self-contained chat UI + logic.
- */
+/* -------------------- Chat module (same API endpoints) -------------------- */
 function ChatModule({ sid }: { sid: string }) {
-  const [messages, setMessages] = useState<{ sender: 'user' | 'agent'; text: string; id: string }[]>([]);
+  const [messages, setMessages] = useState<{ sender: 'user' | 'agent'; text: string; id: string }[]>(
+    []
+  );
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -40,6 +38,7 @@ function ChatModule({ sid }: { sid: string }) {
     (async () => {
       try {
         const r = await fetch(`/api/chat-logs?sessionId=${encodeURIComponent(sid)}`);
+        if (!r.ok) throw new Error(`chat-logs ${r.status}`);
         const j = await r.json();
         const loaded = (j.messages || []).map((m: any) => ({
           sender: m.sender,
@@ -54,63 +53,50 @@ function ChatModule({ sid }: { sid: string }) {
   }, [sid]);
 
   const markdownComponents = {
-    pre: ({ node, ...props }: any) => (
+    pre: (props: any) => (
       <pre
         style={{
-          backgroundColor: '#282c34',
-          color: '#f8f8f2',
-          padding: '12px',
-          borderRadius: '6px',
+          backgroundColor: '#0F2742',
+          color: '#EAF2FF',
+          padding: 12,
+          borderRadius: 8,
           overflowX: 'auto',
-          fontFamily: "Monaco, Menlo, 'Ubuntu Mono', monospace",
-          fontSize: 14,
         }}
         {...props}
       />
     ),
-    code: (props: any) => {
-      const { inline, children, ...rest } = props;
-      if (inline) {
-        return (
-          <code
-            style={{
-              backgroundColor: '#3a3f4b',
-              color: '#0ea732ff',
-              padding: '2px 6px',
-              borderRadius: '4px',
-              fontFamily: "Monaco, Menlo, 'Ubuntu Mono', monospace",
-              fontSize: 14,
-            }}
-            {...rest}
-          >
-            {children}
-          </code>
-        );
-      }
-      return (
+    code: ({ inline, children, ...rest }: any) =>
+      inline ? (
         <code
           style={{
-            display: 'block',
-            backgroundColor: '#2c313c',
-            color: '#f8f8f2',
-            padding: '12px',
-            borderRadius: '6px',
-            overflowX: 'auto',
-            fontFamily: "Monaco, Menlo, 'Ubuntu Mono', monospace",
-            fontSize: 14,
+            background: '#153659',
+            color: '#38E1FF',
+            padding: '2px 6px',
+            borderRadius: 4,
           }}
           {...rest}
         >
           {children}
         </code>
-      );
-    },
+      ) : (
+        <code
+          style={{
+            display: 'block',
+            background: '#0F2742',
+            color: '#EAF2FF',
+            padding: 12,
+            borderRadius: 8,
+          }}
+          {...rest}
+        >
+          {children}
+        </code>
+      ),
   } as any;
 
   const handleSend = async (message: string) => {
     const userMessageId = uuidv4();
     const agentMessageId = uuidv4();
-
     setMessages((prev) => [...prev, { sender: 'user', text: message, id: userMessageId }]);
 
     try {
@@ -119,10 +105,9 @@ function ChatModule({ sid }: { sid: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message, sessionId: sid }),
       });
-
+      if (!res.ok) throw new Error(`agent-chat ${res.status}`);
       const data = await res.json();
       const agentReply = data.reply ?? '';
-
       setMessages((prev) => [...prev, { sender: 'agent', text: agentReply, id: agentMessageId }]);
 
       await fetch('/api/chat-logs', {
@@ -142,36 +127,21 @@ function ChatModule({ sid }: { sid: string }) {
   };
 
   return (
-    <main
-      style={{
-        flexGrow: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '768px',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          padding: '24px 16px',
-        }}
-      >
+    <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'hidden' }}>
+      <div style={{ width: '100%', maxWidth: 768, display: 'flex', flexDirection: 'column', height: '100%', padding: '24px 16px' }}>
         <div
           style={{
             flexGrow: 1,
             overflowY: 'auto',
-            backgroundColor: '#000000ff',
+            background: 'var(--panel)',
+            backdropFilter: 'blur(10px)',
             padding: 16,
-            borderRadius: 8,
+            borderRadius: 12,
             marginBottom: 12,
             display: 'flex',
             flexDirection: 'column',
             gap: 12,
+            border: '1px solid var(--border)',
           }}
         >
           {messages.map(({ sender, text, id }) => (
@@ -180,14 +150,18 @@ function ChatModule({ sid }: { sid: string }) {
               style={{
                 maxWidth: '100%',
                 alignSelf: sender === 'user' ? 'flex-end' : 'flex-start',
-                backgroundColor: sender === 'user' ? '#0a74da' : '#2f2f2f',
-                color: sender === 'user' ? '#ffffff' : '#ffffffff',
+                background:
+                  sender === 'user'
+                    ? 'linear-gradient(180deg,#5AA9FF,#38E1FF)'
+                    : 'rgba(255,255,255,.06)',
+                color: sender === 'user' ? '#001126' : '#EAF2FF',
                 padding: 12,
                 borderRadius: 12,
                 whiteSpace: 'pre-wrap',
                 wordWrap: 'break-word',
                 fontSize: 15,
                 lineHeight: 1.5,
+                border: sender === 'user' ? 'none' : '1px solid var(--border)',
               }}
             >
               <div className="react-markdown">
@@ -206,15 +180,20 @@ function ChatModule({ sid }: { sid: string }) {
   );
 }
 
-/**
- * Home — orchestrates modules (Core | Chat | Observe) with a right sidebar SearchPanel
- * and a Record toggle that starts/stops watch sessions.
- */
+/* --------------------------- Main App Shell --------------------------- */
 export default function Home() {
-  const sid = getOrCreateSessionId();
-  const [activeModule, setActiveModule] = useState<'core' | 'chat' | 'observe'>('core');
+  // Create session **on client** to avoid SSR/window issues
+  const [sid, setSid] = useState<string>('');
+  useEffect(() => {
+    try {
+      const s = getOrCreateSessionId();
+      setSid(s);
+    } catch (e) {
+      console.error('Session ID error', e);
+    }
+  }, []);
 
-  // Recording UI state mirrors window.apxObserve (set by ObserveCapture)
+  const [activeModule, setActiveModule] = useState<'core' | 'chat' | 'observe'>('core');
   const [recording, setRecording] = useState(false);
 
   useEffect(() => {
@@ -237,27 +216,48 @@ export default function Home() {
   };
 
   return (
-    <div
-      style={{
-        height: '100vh',
-        width: '100vw',
-        backgroundColor: '#000',
-        color: '#fff',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Main content area — reserve space so nothing sits under the sidebar */}
-      <div
-        style={{
-          height: '100%',
-          paddingRight: SIDEBAR_W,
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
+    <div style={{ height: '100vh', width: '100vw', position: 'relative', overflow: 'hidden' }}>
+      <GlobeBackdrop />
+
+      {/* reserve space so content doesn't hide under sidebar */}
+      <div style={{ height: '100%', paddingRight: SIDEBAR_W, position: 'relative', display: 'flex', flexDirection: 'column' }}>
         {/* In-app watcher (only records when REC is on) */}
         <ObserveCapture />
+
+        {/* Top-left logo + Logout */}
+        <div style={{ position: 'fixed', top: 12, left: 30, zIndex: 1200, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              fontSize: 34,
+              color: 'var(--accent-cyan)',
+              fontWeight: 'bold',
+              userSelect: 'none',
+              fontFamily: `'Segoe UI Symbol', system-ui, sans-serif`,
+            }}
+          >
+            ▲
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                await fetch('/api/logout', { method: 'POST' }).catch(() => fetch('/api/logout'));
+              } finally {
+                window.location.href = '/';
+              }
+            }}
+            style={{
+              background: 'var(--panel)',
+              color: 'var(--ink-high)',
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '6px 10px',
+              cursor: 'pointer',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            Log out
+          </button>
+        </div>
 
         {/* Top-right controls: module tabs + Record toggle */}
         <div
@@ -271,27 +271,27 @@ export default function Home() {
             gap: 10,
           }}
         >
-          {/* Module tabs */}
           {(['core', 'chat', 'observe'] as const).map((k) => (
             <button
               key={k}
               onClick={() => setActiveModule(k)}
               aria-pressed={activeModule === k}
               style={{
-                background: activeModule === k ? '#fff' : '#0a74da',
-                color: activeModule === k ? '#000' : '#fff',
-                border: 'none',
-                borderRadius: 8,
+                background: activeModule === k ? '#fff' : 'var(--panel)',
+                color: activeModule === k ? '#000' : 'var(--ink-high)',
+                border: '1px solid var(--border)',
+                borderRadius: 10,
                 padding: '8px 12px',
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
+                backdropFilter: 'blur(10px)',
               }}
             >
               {k === 'core' ? 'Core' : k === 'chat' ? 'Chat' : 'Observe'}
             </button>
           ))}
 
-          {/* Record toggle (red circle) */}
+          {/* Record toggle */}
           <button
             onClick={toggleRecording}
             aria-pressed={recording}
@@ -302,11 +302,12 @@ export default function Home() {
               gap: 8,
               padding: '6px 10px',
               borderRadius: 999,
-              border: '1px solid ' + (recording ? '#ff4b4b' : '#444'),
-              background: recording ? '#2a0000' : '#111',
+              border: '1px solid ' + (recording ? '#ff4b4b' : 'var(--border)'),
+              background: recording ? '#2a0000' : 'var(--panel)',
               color: '#fff',
               cursor: 'pointer',
               boxShadow: recording ? '0 0 12px rgba(255,75,75,.5)' : 'none',
+              backdropFilter: 'blur(10px)',
             }}
           >
             <span
@@ -322,81 +323,53 @@ export default function Home() {
             >
               <span
                 style={{
-                  content: '""',
                   position: 'absolute',
                   inset: 3,
                   borderRadius: '50%',
                   background: recording ? '#6a0000' : '#300',
-                } as any}
+                }}
               />
             </span>
             <span style={{ fontWeight: 700, fontSize: 12 }}>{recording ? 'REC' : 'Record'}</span>
           </button>
         </div>
 
-        {/* Log out */}
-        <button
-          onClick={async () => {
-            await fetch('/api/logout');
-            window.location.href = '/';
-          }}
-          style={{
-            background: '#222',
-            color: '#fff',
-            border: '1px solid #333',
-            borderRadius: 8,
-            padding: '6px 10px',
-            cursor: 'pointer',
-          }}
-        >
-          Log out
-        </button>
         {/* Active module */}
         <div style={{ flexGrow: 1, display: 'flex', position: 'relative', minHeight: 0 }}>
           {activeModule === 'chat' ? (
-            <ChatModule sid={sid} />
+            sid ? (
+              <ChatModule sid={sid} />
+            ) : (
+              <div style={{ margin: 'auto', opacity: 0.8 }}>Loading session…</div>
+            )
           ) : activeModule === 'observe' ? (
             <ObserveModule />
           ) : (
-            <main
-              style={{
-                flexGrow: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
-                padding: 24,
-              }}
-            >
-              <div style={{ maxWidth: 720, textAlign: 'center', opacity: 0.9 }}>
-                <h1 style={{ marginTop: 0, marginBottom: 8 }}>Apex Core</h1>
-                <p style={{ margin: 0 }}>
-                  Use <b>Record</b> to start/stop a watch session, then open <b>Observe</b> to review episodes and create rules.
-                </p>
-              </div>
+            <main style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+              <section style={{ width: '100%', maxWidth: 1040 }}>
+                <div style={{ textAlign: 'center', marginBottom: 18 }}>
+                  <h1 style={{ margin: '0 0 8px' }}>Apex</h1>
+                  <p style={{ margin: 0, color: 'var(--ink-mid)' }}>
+                    Use <b>Record</b> to start a watch session, then open <b>Observe</b> to review episodes and create rules.
+                  </p>
+                </div>
+                <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(4, minmax(0,1fr))' }}>
+                  <Tile title="Observe" subtitle="Map work" onClick={() => setActiveModule('observe')} />
+                  <Tile title="Chat" subtitle="Ask the Operator" onClick={() => setActiveModule('chat')} />
+                  <Tile title="Rules" subtitle="Create flows" href="/rules" />
+                  <Tile title="Runs" subtitle="History & logs" href="/runs" />
+                  <Tile title="Security" subtitle="Least-privilege" href="/security" />
+                  <Tile title="Docs" subtitle="Guides & API" href="/docs" />
+                  <Tile title="Settings" subtitle="Org & access" href="/settings" />
+                  <Tile title="Support" subtitle="We’ll help" href="/support" />
+                </div>
+              </section>
             </main>
           )}
         </div>
-
-        {/* Top-left logo */}
-        <div
-          style={{
-            position: 'fixed',
-            top: 12,
-            left: 30,
-            zIndex: 1200,
-            fontSize: 34,
-            color: '#0a74da',
-            fontWeight: 'bold',
-            userSelect: 'none',
-            fontFamily: `'Segoe UI Symbol', sans-serif`,
-          }}
-        >
-          ▲
-        </div>
       </div>
 
-      {/* Right sidebar (fixed) */}
+      {/* Right sidebar */}
       <aside
         style={{
           position: 'fixed',
@@ -405,12 +378,13 @@ export default function Home() {
           bottom: 0,
           width: SIDEBAR_W,
           zIndex: 1000,
-          borderLeft: '1px solid #222',
-          background: '#0b0b0b',
+          borderLeft: '1px solid var(--border)',
+          background: 'var(--panel)',
+          backdropFilter: 'blur(10px)',
           overflow: 'auto',
         }}
       >
-        <SearchPanel sessionId={sid} />
+        {sid ? <SearchPanel sessionId={sid} /> : <div style={{ padding: 16, color: 'var(--ink-mid)' }}>Loading…</div>}
       </aside>
     </div>
   );
