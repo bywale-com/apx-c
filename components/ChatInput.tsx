@@ -265,7 +265,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
   return (
     <div
       style={{
-        border: '10px solid #333333',
+        border: '10px solid #ffffff',
         borderRadius: 6,
         padding: 8,
         minWidth: 300,
