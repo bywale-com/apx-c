@@ -133,8 +133,8 @@ function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; set
       left: 0,
       bottom: 0,
       width: '60px',
-      background: 'rgba(255,255,255,0.05)',
-      borderRight: '1px solid rgba(91,225,255,0.2)',
+      background: 'rgba(0,0,0,0.8)',
+      borderRight: '1px solid rgba(255,107,53,0.3)',
       backdropFilter: 'blur(20px)',
       zIndex: 1000,
       display: 'flex',
@@ -142,7 +142,7 @@ function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; set
       alignItems: 'center',
       padding: '12px 0',
       gap: '8px',
-      boxShadow: '0 0 30px rgba(91,225,255,0.1)',
+      boxShadow: '0 0 30px rgba(255,107,53,0.2)',
     }}>
       {/* Logo */}
       <div style={{
@@ -663,12 +663,12 @@ function LiveMirror() {
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(91,225,255,0.15)',
+      background: 'rgba(0,0,0,0.8)',
+      border: '1px solid rgba(255,107,53,0.3)',
       borderRadius: '16px',
       padding: '24px',
       backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
     }}>
       {/* Header */}
       <div style={{ 
@@ -677,7 +677,7 @@ function LiveMirror() {
         justifyContent: 'space-between',
         marginBottom: '24px',
         paddingBottom: '16px',
-        borderBottom: '1px solid rgba(91,225,255,0.1)'
+        borderBottom: '1px solid rgba(255,107,53,0.2)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
@@ -714,10 +714,10 @@ function LiveMirror() {
       <div style={{ 
         flex: 1,
         overflowY: 'auto',
-        background: 'rgba(0,0,0,0.2)',
+        background: 'rgba(0,0,0,0.6)',
         borderRadius: '12px',
         padding: '16px',
-        border: '1px solid rgba(91,225,255,0.1)',
+        border: '1px solid rgba(255,107,53,0.2)',
       }}>
         <h3 style={{ 
           margin: '0 0 16px 0', 
@@ -749,10 +749,10 @@ function LiveMirror() {
             {extensionEvents.slice(-10).reverse().map((event, index) => (
               <div key={event.id || index} style={{
                 padding: '12px',
-                background: 'rgba(255,255,255,0.02)',
+                background: 'rgba(0,0,0,0.4)',
                 borderRadius: '8px',
-                border: '1px solid rgba(91,225,255,0.1)',
-                borderLeft: '3px solid rgba(91,225,255,0.3)',
+                border: '1px solid rgba(255,107,53,0.2)',
+                borderLeft: '3px solid rgba(255,107,53,0.5)',
               }}>
                 <div style={{ 
                   display: 'flex', 
@@ -808,9 +808,9 @@ function LiveMirror() {
       <div style={{ 
         marginTop: '16px',
         padding: '12px',
-        background: 'rgba(0,0,0,0.3)',
+        background: 'rgba(0,0,0,0.6)',
         borderRadius: '8px',
-        border: '1px solid rgba(91,225,255,0.1)',
+        border: '1px solid rgba(255,107,53,0.2)',
         fontSize: '12px',
         color: 'var(--ink-mid)',
         textAlign: 'center'
@@ -837,12 +837,12 @@ function AskPhase() {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(91,225,255,0.15)',
+      background: 'rgba(0,0,0,0.8)',
+      border: '1px solid rgba(255,107,53,0.3)',
       borderRadius: '16px',
       padding: '24px',
       backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
     }}>
       <div style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
         <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ink-high)' }}>Ask Phase</h2>
@@ -860,12 +860,12 @@ function RedesignPhase() {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(91,225,255,0.15)',
+      background: 'rgba(0,0,0,0.8)',
+      border: '1px solid rgba(255,107,53,0.3)',
       borderRadius: '16px',
       padding: '24px',
       backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
     }}>
       <div style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
         <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ink-high)' }}>Redesign Phase</h2>
@@ -883,12 +883,12 @@ function AutomatePhase() {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(91,225,255,0.15)',
+      background: 'rgba(0,0,0,0.8)',
+      border: '1px solid rgba(255,107,53,0.3)',
       borderRadius: '16px',
       padding: '24px',
       backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
     }}>
       <div style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
         <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ink-high)' }}>Automate Phase</h2>
@@ -975,18 +975,18 @@ function ChatModule({ sid }: { sid: string }) {
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
-      background: 'rgba(0,0,0,0.4)',
-      border: '1px solid rgba(91,225,255,0.15)',
+      background: 'rgba(0,0,0,0.8)',
+      border: '1px solid rgba(255,107,53,0.3)',
       borderRadius: '16px',
       padding: '24px',
       backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
     }}>
       {/* Header */}
       <div style={{ 
         marginBottom: '20px',
         paddingBottom: '16px',
-        borderBottom: '1px solid rgba(91,225,255,0.1)'
+        borderBottom: '1px solid rgba(255,107,53,0.2)'
       }}>
         <h2 style={{ 
           fontSize: '20px', 
@@ -1048,15 +1048,16 @@ function ChatModule({ sid }: { sid: string }) {
                   height: '32px',
                   borderRadius: '50%',
                   background: msg.sender === 'user' 
-                    ? 'rgba(91,225,255,0.2)' 
-                    : 'rgba(255,158,74,0.2)',
+                    ? 'rgba(255,107,53,0.3)' 
+                    : 'rgba(255,224,102,0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: msg.sender === 'user' ? '#5BE1FF' : '#FF9E4A',
+                  color: msg.sender === 'user' ? '#FF6B35' : '#FFE066',
                   flexShrink: 0,
+                  border: `1px solid ${msg.sender === 'user' ? 'rgba(255,107,53,0.5)' : 'rgba(255,224,102,0.5)'}`,
                 }}>
                   {msg.sender === 'user' ? 'U' : 'AI'}
                 </div>
@@ -1065,11 +1066,11 @@ function ChatModule({ sid }: { sid: string }) {
                   padding: '12px 16px',
                   borderRadius: '12px',
                   background: msg.sender === 'user' 
-                    ? 'rgba(91,225,255,0.1)' 
-                    : 'rgba(255,255,255,0.05)',
+                    ? 'rgba(255,107,53,0.15)' 
+                    : 'rgba(0,0,0,0.6)',
                   border: msg.sender === 'user' 
-                    ? '1px solid rgba(91,225,255,0.2)' 
-                    : '1px solid rgba(255,255,255,0.1)',
+                    ? '1px solid rgba(255,107,53,0.3)' 
+                    : '1px solid rgba(255,224,102,0.2)',
                   color: 'var(--ink-high)',
                   fontSize: '14px',
                   lineHeight: '1.5',
@@ -1080,12 +1081,13 @@ function ChatModule({ sid }: { sid: string }) {
                       code: ({ children, ...props }: any) => (
                         <code 
                           style={{
-                            background: 'rgba(0,0,0,0.3)',
-                            color: '#5BE1FF',
+                            background: 'rgba(0,0,0,0.7)',
+                            color: '#FF9E4A',
                             padding: '2px 6px',
                             borderRadius: '4px',
                             fontSize: '13px',
                             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                            border: '1px solid rgba(255,107,53,0.3)',
                           }}
                           {...props}
                         >
@@ -1095,14 +1097,14 @@ function ChatModule({ sid }: { sid: string }) {
                       pre: ({ children, ...props }: any) => (
                         <pre 
                           style={{
-                            background: 'rgba(0,0,0,0.4)',
-                            color: '#5BE1FF',
+                            background: 'rgba(0,0,0,0.8)',
+                            color: '#FFE066',
                             padding: '12px',
                             borderRadius: '8px',
                             overflowX: 'auto',
                             fontSize: '13px',
                             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                            border: '1px solid rgba(91,225,255,0.2)',
+                            border: '1px solid rgba(255,107,53,0.3)',
                           }}
                           {...props}
                         >
@@ -1137,13 +1139,14 @@ function ChatModule({ sid }: { sid: string }) {
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  background: 'rgba(255,158,74,0.2)',
+                  background: 'rgba(255,224,102,0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '14px',
                   fontWeight: '600',
-                  color: '#FF9E4A',
+                  color: '#FFE066',
+                  border: '1px solid rgba(255,224,102,0.5)',
                 }}>
                   AI
                 </div>
@@ -1171,8 +1174,8 @@ function ChatModule({ sid }: { sid: string }) {
 
       {/* Chat Input */}
       <div style={{
-        background: 'rgba(0,0,0,0.3)',
-        border: '1px solid rgba(91,225,255,0.2)',
+        background: 'rgba(0,0,0,0.6)',
+        border: '1px solid rgba(255,107,53,0.3)',
         borderRadius: '12px',
         padding: '16px',
       }}>
@@ -1190,12 +1193,12 @@ function ObserveModuleWrapper() {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center',
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(91,225,255,0.15)',
+      background: 'rgba(0,0,0,0.8)',
+      border: '1px solid rgba(255,107,53,0.3)',
       borderRadius: '16px',
       padding: '24px',
       backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
     }}>
       <div style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
         <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ink-high)' }}>Observe Module</h2>
@@ -1258,11 +1261,11 @@ export default function Home() {
           bottom: 0,
           width: 280,
           zIndex: 1000,
-          borderLeft: '1px solid rgba(255,158,74,0.2)',
-          background: 'rgba(255,255,255,0.03)',
+          borderLeft: '1px solid rgba(255,107,53,0.3)',
+          background: 'rgba(0,0,0,0.8)',
           backdropFilter: 'blur(20px)',
           overflow: 'auto',
-          boxShadow: '0 0 30px rgba(255,158,74,0.1)',
+          boxShadow: '0 0 30px rgba(255,107,53,0.2)',
         }}
       >
         {sid ? <SearchPanel sessionId={sid} /> : <div style={{ padding: 16, color: 'var(--ink-mid)' }}>Loading…</div>}

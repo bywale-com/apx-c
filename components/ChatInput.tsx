@@ -81,14 +81,14 @@ const Element = ({ attributes, children, element }: any) => {
         <pre
           {...attributes}
           style={{
-            color: '#5BE1FF',
-            backgroundColor: 'rgba(0,0,0,0.4)',
+            color: '#FFE066',
+            backgroundColor: 'rgba(0,0,0,0.8)',
             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
             fontSize: 14,
             padding: '12px',
             borderRadius: 8,
             overflowX: 'auto',
-            border: '1px solid rgba(91,225,255,0.2)',
+            border: '1px solid rgba(255,107,53,0.3)',
             margin: '8px 0',
           }}
         >
@@ -159,10 +159,10 @@ const FormatButton = ({ format, icon }: { format: keyof Omit<CustomText, 'text'>
         marginRight: 8,
         padding: '6px 12px',
         cursor: 'pointer',
-        background: active ? 'rgba(91,225,255,0.2)' : 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(91,225,255,0.2)',
+        background: active ? 'rgba(255,107,53,0.3)' : 'rgba(0,0,0,0.4)',
+        border: '1px solid rgba(255,107,53,0.3)',
         borderRadius: '6px',
-        color: active ? '#5BE1FF' : 'var(--ink-mid)',
+        color: active ? '#FF6B35' : '#FFE066',
         fontSize: '14px',
         transition: 'all 0.2s ease',
       }}
@@ -187,10 +187,10 @@ const CodeBlockButton = () => {
         fontWeight: active ? 'bold' : 'normal',
         padding: '6px 12px',
         cursor: 'pointer',
-        background: active ? 'rgba(91,225,255,0.2)' : 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(91,225,255,0.2)',
+        background: active ? 'rgba(255,107,53,0.3)' : 'rgba(0,0,0,0.4)',
+        border: '1px solid rgba(255,107,53,0.3)',
         borderRadius: '6px',
-        color: active ? '#5BE1FF' : 'var(--ink-mid)',
+        color: active ? '#FF6B35' : '#FFE066',
         fontSize: '14px',
         transition: 'all 0.2s ease',
       }}
@@ -279,14 +279,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
   return (
     <div
       style={{
-        border: '1px solid rgba(91,225,255,0.2)',
+        border: '1px solid rgba(255,107,53,0.3)',
         borderRadius: 12,
         padding: 12,
         minWidth: 300,
         maxWidth: 1200,
         display: 'flex',
         flexDirection: 'column',
-        background: 'rgba(0,0,0,0.2)',
+        background: 'rgba(0,0,0,0.6)',
         backdropFilter: 'blur(10px)',
       }}
     >
@@ -310,8 +310,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
             padding: 12,
             fontSize: 15,
             lineHeight: '1.4',
-            background: 'rgba(0,0,0,0.3)',
-            border: '1px solid rgba(91,225,255,0.1)',
+            background: 'rgba(0,0,0,0.7)',
+            border: '1px solid rgba(255,107,53,0.2)',
             borderRadius: '8px',
             color: 'var(--ink-high)',
             outline: 'none',
@@ -328,10 +328,10 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
           padding: '8px 16px',
           fontSize: 14,
           fontWeight: '500',
-          background: 'rgba(91,225,255,0.2)',
-          border: '1px solid rgba(91,225,255,0.3)',
+          background: 'rgba(255,107,53,0.3)',
+          border: '1px solid rgba(255,107,53,0.4)',
           borderRadius: '8px',
-          color: '#5BE1FF',
+          color: '#FF6B35',
           cursor: 'pointer',
           alignSelf: 'flex-end',
           transition: 'all 0.2s ease',

@@ -89,20 +89,23 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
   const markdownComponents = {
     pre: (props: any) => (
       <pre style={{
-        backgroundColor: '#282c34', color: '#f8f8f2', padding: 12, borderRadius: 6,
+        backgroundColor: 'rgba(0,0,0,0.8)', color: '#FFE066', padding: 12, borderRadius: 8,
         overflowX: 'auto', fontFamily: "Monaco, Menlo, 'Ubuntu Mono', monospace", fontSize: 14,
+        border: '1px solid rgba(255,107,53,0.3)',
       }} {...props} />
     ),
     code: ({ inline, children, ...rest }: any) => inline ? (
       <code style={{
-        backgroundColor: '#3a3f4b', color: '#0ea732ff', padding: '2px 6px', borderRadius: 4,
+        backgroundColor: 'rgba(0,0,0,0.6)', color: '#FF9E4A', padding: '2px 6px', borderRadius: 4,
         fontFamily: "Monaco, Menlo, 'Ubuntu Mono', monospace", fontSize: 14,
+        border: '1px solid rgba(255,107,53,0.2)',
       }} {...rest}>{children}</code>
     ) : (
       <code style={{
-        display: 'block', backgroundColor: '#2c313c', color: '#f8f8f2',
-        padding: 12, borderRadius: 6, overflowX: 'auto',
+        display: 'block', backgroundColor: 'rgba(0,0,0,0.8)', color: '#FFE066',
+        padding: 12, borderRadius: 8, overflowX: 'auto',
         fontFamily: "Monaco, Menlo, 'Ubuntu Mono', monospace", fontSize: 14,
+        border: '1px solid rgba(255,107,53,0.3)',
       }} {...rest}>{children}</code>
     ),
   }
@@ -111,10 +114,10 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
   <div
     style={{
       width: expanded ? 280 : 40,
-      background: 'rgba(255,255,255,0.03)',
+      background: 'rgba(0,0,0,0.8)',
       color: '#e0e0e0',
       height: '100vh',
-      borderLeft: '1px solid rgba(255,158,74,0.2)',
+      borderLeft: '1px solid rgba(255,107,53,0.4)',
       transition: 'width 0.3s ease',
       position: 'fixed',
       top: 0,
@@ -124,7 +127,7 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
       overflowY: 'auto',
       zIndex: 999,
       backdropFilter: 'blur(20px)',
-      boxShadow: '0 0 30px rgba(255,158,74,0.1)',
+      boxShadow: '0 0 30px rgba(255,107,53,0.2)',
     }}
   >
     <button
@@ -143,15 +146,15 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
             value={query}
             onChange={(e) => { setQuery(e.target.value); setSelected(null) }}
             style={{
-              flex: 1, padding: '6px 10px', border: '1px solid #444', borderRadius: 4,
-              background: '#2a2a2a', color: '#fff', fontSize: 14,
+              flex: 1, padding: '6px 10px', border: '1px solid rgba(255,107,53,0.3)', borderRadius: 4,
+              background: 'rgba(0,0,0,0.6)', color: '#fff', fontSize: 14,
             }}
           />
           <select
             value={scope}
             onChange={(e) => setScope(e.target.value as any)}
             title="Scope"
-            style={{ background: '#2a2a2a', color: '#e0e0e0', border: '1px solid #444', borderRadius: 4, padding: '4px 6px' }}
+            style={{ background: 'rgba(0,0,0,0.6)', color: '#e0e0e0', border: '1px solid rgba(255,107,53,0.3)', borderRadius: 4, padding: '4px 6px' }}
           >
             <option value="session">This session</option>
             <option value="all">All sessions</option>
@@ -166,8 +169,9 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
                 <li
                   style={{
                     padding: '8px 10px', borderRadius: 4, marginBottom: 6, cursor: 'pointer',
-                    backgroundColor: selected?.id === item.id ? '#333' : '#2a2a2a',
-                    transition: 'background-color 0.2s', color: '#e0e0e0',
+                    backgroundColor: selected?.id === item.id ? 'rgba(255,107,53,0.2)' : 'rgba(0,0,0,0.4)',
+                    border: selected?.id === item.id ? '1px solid rgba(255,107,53,0.4)' : '1px solid rgba(255,107,53,0.1)',
+                    transition: 'all 0.2s', color: '#e0e0e0',
                   }}
                   onClick={() => setSelected(item)}
                 >
@@ -183,9 +187,9 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
                     style={{
                       margin: '4px 0 12px 20px',
                       padding: 10,
-                      background: '#2a2a2a',
-                      border: '1px solid #444',
-                      borderRadius: 4,
+                      background: 'rgba(0,0,0,0.7)',
+                      border: '1px solid rgba(255,107,53,0.3)',
+                      borderRadius: 8,
                       fontSize: 13,
                       whiteSpace: 'pre-wrap',
                       lineHeight: 1.5,
@@ -195,6 +199,7 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
                       flexDirection: 'column',
                       gap: 8,
                       position: 'absolute',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
                     }}
                   >
                     <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents as any}>
