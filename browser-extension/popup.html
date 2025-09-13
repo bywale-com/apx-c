@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #ffffff;
+      margin: 0;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .logo {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(45deg, #38e1ff, #ff4444);
+      border-radius: 4px;
+    }
+    
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #666;
+    }
+    
+    .status-dot.active {
+      background: #00ff88;
+      box-shadow: 0 0 8px #00ff88;
+    }
+    
+    .status-text {
+      font-size: 14px;
+      color: #ffffff;
+    }
+    
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-primary {
+      background: #38e1ff;
+      color: #001126;
+    }
+    
+    .btn-primary:hover {
+      background: #2bc7e6;
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .btn-danger {
+      background: rgba(255, 68, 68, 0.1);
+      color: #ff4444;
+      border: 1px solid rgba(255, 68, 68, 0.3);
+    }
+    
+    .btn-danger:hover {
+      background: rgba(255, 68, 68, 0.2);
+    }
+    
+    .info {
+      margin-top: 16px;
+      padding: 12px;
+      background: rgba(255, 170, 0, 0.1);
+      border: 1px solid rgba(255, 170, 0, 0.3);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #ffaa00;
+      line-height: 1.4;
+    }
+    
+    .stats {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo"></div>
+    <div class="title">Apex Monitor</div>
+  </div>
+  
+  <div class="status">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text" id="statusText">Checking status...</div>
+  </div>
+  
+  <div class="controls">
+    <button class="btn btn-primary" id="toggleBtn">Start Monitoring</button>
+    <button class="btn btn-secondary" id="settingsBtn">Settings</button>
+  </div>
+  
+  <div class="info">
+    <strong>⚠️ Current Status:</strong><br>
+    • Monitors clicks, inputs, navigation<br>
+    • Sends data to Apex app<br>
+    • Works on all websites
+  </div>
+  
+  <div class="stats" id="stats">
+    Monitored tabs: <span id="tabCount">0</span>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -81,13 +81,15 @@ const Element = ({ attributes, children, element }: any) => {
         <pre
           {...attributes}
           style={{
-            color: '#0ea732ff',
-            backgroundColor: '#333333',
-            fontFamily: 'monospace',
+            color: '#5BE1FF',
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
             fontSize: 14,
-            padding: '10px',
-            borderRadius: 4,
+            padding: '12px',
+            borderRadius: 8,
             overflowX: 'auto',
+            border: '1px solid rgba(91,225,255,0.2)',
+            margin: '8px 0',
           }}
         >
           <code>{children}</code>
@@ -155,8 +157,14 @@ const FormatButton = ({ format, icon }: { format: keyof Omit<CustomText, 'text'>
       style={{
         fontWeight: active ? 'bold' : 'normal',
         marginRight: 8,
-        padding: '4px 8px',
+        padding: '6px 12px',
         cursor: 'pointer',
+        background: active ? 'rgba(91,225,255,0.2)' : 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(91,225,255,0.2)',
+        borderRadius: '6px',
+        color: active ? '#5BE1FF' : 'var(--ink-mid)',
+        fontSize: '14px',
+        transition: 'all 0.2s ease',
       }}
       type="button"
       aria-label={`Toggle ${format}`}
@@ -177,8 +185,14 @@ const CodeBlockButton = () => {
       }}
       style={{
         fontWeight: active ? 'bold' : 'normal',
-        padding: '4px 8px',
+        padding: '6px 12px',
         cursor: 'pointer',
+        background: active ? 'rgba(91,225,255,0.2)' : 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(91,225,255,0.2)',
+        borderRadius: '6px',
+        color: active ? '#5BE1FF' : 'var(--ink-mid)',
+        fontSize: '14px',
+        transition: 'all 0.2s ease',
       }}
       type="button"
       aria-label="Toggle code block"
@@ -265,13 +279,15 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
   return (
     <div
       style={{
-        border: '10px solid #ffffff',
-        borderRadius: 6,
-        padding: 8,
+        border: '1px solid rgba(91,225,255,0.2)',
+        borderRadius: 12,
+        padding: 12,
         minWidth: 300,
         maxWidth: 1200,
         display: 'flex',
         flexDirection: 'column',
+        background: 'rgba(0,0,0,0.2)',
+        backdropFilter: 'blur(10px)',
       }}
     >
       <Slate editor={editor} initialValue={value} onValueChange={newValue => setValue(newValue)}>
@@ -291,9 +307,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
             minHeight: 70,
             maxHeight: 150,
             overflowY: 'auto',
-            padding: 6,
+            padding: 12,
             fontSize: 15,
             lineHeight: '1.4',
+            background: 'rgba(0,0,0,0.3)',
+            border: '1px solid rgba(91,225,255,0.1)',
+            borderRadius: '8px',
+            color: 'var(--ink-high)',
+            outline: 'none',
           }}
         />
       </Slate>
@@ -303,11 +324,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
         onClick={handleSend}
         // disabled={serialize(value).trim().length === 0}
         style={{
-          marginTop: 6,
-          padding: '6px 12px',
+          marginTop: 12,
+          padding: '8px 16px',
           fontSize: 14,
-          // cursor: serialize(value).trim().length === 0 ? 'not-allowed' : 'pointer',
+          fontWeight: '500',
+          background: 'rgba(91,225,255,0.2)',
+          border: '1px solid rgba(91,225,255,0.3)',
+          borderRadius: '8px',
+          color: '#5BE1FF',
+          cursor: 'pointer',
           alignSelf: 'flex-end',
+          transition: 'all 0.2s ease',
         }}
       >
         Send

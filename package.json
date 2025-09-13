@@ -15,6 +15,7 @@
     "next": "15.5.2",
     "pg": "^8.16.3",
     "pm2": "^6.0.10",
+    "puppeteer": "^24.20.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-markdown": "^10.1.0",
@@ -23,7 +24,8 @@
     "slate": "^0.118.1",
     "slate-react": "^0.117.4",
     "swr": "^2.3.6",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

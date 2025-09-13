@@ -110,11 +110,11 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
   return (
   <div
     style={{
-      width: expanded ? 360 : 40,
-      background: '#1e1e1e',
+      width: expanded ? 280 : 40,
+      background: 'rgba(255,255,255,0.03)',
       color: '#e0e0e0',
       height: '100vh',
-      borderLeft: '1px solid #333',
+      borderLeft: '1px solid rgba(255,158,74,0.2)',
       transition: 'width 0.3s ease',
       position: 'fixed',
       top: 0,
@@ -123,6 +123,8 @@ function CopyButton({ textToCopy }: { textToCopy: string }) {
       boxSizing: 'border-box',
       overflowY: 'auto',
       zIndex: 999,
+      backdropFilter: 'blur(20px)',
+      boxShadow: '0 0 30px rgba(255,158,74,0.1)',
     }}
   >
     <button

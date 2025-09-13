@@ -21,18 +21,18 @@ const sectionGridOverlay: React.CSSProperties = {
 // Simple SVG icon set (stroke only)
 const IconObserve = () => (
   <svg width="40" height="40" viewBox="0 0 40 40" style={{ display: 'block', margin: '0 auto' }}>
-    <circle cx="17" cy="17" r="9" fill="none" stroke="#7C5CFF" strokeWidth="2" />
-    <line x1="23" y1="23" x2="34" y2="34" stroke="#7C5CFF" strokeWidth="3" strokeLinecap="round" />
+    <circle cx="17" cy="17" r="9" fill="none" stroke="#8B1538" strokeWidth="2" />
+    <line x1="23" y1="23" x2="34" y2="34" stroke="#8B1538" strokeWidth="3" strokeLinecap="round" />
   </svg>
 );
 const IconOrchestrate = () => (
   <svg width="40" height="40" viewBox="0 0 40 40" style={{ display: 'block', margin: '0 auto' }}>
-    <circle cx="10" cy="10" r="4" fill="#7C5CFF" />
+    <circle cx="10" cy="10" r="4" fill="#8B1538" />
     <circle cx="30" cy="10" r="4" fill="#FF9E4A" />
     <circle cx="20" cy="30" r="4" fill="#5BE1FF" />
-    <line x1="10" y1="10" x2="30" y2="10" stroke="#7C5CFF" strokeWidth="2" />
-    <line x1="10" y1="10" x2="20" y2="30" stroke="#7C5CFF" strokeWidth="2" />
-    <line x1="30" y1="10" x2="20" y2="30" stroke="#7C5CFF" strokeWidth="2" />
+    <line x1="10" y1="10" x2="30" y2="10" stroke="#8B1538" strokeWidth="2" />
+    <line x1="10" y1="10" x2="20" y2="30" stroke="#8B1538" strokeWidth="2" />
+    <line x1="30" y1="10" x2="20" y2="30" stroke="#8B1538" strokeWidth="2" />
   </svg>
 );
 const IconOperate = () => (
@@ -301,10 +301,11 @@ const VectorField = ({ mouse }: { mouse: { x: number; y: number } }) => {
   const palette = {
     base: '#120b1f',       // deep purple base
     light: '#CFE3FF',
-    purple: '#7C5CFF',     // near
-    cyan: '#5BE1FF',       // mid
-    orange: '#FF9E4A',     // far-mid
-    red: '#FF6464'         // farthest
+    white: '#FFFFFF',      // nearest - brightest cosmic light
+    yellow: '#FFE066',     // near - warm cosmic light
+    orange: '#FF9E4A',     // mid - cosmic warmth
+    redOrange: '#FF6B35',  // far-mid - cosmic fire
+    red: '#FF4444'         // farthest - deep cosmic ember
   };
 
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 1200, h: 600 });
@@ -337,9 +338,13 @@ const VectorField = ({ mouse }: { mouse: { x: number; y: number } }) => {
         const nx = dx / dist; const ny = dy / dist; // direction to cursor
         const ex = sx + nx * len;
         const ey = sy + ny * len;
-        // Color mapping by proximity bands: near->purple, mid->cyan, far-mid->orange, far->red
+        // Color mapping by proximity bands: cosmic light spectrum (white->yellow->orange->redOrange->red)
         let color = palette.red;
-        if (pull > 0.45) color = palette.purple; else if (pull > 0.25) color = palette.cyan; else if (pull > 0.12) color = palette.orange; // else red
+        if (pull > 0.6) color = palette.white; 
+        else if (pull > 0.45) color = palette.yellow; 
+        else if (pull > 0.3) color = palette.orange; 
+        else if (pull > 0.15) color = palette.redOrange; 
+        // else red (farthest)
         const opacity = Math.max(0.22, Math.min(1, pull * 2));
         out.push({ sx, sy, ex, ey, c: color, opacity });
       }
@@ -384,7 +389,7 @@ const CursorOrb = ({ x, y }: { x: number; y: number }) => {
       <defs>
         <radialGradient id="orbFill" cx="40%" cy="35%" r="70%">
           <stop offset="0%" stopColor="#5BE1FF" />
-          <stop offset="50%" stopColor="#7C5CFF" />
+          <stop offset="50%" stopColor="#8B1538" />
           <stop offset="100%" stopColor="#120b1f" />
         </radialGradient>
         <radialGradient id="orbSpec" cx="35%" cy="30%" r="25%">
@@ -476,14 +481,14 @@ export default function Landing() {
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         backdropFilter: 'blur(10px)',
-        borderTop: '1px solid rgba(124,92,255,0.25)',
+        borderTop: '1px solid rgba(139,21,56,0.25)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '32px',
             height: '32px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #7C5CFF, #5BE1FF)',
+            background: 'linear-gradient(135deg, #8B1538, #5BE1FF)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -568,7 +573,7 @@ export default function Landing() {
           padding: '60px 40px',
           backgroundColor: 'rgba(11, 11, 11, 0.8)',
           backdropFilter: 'blur(10px)',
-          borderTop: '1px solid rgba(124,92,255,0.25)',
+          borderTop: '1px solid rgba(139,21,56,0.25)',
         }}>
           <div style={{
             fontSize: '0.75rem',
@@ -623,7 +628,7 @@ export default function Landing() {
                 letterSpacing: '-1px',
               }}
             >
-              A bridge between professionals and automation
+              A light bridge between professionals and automation
             </h1>
           </motion.div>
         </div>
@@ -831,7 +836,7 @@ export default function Landing() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                color: '#7C5CFF',
+                color: '#8B1538',
                 textDecoration: 'none',
                 fontSize: '1.1rem',
                 fontWeight: '500',
@@ -1124,7 +1129,7 @@ export default function Landing() {
                   <motion.circle
                     key={`rhythm-${i}`}
                     cx={indicator.x} cy={indicator.y} r="6"
-                    fill="#7C5CFF"
+                    fill="#8B1538"
                     animate={{ scale: [1, 1.2, 1], opacity: [0.8, 1, 0.8] }}
                     transition={{
                       duration: 2,
@@ -1155,7 +1160,7 @@ export default function Landing() {
               {[
                 { label: 'OBSERVE', color: '#38E1FF', delay: 0 },
                 { label: 'ORCHESTRATE', color: '#FF9E4A', delay: 3 },
-                { label: 'OPERATE', color: '#7C5CFF', delay: 6 },
+                { label: 'OPERATE', color: '#8B1538', delay: 6 },
               ].map((phase, i) => (
                 <motion.div
                   key={phase.label}
@@ -1458,7 +1463,7 @@ export default function Landing() {
                 left: 0,
                 right: 0,
                 height: '3px',
-                background: 'linear-gradient(90deg, #38E1FF, #7C5CFF)',
+                background: 'linear-gradient(90deg, #38E1FF, #8B1538)',
                 borderRadius: '16px 16px 0 0',
               }} />
               
@@ -1509,8 +1514,8 @@ export default function Landing() {
           {/* Results Highlight */}
           <motion.div
             style={{
-              backgroundColor: 'rgba(124,92,255,0.08)',
-              border: '1px solid rgba(124,92,255,0.2)',
+              backgroundColor: 'rgba(139,21,56,0.08)',
+              border: '1px solid rgba(139,21,56,0.2)',
               borderRadius: '16px',
               padding: '40px',
               textAlign: 'center',
@@ -1530,8 +1535,8 @@ export default function Landing() {
                 left: 0,
                 right: 0,
                 height: '2px',
-                background: 'linear-gradient(90deg, transparent, #7C5CFF, transparent)',
-                boxShadow: '0 0 8px rgba(124,92,255,0.35)',
+                background: 'linear-gradient(90deg, transparent, #8B1538, transparent)',
+                boxShadow: '0 0 8px rgba(139,21,56,0.35)',
               }}
               animate={{ scaleX: [0, 1, 0], opacity: [0, 1, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -1547,7 +1552,7 @@ export default function Landing() {
               <div style={{
                 fontSize: '3.5rem',
                 fontWeight: 'bold',
-                color: '#7C5CFF',
+                color: '#8B1538',
                 textAlign: 'center',
               }}>
                 67%
@@ -1591,7 +1596,7 @@ export default function Landing() {
           padding: '60px 40px',
           backgroundColor: 'rgba(11, 11, 11, 0.8)',
           backdropFilter: 'blur(10px)',
-          borderBottom: '1px solid rgba(124,92,255,0.25)',
+          borderBottom: '1px solid rgba(139,21,56,0.25)',
         }}>
           <div style={{
             fontSize: '0.75rem',
@@ -1653,7 +1658,7 @@ export default function Landing() {
                 left: 0,
                 right: 0,
                 height: '3px',
-                background: 'linear-gradient(90deg, #38E1FF, #7C5CFF)',
+                background: 'linear-gradient(90deg, #38E1FF, #8B1538)',
                 borderRadius: '16px 16px 0 0',
               }} />
               
@@ -1771,7 +1776,7 @@ export default function Landing() {
                     whileHover={{
                       backgroundColor: 'rgba(255,255,255,0.12)',
                       transform: 'translateY(-2px)',
-                      borderColor: 'rgba(124,92,255,0.3)',
+                      borderColor: 'rgba(139,21,56,0.3)',
                     }}
                     initial={{ opacity: 0, scale: 0.8 }}
                     whileInView={{ opacity: 1, scale: 1 }}
@@ -1835,7 +1840,7 @@ export default function Landing() {
             <h2 style={{ fontSize: '2.5rem', fontWeight: '300', color: '#ffffff', marginBottom: '20px', letterSpacing: '-1px' }}>
               Latest Insights
             </h2>
-            <div style={{ width: '60px', height: '2px', backgroundColor: '#7C5CFF', margin: '0 auto', boxShadow: '0 0 8px rgba(124,92,255,0.35)' }} />
+            <div style={{ width: '60px', height: '2px', backgroundColor: '#8B1538', margin: '0 auto', boxShadow: '0 0 8px rgba(139,21,56,0.35)' }} />
           </motion.div>
 
           {/* Blog Posts Grid */}
@@ -1890,8 +1895,8 @@ export default function Landing() {
                     left: 0,
                     right: 0,
                     height: '2px',
-                    background: 'linear-gradient(90deg, transparent, #7C5CFF, transparent)',
-                    boxShadow: '0 0 8px rgba(124,92,255,0.35)',
+                    background: 'linear-gradient(90deg, transparent, #8B1538, transparent)',
+                    boxShadow: '0 0 8px rgba(139,21,56,0.35)',
                   }}
                   animate={{
                     scaleX: [0, 1, 0],
@@ -1914,7 +1919,7 @@ export default function Landing() {
                   }}>
                     <span style={{
                       fontSize: '0.8rem',
-                      color: '#7C5CFF',
+                      color: '#8B1538',
                       fontWeight: '600',
                       textTransform: 'uppercase',
                       letterSpacing: '1px',
@@ -1951,7 +1956,7 @@ export default function Landing() {
                   <motion.a
                     href="#read-more"
                     style={{
-                      color: '#7C5CFF',
+                      color: '#8B1538',
               textDecoration: 'none',
                       fontSize: '0.9rem',
                       fontWeight: '500',
@@ -1980,7 +1985,7 @@ export default function Landing() {
                       left: '0',
                       width: '20px',
                       height: '2px',
-                      backgroundColor: '#7C5CFF',
+                      backgroundColor: '#8B1538',
                     }}
                     animate={{
                       scaleX: [0, 1, 0],
@@ -1999,7 +2004,7 @@ export default function Landing() {
                       left: '0',
                       width: '2px',
                       height: '20px',
-                      backgroundColor: '#7C5CFF',
+                      backgroundColor: '#8B1538',
                     }}
                     animate={{
                       scaleY: [0, 1, 0],
@@ -2068,7 +2073,7 @@ export default function Landing() {
                 backgroundColor: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',
-                color: '#7C5CFF',
+                color: '#8B1538',
                 fontSize: '18px',
                 fontWeight: '600',
                 cursor: 'pointer',
