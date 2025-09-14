@@ -201,11 +201,26 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (isMonitoring && changeInfo.status === 'complete' && tab.url) {
     // Inject monitoring script into new/updated tabs
     if (!tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+      // Inject both content.js and injected.js for new tabs
       chrome.scripting.executeScript({
         target: { tabId },
-        files: ['injected.js']
+        files: ['content.js']
+      }).then(() => {
+        return chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['injected.js']
+        });
       }).then(() => {
         monitoredTabs.add(tabId);
+        
+        // Send START_CAPTURING message to the new tab
+        setTimeout(() => {
+          console.log(`📤 Background: Sending START_CAPTURING to new tab ${tabId}`);
+          chrome.tabs.sendMessage(tabId, { type: 'START_CAPTURING' }).catch(error => {
+            console.log(`Could not send message to new tab ${tabId}:`, error);
+          });
+        }, 100);
+        
         // Only send tab_monitored if monitoring is active
         if (isMonitoring) {
           sendToApp({ 

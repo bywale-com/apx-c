@@ -255,6 +255,6 @@
     sendCustomEvent: (eventData) => sendEvent(eventData)
   };
   
-  console.log('Apex Monitor injected into:', window.location.href);
+  console.log('🚀 Apex Monitor injected into:', window.location.href);
   console.log('📡 Initial monitoring state:', isCapturing ? 'ON' : 'OFF');
 })();

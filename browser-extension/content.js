@@ -4,13 +4,8 @@
 (function() {
   'use strict';
   
-  // Inject the monitoring script into the page
-  const script = document.createElement('script');
-  script.src = chrome.runtime.getURL('injected.js');
-  script.onload = function() {
-    this.remove();
-  };
-  (document.head || document.documentElement).appendChild(script);
+  // Note: injected.js is now injected directly by background script
+  // No need to inject it here to avoid conflicts
   
   // Listen for messages from the injected script
   window.addEventListener('message', (event) => {
@@ -74,5 +69,5 @@
     }
   });
   
-  console.log('Apex Monitor content script loaded');
+  console.log('🚀 Apex Monitor content script loaded on:', window.location.href);
 })();
