@@ -9,7 +9,8 @@
     "storage",
     "scripting",
     "webRequest",
-    "background"
+    "background",
+    "desktopCapture"
   ],
   "host_permissions": [
     "<all_urls>"

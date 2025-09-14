@@ -606,15 +606,18 @@ function LiveMirror() {
   const [extensionEvents, setExtensionEvents] = useState<any[]>([]);
   const [extensionConnected, setExtensionConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [screenRecordings, setScreenRecordings] = useState<any[]>([]);
+  const [currentRecording, setCurrentRecording] = useState<string | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  // Poll for extension events
+  // Poll for extension events and recordings
   useEffect(() => {
-    const pollForEvents = async () => {
+    const pollForData = async () => {
       try {
-        const response = await fetch('/api/extension-events?action=get_recent');
-        if (response.ok) {
-          const events = await response.json();
+        // Fetch events
+        const eventsResponse = await fetch('/api/extension-events?action=get_recent');
+        if (eventsResponse.ok) {
+          const events = await eventsResponse.json();
           setExtensionEvents(events);
           
           // Check if extension is connected (has recent events within 30 seconds)
@@ -626,18 +629,31 @@ function LiveMirror() {
           
           setExtensionConnected(recentEvents.length > 0);
         }
+
+        // Fetch screen recordings
+        const recordingsResponse = await fetch('/api/extension-events?action=get_recordings');
+        if (recordingsResponse.ok) {
+          const recordings = await recordingsResponse.json();
+          setScreenRecordings(recordings);
+          
+          // Set the most recent recording as current
+          if (recordings.length > 0 && !currentRecording) {
+            const latestRecording = recordings[recordings.length - 1];
+            setCurrentRecording(latestRecording.data);
+          }
+        }
       } catch (error) {
-        console.error('Failed to fetch extension events:', error);
+        console.error('Failed to fetch extension data:', error);
         setExtensionConnected(false);
       }
     };
 
     // Poll every 2 seconds
-    const interval = setInterval(pollForEvents, 2000);
-    pollForEvents(); // Initial poll
+    const interval = setInterval(pollForData, 2000);
+    pollForData(); // Initial poll
 
     return () => clearInterval(interval);
-  }, []);
+  }, [currentRecording]);
 
   // Listen for recording control messages
   useEffect(() => {
@@ -709,6 +725,44 @@ function LiveMirror() {
           </span>
         </div>
       </div>
+
+      {/* Screen Recording Player */}
+      {currentRecording && (
+        <div style={{ 
+          marginBottom: '20px',
+          background: 'rgba(0,0,0,0.6)',
+          borderRadius: '12px',
+          padding: '16px',
+          border: '1px solid rgba(255,107,53,0.2)',
+        }}>
+          <h3 style={{ 
+            margin: '0 0 12px 0', 
+            fontSize: '16px', 
+            color: 'var(--ink-high)',
+            fontWeight: '500'
+          }}>
+            📹 Live Screen Recording
+          </h3>
+          <video
+            controls
+            style={{
+              width: '100%',
+              maxHeight: '300px',
+              borderRadius: '8px',
+              background: 'rgba(0,0,0,0.8)',
+            }}
+            src={`data:video/webm;base64,${currentRecording}`}
+          />
+          <div style={{ 
+            marginTop: '8px', 
+            fontSize: '12px', 
+            color: 'var(--ink-mid)',
+            textAlign: 'center'
+          }}>
+            {screenRecordings.length} recording(s) available
+          </div>
+        </div>
+      )}
 
       {/* Live Activity Feed */}
       <div style={{ 
@@ -816,7 +870,7 @@ function LiveMirror() {
         textAlign: 'center'
       }}>
         {extensionConnected ? (
-          <>✅ Extension connected • Live monitoring active</>
+          <>✅ Extension connected • Live monitoring active • {screenRecordings.length} recording(s)</>
         ) : (
           <>⚠️ Install browser extension to enable live mirror</>
         )}
@@ -1187,12 +1241,51 @@ function ChatModule({ sid }: { sid: string }) {
 
 /* -------------------- Observe Module Wrapper -------------------- */
 function ObserveModuleWrapper() {
+  const [recordings, setRecordings] = useState<any[]>([]);
+  const [selectedRecording, setSelectedRecording] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch recordings on component mount
+  useEffect(() => {
+    const fetchRecordings = async () => {
+      try {
+        const response = await fetch('/api/extension-events?action=get_recordings');
+        if (response.ok) {
+          const data = await response.json();
+          setRecordings(data);
+          if (data.length > 0 && !selectedRecording) {
+            setSelectedRecording(data[data.length - 1]); // Select most recent
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch recordings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecordings();
+    
+    // Refresh recordings every 5 seconds
+    const interval = setInterval(fetchRecordings, 5000);
+    return () => clearInterval(interval);
+  }, [selectedRecording]);
+
+  const formatDuration = (duration: number) => {
+    const seconds = Math.floor(duration / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatTimestamp = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
   return (
     <div style={{ 
       height: '100%', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
+      display: 'flex',
       background: 'rgba(0,0,0,0.8)',
       border: '1px solid rgba(255,107,53,0.3)',
       borderRadius: '16px',
@@ -1200,9 +1293,202 @@ function ObserveModuleWrapper() {
       backdropFilter: 'blur(20px)',
       boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
     }}>
-      <div style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
-        <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ink-high)' }}>Observe Module</h2>
-        <p>Review recordings and automation rules</p>
+      {/* Left Panel - Recording List */}
+      <div style={{
+        width: '300px',
+        marginRight: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+        <h2 style={{ 
+          fontSize: '20px', 
+          marginBottom: '20px', 
+          color: 'var(--ink-high)',
+          fontWeight: '600'
+        }}>
+          📹 Recordings ({recordings.length})
+        </h2>
+        
+        {loading ? (
+          <div style={{ 
+            textAlign: 'center', 
+            color: 'var(--ink-mid)',
+            padding: '40px 0'
+          }}>
+            Loading recordings...
+          </div>
+        ) : recordings.length === 0 ? (
+          <div style={{ 
+            textAlign: 'center', 
+            color: 'var(--ink-mid)',
+            padding: '40px 0'
+          }}>
+            No recordings yet
+            <br />
+            <small>Start monitoring to create recordings</small>
+          </div>
+        ) : (
+          <div style={{ 
+            flex: 1,
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            {recordings.map((recording, index) => (
+              <div
+                key={recording.timestamp || index}
+                onClick={() => setSelectedRecording(recording)}
+                style={{
+                  padding: '16px',
+                  background: selectedRecording?.timestamp === recording.timestamp 
+                    ? 'rgba(255,107,53,0.2)' 
+                    : 'rgba(0,0,0,0.4)',
+                  border: selectedRecording?.timestamp === recording.timestamp 
+                    ? '1px solid rgba(255,107,53,0.4)' 
+                    : '1px solid rgba(255,107,53,0.2)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '8px'
+                }}>
+                  <div style={{
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: 'var(--ink-high)'
+                  }}>
+                    Recording #{recordings.length - index}
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    color: '#FFE066',
+                    background: 'rgba(255,224,102,0.2)',
+                    padding: '2px 8px',
+                    borderRadius: '4px'
+                  }}>
+                    {formatDuration(recording.duration || 0)}
+                  </div>
+                </div>
+                
+                <div style={{
+                  fontSize: '12px',
+                  color: 'var(--ink-mid)',
+                  marginBottom: '8px'
+                }}>
+                  {formatTimestamp(recording.timestamp)}
+                </div>
+                
+                <div style={{
+                  fontSize: '11px',
+                  color: 'var(--ink-low)',
+                  background: 'rgba(0,0,0,0.3)',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  textAlign: 'center'
+                }}>
+                  {Math.round((recording.data?.length || 0) / 1024)} KB
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Right Panel - Video Player */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+      }}>
+        <h3 style={{ 
+          fontSize: '18px', 
+          marginBottom: '20px', 
+          color: 'var(--ink-high)',
+          fontWeight: '500'
+        }}>
+          {selectedRecording ? `Recording #${recordings.length - recordings.findIndex(r => r.timestamp === selectedRecording.timestamp)}` : 'Select a Recording'}
+        </h3>
+        
+        {selectedRecording ? (
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'rgba(0,0,0,0.6)',
+            borderRadius: '12px',
+            padding: '20px',
+            border: '1px solid rgba(255,107,53,0.2)',
+          }}>
+            {/* Video Player */}
+            <video
+              controls
+              style={{
+                width: '100%',
+                maxHeight: '400px',
+                borderRadius: '8px',
+                background: 'rgba(0,0,0,0.8)',
+                marginBottom: '20px',
+              }}
+              src={`data:video/webm;base64,${selectedRecording.data}`}
+            />
+            
+            {/* Recording Details */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px',
+              fontSize: '14px',
+            }}>
+              <div>
+                <div style={{ color: 'var(--ink-mid)', marginBottom: '4px' }}>Duration</div>
+                <div style={{ color: 'var(--ink-high)', fontWeight: '500' }}>
+                  {formatDuration(selectedRecording.duration || 0)}
+                </div>
+              </div>
+              
+              <div>
+                <div style={{ color: 'var(--ink-mid)', marginBottom: '4px' }}>File Size</div>
+                <div style={{ color: 'var(--ink-high)', fontWeight: '500' }}>
+                  {Math.round((selectedRecording.data?.length || 0) / 1024)} KB
+                </div>
+              </div>
+              
+              <div>
+                <div style={{ color: 'var(--ink-mid)', marginBottom: '4px' }}>Created</div>
+                <div style={{ color: 'var(--ink-high)', fontWeight: '500' }}>
+                  {formatTimestamp(selectedRecording.timestamp)}
+                </div>
+              </div>
+              
+              <div>
+                <div style={{ color: 'var(--ink-mid)', marginBottom: '4px' }}>Format</div>
+                <div style={{ color: 'var(--ink-high)', fontWeight: '500' }}>
+                  WebM (VP9)
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.6)',
+            borderRadius: '12px',
+            border: '1px solid rgba(255,107,53,0.2)',
+            color: 'var(--ink-mid)',
+            fontSize: '16px',
+          }}>
+            Select a recording from the list to play it back
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1248,7 +1534,7 @@ export default function Home() {
         {activePhase === 'ask' && <AskPhase />}
         {activePhase === 'redesign' && <RedesignPhase />}
         {activePhase === 'automate' && <AutomatePhase />}
-        {activePhase === 'chat' && sid ? <ChatModule sid={sid} /> : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--ink-mid)' }}>Loading session...</div>}
+        {activePhase === 'chat' && sid ? <ChatModule sid={sid} /> : activePhase === 'chat' ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--ink-mid)' }}>Loading session...</div> : null}
         {activePhase === 'observe' && <ObserveModuleWrapper />}
       </div>
 

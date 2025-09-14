@@ -6,6 +6,12 @@ let apexAppUrl = null;
 let websocket = null;
 let monitoredTabs = new Set();
 
+// Screen recording variables
+let currentStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let isScreenRecording = false;
+
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
   console.log('✅ Apex Workflow Monitor installed');
@@ -80,6 +86,53 @@ function connectToApexApp() {
   console.log('Extension connected to Apex app via HTTP API');
 }
 
+// Screen recording functions - back to popup for proper screen selection
+async function startScreenRecording() {
+  try {
+    console.log('🎬 Requesting screen recording from popup...');
+    
+    // Send message to popup to start screen recording
+    chrome.runtime.sendMessage({ 
+      type: 'START_SCREEN_RECORDING' 
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to request screen recording:', error);
+    return false;
+  }
+}
+
+async function stopScreenRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    currentStream.getTracks().forEach(track => track.stop());
+    isScreenRecording = false;
+  }
+}
+
+async function processRecording() {
+  if (recordedChunks.length === 0) return;
+
+  try {
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const arrayBuffer = await blob.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    
+    // Send recording to app
+    await sendToApp({
+      type: 'screen_recording',
+      data: base64,
+      timestamp: Date.now(),
+      duration: recordedChunks.length * 1000 // Approximate duration
+    });
+    
+    console.log('📹 Screen recording sent to app');
+  } catch (error) {
+    console.error('❌ Failed to process recording:', error);
+  }
+}
+
 // Send data to Apex app via HTTP API
 function sendToApp(data) {
   console.log('sendToApp called with:', data);
@@ -141,12 +194,15 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         files: ['injected.js']
       }).then(() => {
         monitoredTabs.add(tabId);
-        sendToApp({ 
-          type: 'tab_monitored', 
-          tabId, 
-          url: tab.url, 
-          title: tab.title 
-        });
+        // Only send tab_monitored if monitoring is active
+        if (isMonitoring) {
+          sendToApp({ 
+            type: 'tab_monitored', 
+            tabId, 
+            url: tab.url, 
+            title: tab.title 
+          });
+        }
       }).catch(error => {
         console.log(`Could not inject into tab ${tabId}:`, error);
       });
@@ -157,10 +213,13 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // Listen for tab removal
 chrome.tabs.onRemoved.addListener((tabId) => {
   monitoredTabs.delete(tabId);
-  sendToApp({ type: 'tab_closed', tabId });
+  // Only send tab_closed if monitoring is active
+  if (isMonitoring) {
+    sendToApp({ type: 'tab_closed', tabId });
+  }
 });
 
-// Listen for messages from content scripts
+// Listen for messages from content scripts and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'CAPTURE_EVENT') {
     // Forward captured events to Apex app
@@ -171,6 +230,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       title: sender.tab.title,
       event: message.event,
       timestamp: Date.now()
+    });
+  }
+  
+  if (message.type === 'SCREEN_RECORDING_DATA') {
+    // Forward screen recording to Apex app
+    sendToApp({
+      type: 'screen_recording',
+      data: message.data,
+      timestamp: message.timestamp,
+      duration: message.duration
     });
   }
   
@@ -197,6 +266,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.sync.set({ isMonitoring: true });
     updateMonitoringState(true);
     
+    // Start screen recording
+    startScreenRecording().then(success => {
+      if (success) {
+        console.log('✅ Both event capture and screen recording started');
+      } else {
+        console.log('⚠️ Event capture started, but screen recording failed');
+      }
+    });
+    
     // Notify app that recording should start
     sendToApp({
       type: 'recording_control',
@@ -209,6 +287,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('🛑 Stopping monitoring from popup');
     chrome.storage.sync.set({ isMonitoring: false });
     updateMonitoringState(false);
+    
+    // Stop screen recording
+    stopScreenRecording();
     
     // Notify app that recording should stop
     sendToApp({

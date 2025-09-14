@@ -6,7 +6,7 @@
   if (window.apexMonitorInjected) return;
   window.apexMonitorInjected = true;
   
-  let isCapturing = true; // Start capturing immediately (will be controlled by extension)
+  let isCapturing = false; // Start with monitoring OFF (will be controlled by extension)
   let sessionId = null;
   let pageUrl = window.location.href;
   
@@ -22,6 +22,18 @@
     if (event.data.type === 'APEX_MONITORING_STATE') {
       isCapturing = event.data.isMonitoring;
       console.log('📡 Injected script monitoring state:', isCapturing ? 'ON' : 'OFF');
+    }
+    
+    // Also handle direct START/STOP messages
+    if (event.data.type === 'APEX_EXTENSION_MESSAGE') {
+      const message = event.data.data;
+      if (message.type === 'START_CAPTURING') {
+        isCapturing = true;
+        console.log('📡 Injected script: START_CAPTURING received');
+      } else if (message.type === 'STOP_CAPTURING') {
+        isCapturing = false;
+        console.log('📡 Injected script: STOP_CAPTURING received');
+      }
     }
   });
   
@@ -207,20 +219,6 @@
   }
   
   // Listen for messages from content script (the correct way for injected scripts)
-  window.addEventListener('message', (event) => {
-    if (event.source !== window) return;
-    
-    if (event.data.type === 'APEX_EXTENSION_MESSAGE') {
-      const message = event.data.data;
-      if (message.type === 'START_CAPTURING') {
-        isCapturing = true;
-        console.log('📡 Injected script: START_CAPTURING received');
-      } else if (message.type === 'STOP_CAPTURING') {
-        isCapturing = false;
-        console.log('📡 Injected script: STOP_CAPTURING received');
-      }
-    }
-  });
   
   // Add event listeners
   document.addEventListener('click', captureClick, true);
