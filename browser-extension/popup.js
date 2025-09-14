@@ -1,4 +1,4 @@
-// Popup script for Apex Workflow Monitor extension
+// Popup script with bulletproof screen recording
 document.addEventListener('DOMContentLoaded', function() {
   const statusDot = document.getElementById('statusDot');
   const statusText = document.getElementById('statusText');
@@ -6,8 +6,31 @@ document.addEventListener('DOMContentLoaded', function() {
   const settingsBtn = document.getElementById('settingsBtn');
   const tabCount = document.getElementById('tabCount');
   
+  // Add debug info div
+  const debugDiv = document.createElement('div');
+  debugDiv.id = 'debug-info';
+  debugDiv.style.cssText = `
+    margin-top: 10px;
+    padding: 5px;
+    background: #f0f0f0;
+    border-radius: 3px;
+    font-size: 11px;
+    max-height: 100px;
+    overflow-y: auto;
+  `;
+  document.body.appendChild(debugDiv);
+  
+  function debugLog(message) {
+    console.log(message);
+    debugDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+    debugDiv.scrollTop = debugDiv.scrollHeight;
+  }
+  
   let isMonitoring = false;
-  let monitoredTabs = 0;
+  let currentStream = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordingPreview = null;
   
   // Load current state
   chrome.storage.sync.get(['isMonitoring'], (result) => {
@@ -15,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateUI();
   });
   
-  // Update UI based on current state
   function updateUI() {
     if (isMonitoring) {
       statusDot.classList.add('active');
@@ -31,7 +53,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Toggle monitoring
-  toggleBtn.addEventListener('click', () => {
+  toggleBtn.addEventListener('click', async () => {
+    debugLog('Toggle button clicked');
+    
     const newState = !isMonitoring;
     chrome.storage.sync.set({ isMonitoring: newState });
     
@@ -39,6 +63,15 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.runtime.sendMessage({
       type: newState ? 'start_monitoring' : 'stop_monitoring'
     });
+    
+    if (newState) {
+      debugLog('Starting screen recording...');
+      const success = await startScreenRecording();
+      debugLog(`Screen recording start result: ${success}`);
+    } else {
+      debugLog('Stopping screen recording...');
+      stopScreenRecording();
+    }
     
     isMonitoring = newState;
     updateUI();
@@ -48,147 +81,266 @@ document.addEventListener('DOMContentLoaded', function() {
   settingsBtn.addEventListener('click', () => {
     chrome.tabs.create({ url: 'chrome://extensions/' });
   });
-  
-  // Screen recording variables
-  let currentStream = null;
-  let mediaRecorder = null;
-  let recordedChunks = [];
 
-  // Listen for messages from background script
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'MONITORING_STATE_CHANGED') {
-      isMonitoring = message.isMonitoring;
-      updateUI();
-    } else if (message.type === 'START_SCREEN_RECORDING') {
-      startScreenRecording();
-    }
-  });
-
-  // Screen recording function with proper screen selection prompt
   async function startScreenRecording() {
     try {
-      console.log('🎬 Starting screen recording with selection prompt...');
+      debugLog('Step 1: Requesting display media...');
       
-      // This will show the screen selection dialog like Zoom/Google Meet
+      // Check if getDisplayMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        debugLog('ERROR: getDisplayMedia not supported');
+        return false;
+      }
+      
+      debugLog('Step 2: Calling getDisplayMedia...');
+      
       currentStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
           mediaSource: 'screen',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30 }
+          width: { ideal: 1920, max: 1920 },
+          height: { ideal: 1080, max: 1080 },
+          frameRate: { ideal: 15, max: 30 } // Lower framerate for better performance
         },
         audio: false
       });
-
-      // Show preview of what's being recorded
-      const preview = document.createElement('div');
-      preview.style.cssText = `
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        width: 200px;
-        height: 150px;
-        background: #000;
-        border: 2px solid #00ff00;
-        border-radius: 8px;
-        z-index: 10000;
-        overflow: hidden;
-      `;
       
-      const video = document.createElement('video');
-      video.srcObject = currentStream;
-      video.autoplay = true;
-      video.muted = true;
-      video.style.cssText = `
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      `;
+      debugLog(`Step 3: Got stream with ${currentStream.getVideoTracks().length} video tracks`);
       
-      preview.appendChild(video);
-      document.body.appendChild(preview);
-
+      // Check MediaRecorder support
+      if (!window.MediaRecorder) {
+        debugLog('ERROR: MediaRecorder not supported');
+        currentStream.getTracks().forEach(track => track.stop());
+        return false;
+      }
+      
+      // Check codec support
+      const mimeTypes = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8', 
+        'video/webm',
+        'video/mp4'
+      ];
+      
+      let selectedMimeType = null;
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          selectedMimeType = mimeType;
+          break;
+        }
+      }
+      
+      if (!selectedMimeType) {
+        debugLog('ERROR: No supported mime types found');
+        currentStream.getTracks().forEach(track => track.stop());
+        return false;
+      }
+      
+      debugLog(`Step 4: Using mime type: ${selectedMimeType}`);
+      
       // Create MediaRecorder
       mediaRecorder = new MediaRecorder(currentStream, {
-        mimeType: 'video/webm;codecs=vp9'
+        mimeType: selectedMimeType,
+        videoBitsPerSecond: 1000000 // 1Mbps for reasonable file size
       });
-
+      
       recordedChunks = [];
-
+      
+      debugLog('Step 5: Setting up MediaRecorder event handlers...');
+      
       mediaRecorder.ondataavailable = (event) => {
+        debugLog(`Data available: ${event.data.size} bytes`);
         if (event.data.size > 0) {
           recordedChunks.push(event.data);
         }
       };
-
-      mediaRecorder.onstop = async () => {
-        console.log('🎬 Screen recording stopped');
-        await processRecording();
-        // Remove preview
-        if (preview.parentNode) {
-          preview.parentNode.removeChild(preview);
-        }
-      };
-
-      mediaRecorder.start(1000); // Record in 1-second chunks
-      console.log('✅ Screen recording started with preview');
       
-      // Auto-hide preview after 3 seconds
-      setTimeout(() => {
-        if (preview.parentNode) {
-          preview.style.opacity = '0.7';
+      mediaRecorder.onstart = () => {
+        debugLog('MediaRecorder started');
+      };
+      
+      mediaRecorder.onstop = async () => {
+        debugLog(`MediaRecorder stopped. Total chunks: ${recordedChunks.length}`);
+        await processRecording();
+        removeRecordingPreview();
+      };
+      
+      mediaRecorder.onerror = (event) => {
+        debugLog(`MediaRecorder error: ${event.error}`);
+      };
+      
+      // Handle stream ending
+      currentStream.getVideoTracks()[0].addEventListener('ended', () => {
+        debugLog('Video track ended (user stopped sharing)');
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
         }
-      }, 3000);
+      });
+      
+      debugLog('Step 6: Starting MediaRecorder...');
+      mediaRecorder.start(2000); // 2-second chunks for better processing
+      
+      debugLog('Step 7: Creating preview...');
+      createRecordingPreview();
+      
+      debugLog('SUCCESS: Screen recording started');
+      return true;
       
     } catch (error) {
-      console.error('❌ Failed to start screen recording:', error);
-      // User likely cancelled the screen selection
-      console.log('User cancelled screen recording or denied permission');
+      debugLog(`ERROR in startScreenRecording: ${error.name} - ${error.message}`);
+      
+      if (error.name === 'NotAllowedError') {
+        debugLog('User denied permission or cancelled');
+      } else if (error.name === 'NotFoundError') {
+        debugLog('No screen available to capture');
+      } else if (error.name === 'NotSupportedError') {
+        debugLog('Screen capture not supported');
+      } else if (error.name === 'AbortError') {
+        debugLog('User aborted screen selection');
+      }
+      
+      return false;
+    }
+  }
+
+  function stopScreenRecording() {
+    debugLog('Stopping screen recording...');
+    
+    if (mediaRecorder) {
+      if (mediaRecorder.state === 'recording') {
+        debugLog('Stopping MediaRecorder...');
+        mediaRecorder.stop();
+      } else {
+        debugLog(`MediaRecorder state: ${mediaRecorder.state}`);
+      }
+    }
+    
+    if (currentStream) {
+      debugLog('Stopping stream tracks...');
+      currentStream.getTracks().forEach(track => {
+        debugLog(`Stopping track: ${track.kind}`);
+        track.stop();
+      });
+      currentStream = null;
+    }
+    
+    removeRecordingPreview();
+    debugLog('Screen recording stopped');
+  }
+
+  function createRecordingPreview() {
+    removeRecordingPreview();
+    
+    recordingPreview = document.createElement('div');
+    recordingPreview.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 150px;
+      height: 100px;
+      background: #000;
+      border: 2px solid #ff0000;
+      border-radius: 5px;
+      z-index: 10000;
+      overflow: hidden;
+    `;
+    
+    const video = document.createElement('video');
+    video.srcObject = currentStream;
+    video.autoplay = true;
+    video.muted = true;
+    video.style.cssText = `
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    `;
+    
+    const indicator = document.createElement('div');
+    indicator.style.cssText = `
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      background: rgba(255,0,0,0.8);
+      color: white;
+      padding: 1px 4px;
+      border-radius: 2px;
+      font-size: 10px;
+      font-weight: bold;
+    `;
+    indicator.textContent = '● REC';
+    
+    recordingPreview.appendChild(video);
+    recordingPreview.appendChild(indicator);
+    document.body.appendChild(recordingPreview);
+    
+    debugLog('Preview created');
+  }
+
+  function removeRecordingPreview() {
+    if (recordingPreview && recordingPreview.parentNode) {
+      recordingPreview.parentNode.removeChild(recordingPreview);
+      recordingPreview = null;
+      debugLog('Preview removed');
     }
   }
 
   async function processRecording() {
-    if (recordedChunks.length === 0) return;
+    debugLog(`Processing recording... Chunks: ${recordedChunks.length}`);
+    
+    if (recordedChunks.length === 0) {
+      debugLog('No chunks to process');
+      return;
+    }
 
     try {
-      const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      const arrayBuffer = await blob.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const blob = new Blob(recordedChunks, { 
+        type: mediaRecorder.mimeType || 'video/webm' 
+      });
       
-      // Send recording to background script
+      const blobSizeMB = blob.size / (1024 * 1024);
+      debugLog(`Blob created: ${blobSizeMB.toFixed(2)}MB`);
+      
+      // Size limit check
+      if (blobSizeMB > 50) {
+        debugLog(`WARNING: Recording too large (${blobSizeMB.toFixed(1)}MB), skipping upload`);
+        return;
+      }
+      
+      debugLog('Converting to base64...');
+      const arrayBuffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      
+      // Convert in chunks to avoid memory issues
+      let base64 = '';
+      const chunkSize = 8192;
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.slice(i, i + chunkSize);
+        base64 += String.fromCharCode.apply(null, chunk);
+      }
+      base64 = btoa(base64);
+      
+      debugLog(`Base64 conversion complete: ${base64.length} characters`);
+      
       const recordingData = {
         type: 'SCREEN_RECORDING_DATA',
         data: base64,
         timestamp: Date.now(),
-        duration: recordedChunks.length * 1000
+        duration: recordedChunks.length * 2000, // 2-second chunks
+        size: blob.size,
+        mimeType: mediaRecorder.mimeType || 'video/webm'
       };
       
-      console.log('📹 Screen recording data prepared:', {
-        dataSize: base64.length,
-        duration: recordingData.duration,
-        timestamp: recordingData.timestamp
-      });
-      
+      debugLog('Sending to background script...');
       chrome.runtime.sendMessage(recordingData);
+      debugLog('Recording data sent to background');
       
-      console.log('📹 Screen recording sent to background');
     } catch (error) {
-      console.error('❌ Failed to process recording:', error);
+      debugLog(`ERROR processing recording: ${error.message}`);
+      console.error('Full error:', error);
     }
   }
   
-  // Get current tab count
-  chrome.tabs.query({}, (tabs) => {
-    const validTabs = tabs.filter(tab => 
-      tab.url && 
-      !tab.url.startsWith('chrome://') && 
-      !tab.url.startsWith('chrome-extension://')
-    );
-    tabCount.textContent = validTabs.length;
-  });
-  
-  // Update tab count periodically
-  setInterval(() => {
+  // Tab count functionality
+  function updateTabCount() {
     chrome.tabs.query({}, (tabs) => {
       const validTabs = tabs.filter(tab => 
         tab.url && 
@@ -197,5 +349,19 @@ document.addEventListener('DOMContentLoaded', function() {
       );
       tabCount.textContent = validTabs.length;
     });
-  }, 2000);
+  }
+  
+  updateTabCount();
+  setInterval(updateTabCount, 2000);
+  
+  // Listen for messages
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'MONITORING_STATE_CHANGED') {
+      isMonitoring = message.isMonitoring;
+      updateUI();
+      if (!isMonitoring) {
+        stopScreenRecording();
+      }
+    }
+  });
 });

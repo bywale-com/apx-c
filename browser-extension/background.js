@@ -3,14 +3,8 @@ console.log('🚀 Background script loaded!');
 
 let isMonitoring = false;
 let apexAppUrl = null;
-let websocket = null;
 let monitoredTabs = new Set();
-
-// Screen recording variables
-let currentStream = null;
-let mediaRecorder = null;
-let recordedChunks = [];
-let isScreenRecording = false;
+let injectedTabs = new Set(); // Track which tabs already have scripts injected
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
@@ -18,7 +12,6 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.sync.set({ isMonitoring: false });
 });
 
-// Add immediate logging
 console.log('📡 Background script is running');
 
 // Handle extension icon click
@@ -39,38 +32,50 @@ async function updateMonitoringState(monitoring) {
     const tabs = await chrome.tabs.query({});
     for (const tab of tabs) {
       if (tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
-        try {
-          // Inject both content.js and injected.js directly
-          await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['content.js']
-          });
-          
-          // Also inject injected.js directly to bypass CSP issues
-          await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['injected.js']
-          });
-          
+        // Only inject if not already injected
+        if (!injectedTabs.has(tab.id)) {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['content.js']
+            });
+            
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ['injected.js']
+            });
+            
+            injectedTabs.add(tab.id);
+            monitoredTabs.add(tab.id);
+            console.log(`✅ Injected into tab ${tab.id}`);
+            
+            setTimeout(() => {
+              console.log(`📤 Background: Sending START_CAPTURING to tab ${tab.id}`);
+              chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURING' }).catch(error => {
+                console.log(`Could not send message to tab ${tab.id}:`, error);
+              });
+            }, 200);
+          } catch (error) {
+            console.log(`Could not inject into tab ${tab.id}:`, error);
+          }
+        } else {
+          console.log(`⏭️ Tab ${tab.id} already has script injected`);
           monitoredTabs.add(tab.id);
           
-          // Wait a moment for both scripts to load, then send message
+          // Still send START_CAPTURING message to existing scripts
           setTimeout(() => {
-            console.log(`📤 Background: Sending START_CAPTURING to tab ${tab.id}`);
+            console.log(`📤 Background: Sending START_CAPTURING to existing tab ${tab.id}`);
             chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURING' }).catch(error => {
               console.log(`Could not send message to tab ${tab.id}:`, error);
             });
-          }, 200);
-        } catch (error) {
-          console.log(`Could not inject into tab ${tab.id}:`, error);
+          }, 100);
         }
       }
     }
     
-    // Connect to Apex app
     connectToApexApp();
   } else {
-    // Stop monitoring - send stop message to all monitored tabs
+    // Stop monitoring
     for (const tabId of monitoredTabs) {
       try {
         console.log(`📤 Background: Sending STOP_CAPTURING to tab ${tabId}`);
@@ -81,127 +86,60 @@ async function updateMonitoringState(monitoring) {
     }
     
     monitoredTabs.clear();
-    if (websocket) {
-      websocket.close();
-      websocket = null;
-    }
   }
   
   // Update popup
   chrome.runtime.sendMessage({ type: 'MONITORING_STATE_CHANGED', isMonitoring });
 }
 
-// Connect to Apex app via HTTP API (no WebSocket needed)
+// Connect to Apex app via HTTP API
 function connectToApexApp() {
-  // Just send a test message to verify connection
   sendToApp({ type: 'extension_connected', timestamp: Date.now() });
   console.log('Extension connected to Apex app via HTTP API');
 }
 
-// Screen recording functions - back to popup for proper screen selection
-async function startScreenRecording() {
-  try {
-    console.log('🎬 Requesting screen recording from popup...');
-    
-    // Send message to popup to start screen recording
-    chrome.runtime.sendMessage({ 
-      type: 'START_SCREEN_RECORDING' 
-    });
-    
-    return true;
-  } catch (error) {
-    console.error('❌ Failed to request screen recording:', error);
-    return false;
-  }
-}
-
-async function stopScreenRecording() {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    currentStream.getTracks().forEach(track => track.stop());
-    isScreenRecording = false;
-  }
-}
-
-async function processRecording() {
-  if (recordedChunks.length === 0) return;
-
-  try {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const arrayBuffer = await blob.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-    
-    // Send recording to app
-    await sendToApp({
-      type: 'screen_recording',
-      data: base64,
-      timestamp: Date.now(),
-      duration: recordedChunks.length * 1000 // Approximate duration
-    });
-    
-    console.log('📹 Screen recording sent to app');
-  } catch (error) {
-    console.error('❌ Failed to process recording:', error);
-  }
-}
-
-// Send data to Apex app via HTTP API
-function sendToApp(data) {
+// Fixed: Send data to Apex app via HTTP API - try URLs sequentially
+async function sendToApp(data) {
   console.log('sendToApp called with:', data);
   
-  // Try multiple URLs for different environments
   const possibleUrls = [
-    'http://localhost:3001/api/extension-events',  // Local development
-    'https://chat.apexintro.com/api/extension-events' // Production
+    'http://localhost:3001/api/extension-events',
+    'https://chat.apexintro.com/api/extension-events'
   ];
   
-  // Try each URL until one works
+  // Try URLs sequentially until one works
   for (const url of possibleUrls) {
-    console.log(`Attempting to send to: ${url}`);
-    fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).then(response => {
+    try {
+      console.log(`Attempting to send to: ${url}`);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
       console.log(`Response from ${url}:`, response.status, response.statusText);
+      
       if (response.ok) {
         console.log(`✅ Event sent to Apex app successfully at ${url}`);
-        return response.json();
+        return await response.json();
       } else {
         console.log(`❌ Failed to send to ${url}:`, response.status);
-        return response.text().then(text => console.log('Error response:', text));
+        const errorText = await response.text();
+        console.log('Error response:', errorText);
       }
-    }).catch(error => {
+    } catch (error) {
       console.log(`❌ Network error sending to ${url}:`, error);
-    });
+      // Continue to next URL
+    }
   }
-}
-
-// Handle messages from Apex app
-function handleAppMessage(data) {
-  switch (data.type) {
-    case 'start_monitoring':
-      updateMonitoringState(true);
-      break;
-    case 'stop_monitoring':
-      updateMonitoringState(false);
-      break;
-    case 'get_status':
-      sendToApp({ 
-        type: 'status_response', 
-        isMonitoring, 
-        monitoredTabs: Array.from(monitoredTabs) 
-      });
-      break;
-  }
+  
+  console.log('❌ Failed to send to all URLs');
 }
 
 // Listen for tab updates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (isMonitoring && changeInfo.status === 'complete' && tab.url) {
-    // Inject monitoring script into new/updated tabs
     if (!tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
-      // Inject both content.js and injected.js for new tabs
       chrome.scripting.executeScript({
         target: { tabId },
         files: ['content.js']
@@ -213,7 +151,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       }).then(() => {
         monitoredTabs.add(tabId);
         
-        // Send START_CAPTURING message to the new tab
         setTimeout(() => {
           console.log(`📤 Background: Sending START_CAPTURING to new tab ${tabId}`);
           chrome.tabs.sendMessage(tabId, { type: 'START_CAPTURING' }).catch(error => {
@@ -221,7 +158,6 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
           });
         }, 100);
         
-        // Only send tab_monitored if monitoring is active
         if (isMonitoring) {
           sendToApp({ 
             type: 'tab_monitored', 
@@ -239,17 +175,19 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 // Listen for tab removal
 chrome.tabs.onRemoved.addListener((tabId) => {
+  injectedTabs.delete(tabId); // Clean up injection tracking
   monitoredTabs.delete(tabId);
-  // Only send tab_closed if monitoring is active
   if (isMonitoring) {
     sendToApp({ type: 'tab_closed', tabId });
   }
 });
 
-// Listen for messages from content scripts and popup
+// FIXED: Single message listener to handle all message types
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('📨 Received message:', message.type, sender?.tab?.id || 'popup');
+
+  // Handle messages from content scripts
   if (message.type === 'CAPTURE_EVENT') {
-    // Forward captured events to Apex app
     sendToApp({
       type: 'browser_event',
       tabId: sender.tab.id,
@@ -260,8 +198,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   }
   
+  // Handle screen recording data from popup
   if (message.type === 'SCREEN_RECORDING_DATA') {
-    // Forward screen recording to Apex app
     sendToApp({
       type: 'screen_recording',
       data: message.data,
@@ -270,39 +208,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   }
   
+  // Handle monitoring state requests
   if (message.type === 'GET_MONITORING_STATE') {
     sendResponse({ isMonitoring, monitoredTabs: Array.from(monitoredTabs) });
   }
-});
 
-// Handle extension startup
-chrome.runtime.onStartup.addListener(() => {
-  chrome.storage.sync.get(['isMonitoring'], (result) => {
-    if (result.isMonitoring) {
-      updateMonitoringState(true);
-    }
-  });
-});
-
-// Listen for messages from popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('📨 Received message from popup:', message);
-
+  // Handle popup control messages
   if (message.type === 'start_monitoring') {
     console.log('🚀 Starting monitoring from popup');
     chrome.storage.sync.set({ isMonitoring: true });
     updateMonitoringState(true);
     
-    // Start screen recording
-    startScreenRecording().then(success => {
-      if (success) {
-        console.log('✅ Both event capture and screen recording started');
-      } else {
-        console.log('⚠️ Event capture started, but screen recording failed');
-      }
-    });
+    console.log('✅ Event capture started');
     
-    // Notify app that recording should start
     sendToApp({
       type: 'recording_control',
       action: 'start_recording',
@@ -310,15 +228,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
     
     sendResponse({ success: true });
-  } else if (message.type === 'stop_monitoring') {
+  }
+  
+  if (message.type === 'stop_monitoring') {
     console.log('🛑 Stopping monitoring from popup');
     chrome.storage.sync.set({ isMonitoring: false });
     updateMonitoringState(false);
     
-    // Stop screen recording
-    stopScreenRecording();
-    
-    // Notify app that recording should stop
     sendToApp({
       type: 'recording_control',
       action: 'stop_recording',
@@ -329,4 +245,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   return true; // Keep message channel open for async response
+});
+
+// Handle extension startup
+chrome.runtime.onStartup.addListener(() => {
+  chrome.storage.sync.get(['isMonitoring'], (result) => {
+    if (result.isMonitoring) {
+      updateMonitoringState(true);
+    }
+  });
 });
