@@ -29,10 +29,10 @@
       const message = event.data.data;
       if (message.type === 'START_CAPTURING') {
         isCapturing = true;
-        console.log('📡 Injected script: START_CAPTURING received');
+        console.log('📡 Injected script: START_CAPTURING received, isCapturing set to:', isCapturing);
       } else if (message.type === 'STOP_CAPTURING') {
         isCapturing = false;
-        console.log('📡 Injected script: STOP_CAPTURING received');
+        console.log('📡 Injected script: STOP_CAPTURING received, isCapturing set to:', isCapturing);
       }
     }
   });
@@ -50,6 +50,7 @@
       type: 'APEX_EVENT',
       event: eventData
     }, '*');
+    console.log('✅ Event sent to content script');
   }
   
   // Function to get element selector
@@ -100,7 +101,7 @@
     const element = event.target;
     const elementInfo = getElementInfo(element);
     
-    console.log('🖱️ Click captured:', elementInfo);
+    console.log('🖱️ Click captured:', elementInfo, 'isCapturing:', isCapturing);
     
     sendEvent({
       type: 'click',

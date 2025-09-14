@@ -40,15 +40,27 @@ async function updateMonitoringState(monitoring) {
     for (const tab of tabs) {
       if (tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
         try {
+          // Inject both content.js and injected.js directly
+          await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['content.js']
+          });
+          
+          // Also inject injected.js directly to bypass CSP issues
           await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             files: ['injected.js']
           });
+          
           monitoredTabs.add(tab.id);
           
-          // Send start capturing message to content script
-          console.log(`📤 Background: Sending START_CAPTURING to tab ${tab.id}`);
-          chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURING' });
+          // Wait a moment for both scripts to load, then send message
+          setTimeout(() => {
+            console.log(`📤 Background: Sending START_CAPTURING to tab ${tab.id}`);
+            chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURING' }).catch(error => {
+              console.log(`Could not send message to tab ${tab.id}:`, error);
+            });
+          }, 200);
         } catch (error) {
           console.log(`Could not inject into tab ${tab.id}:`, error);
         }
