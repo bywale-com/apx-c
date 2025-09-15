@@ -100,7 +100,7 @@ const Element = ({ attributes, children, element }: any) => {
             padding: '12px',
             borderRadius: 6,
             overflowX: 'auto',
-            border: `1px solid ${ui.border}`,
+            border: '1px solid ' + ui.border,
             margin: '8px 0',
           }}
         >
@@ -123,38 +123,61 @@ const escapeMarkdown = (text: string): string =>
   text.replace(/([\`\*\_\[\]\(\)\>\#\+\\\-\!])/g, '\\$1');
 
 const serialize = (nodes: Descendant[]): string => {
-  return nodes
-    .map((n) => {
-      if (SlateElement.isElement(n) && n.type === 'code') {
-        const codeText = Node.string(n);
-        return `\`\`\`\n${codeText}\n\`\`\``;
-      }
+  const serialized = nodes.map((n) => {
+    if (SlateElement.isElement(n) && n.type === 'code') {
+      const codeText = Node.string(n);
+      return '```\n' + codeText + '\n```';
+    }
 
-      if (SlateElement.isElement(n) && n.type === 'paragraph') {
-        return n.children
-          .map((leaf: CustomText) => {
-            let text = escapeMarkdown(leaf.text);
+    if (SlateElement.isElement(n) && n.type === 'paragraph') {
+      return n.children
+        .map((leaf: CustomText) => {
+          let text = escapeMarkdown(leaf.text);
 
-            if (leaf.bold && leaf.italic) {
-              text = `***${text}***`;
-            } else if (leaf.bold) {
-              text = `**${text}**`;
-            } else if (leaf.italic) {
-              text = `*${text}*`;
-            }
+          if (leaf.bold && leaf.italic) {
+            text = '***' + text + '***';
+          } else if (leaf.bold) {
+            text = '**' + text + '**';
+          } else if (leaf.italic) {
+            text = '*' + text + '*';
+          }
 
-            if (leaf.code) {
-              text = `\`${text}\``;
-            }
+          if (leaf.code) {
+            text = '`' + text + '`';
+          }
 
-            return text;
-          })
-          .join('');
-      }
+          return text;
+        })
+        .join('');
+    }
 
-      return '';
-    })
-    .join('\n\n');
+    return '';
+  });
+
+  // Merge consecutive code blocks into one
+  let result = '';
+  let inCodeBlock = false;
+  
+  for (let i = 0; i < serialized.length; i++) {
+    const current = serialized[i];
+    const isCodeBlock = current.startsWith('```');
+    
+    if (isCodeBlock && inCodeBlock) {
+      // Merge with previous code block - remove the closing ``` and opening ```
+      const codeContent = current.replace(/^```\n/, '').replace(/\n```$/, '');
+      result = result.replace(/\n```$/, '\n' + codeContent + '\n```');
+    } else if (isCodeBlock && !inCodeBlock) {
+      // Start new code block
+      result += (result ? '\n\n' : '') + current;
+      inCodeBlock = true;
+    } else {
+      // Regular content
+      result += (result ? '\n\n' : '') + current;
+      inCodeBlock = false;
+    }
+  }
+  
+  return result;
 };
 
 const FormatButton = ({ format, icon }: { format: keyof Omit<CustomText, 'text'>; icon: string }) => {
@@ -172,14 +195,14 @@ const FormatButton = ({ format, icon }: { format: keyof Omit<CustomText, 'text'>
         padding: '6px 10px',
         cursor: 'pointer',
         background: active ? 'rgba(0,0,0,0.1)' : 'transparent',
-        border: `1px solid ${active ? ui.border : ui.borderSoft}`,
+        border: '1px solid ' + (active ? ui.border : ui.borderSoft),
         borderRadius: 4,
         color: active ? ui.inkHigh : ui.inkMid,
         fontSize: 13,
         transition: 'all 0.15s ease',
       }}
       type="button"
-      aria-label={`Toggle ${format}`}
+      aria-label={'Toggle ' + format}
     >
       {icon}
     </button>
@@ -200,7 +223,7 @@ const CodeBlockButton = () => {
         padding: '6px 10px',
         cursor: 'pointer',
         background: active ? 'rgba(0,0,0,0.1)' : 'transparent',
-        border: `1px solid ${active ? ui.border : ui.borderSoft}`,
+        border: '1px solid ' + (active ? ui.border : ui.borderSoft),
         borderRadius: 4,
         color: active ? ui.inkHigh : ui.inkMid,
         fontSize: 13,
@@ -291,7 +314,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
   return (
     <div
       style={{
-        border: `1px solid ${ui.border}`,
+        border: '1px solid ' + ui.border,
         borderRadius: 8,
         padding: 12,
         minWidth: 300,
@@ -323,7 +346,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
             fontSize: 14,
             lineHeight: '1.45',
             background: ui.inputBg,
-            border: `1px solid ${ui.border}`,
+            border: '1px solid ' + ui.border,
             borderRadius: 6,
             color: ui.inkHigh,
             outline: 'none',
@@ -341,7 +364,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
           fontSize: 13,
           fontWeight: '500',
           background: ui.white,
-          border: `1px solid ${ui.border}`,
+          border: '1px solid ' + ui.border,
           borderRadius: 6,
           color: ui.inkHigh,
           cursor: 'pointer',

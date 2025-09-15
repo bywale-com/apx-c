@@ -904,8 +904,21 @@ function ChatModule({ sid }: { sid: string }) {
   function normalizeMarkdown(input: string): string {
     if (!input) return input;
     let out = input;
+    
+    // Fix broken code blocks that are split into multiple blocks
+    // This handles the pattern where a single code block gets broken into multiple ones
+    // Pattern: ```\ncontent\n```\n\n```\ncontent\n```\n\n```\ncontent\n```
+    out = out.replace(/```\s*\n([^`]*?)\n```\s*\n\s*```\s*\n/g, '```\n$1\n');
+    
     // Collapse 4+ backticks to 3 for fenced blocks
     out = out.replace(/`{4,}/g, '```');
+    
+    // Fix any remaining broken patterns where code blocks are split
+    // This handles cases where there are multiple consecutive broken code blocks
+    while (out.includes('```\n') && out.includes('\n```\n\n```\n')) {
+      out = out.replace(/```\s*\n([^`]*?)\n```\s*\n\s*```\s*\n([^`]*?)\n```/g, '```\n$1$2\n```');
+    }
+    
     return out;
   }
 
@@ -1080,7 +1093,7 @@ function ChatModule({ sid }: { sid: string }) {
                         <code
                           style={{
                             background: 'rgba(0,0,0,0.85)',
-                            color: mono.inkHigh,
+                            color: '#ffffff',
                             padding: '2px 6px',
                             borderRadius: '3px',
                             fontSize: '13px',
@@ -1096,7 +1109,7 @@ function ChatModule({ sid }: { sid: string }) {
                         <pre
                           style={{
                             background: 'rgba(0,0,0,0.9)',
-                            color: mono.inkHigh,
+                            color: '#ffffff',
                             padding: '12px',
                             borderRadius: '4px',
                             overflowX: 'auto',
