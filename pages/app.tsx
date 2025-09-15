@@ -1,5 +1,5 @@
-// pages/app.tsx - Workflow Redesign Platform
-import React, { useState, useEffect, useRef } from 'react';
+// pages/app.tsx - Workflow Redesign Platform (Monochrome / Infographic Style)
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -21,6 +21,52 @@ declare global {
   }
 }
 
+/* -------------------- Monochrome Helpers -------------------- */
+const mono = {
+  // Light warm grayscale inspired by reference image
+  bg0: '#e8e8e4',
+  bgPanel: 'rgba(200,203,194,0.45)',
+  border: 'rgba(154,156,148,0.45)',
+  borderSoft: 'rgba(154,156,148,0.28)',
+  divider: 'rgba(120,122,116,0.55)',
+  inkHigh: '#353535',
+  inkMid: '#5c5e58',
+  inkLow: '#8d8f88',
+  white: '#ffffff',
+  whiteDim: 'rgba(255,255,255,0.75)',
+  whiteFaint: 'rgba(255,255,255,0.35)',
+};
+
+/* -------------------- Glassy Tiles Backdrop (Infographic style) -------------------- */
+function GlassyTilesBackdrop() {
+  // Tile sizes tuned for infographic look
+  const tileSize = 22;
+  const gridColor = 'rgba(120, 122, 116, 0.22)'; // warm dark grid lines
+  const tileHighlight = 'rgba(255, 255, 255, 0.16)';
+  const tileShade = 'rgba(154, 156, 148, 0.12)';
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 0,
+      pointerEvents: 'none',
+      background: `
+        /* Subtle glossy corner per tile */
+        linear-gradient(135deg, ${tileHighlight} 0%, rgba(225,228,217,0.00) 55%) 0 0 / ${tileSize}px ${tileSize}px,
+        /* Diagonal shade to give glass feel */
+        linear-gradient(315deg, ${tileShade} 0%, rgba(154,156,148,0.00) 65%) 0 0 / ${tileSize}px ${tileSize}px,
+        /* Grid lines */
+        linear-gradient(${gridColor} 1px, transparent 1px) 0 0 / ${tileSize}px ${tileSize}px,
+        linear-gradient(90deg, ${gridColor} 1px, transparent 1px) 0 0 / ${tileSize}px ${tileSize}px
+      `,
+      backgroundBlendMode: 'overlay, overlay, normal, normal'
+    }} />
+  );
+}
+
 /* -------------------- 3D Grid Background Component -------------------- */
 function Grid3DBackdrop() {
   return (
@@ -40,42 +86,54 @@ function Grid3DBackdrop() {
         inset: '0% 0% 0% 0%',
         transformStyle: 'preserve-3d',
         transform: 'rotateX(65deg) rotateY(0deg)',
-        opacity: 0.15,
+        opacity: 0.18,
       }}>
-        {/* Base Grid */}
+        {/* Base Grid (white lines) */}
         <div style={{
           position: 'absolute',
           inset: '0% 0% 0% 0%',
           background: `
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px) 0 0/ 120px 120px,
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) 0 0/ 120px 120px
+            linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px) 0 0/ 120px 120px,
+            linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px) 0 0/ 120px 120px
           `,
           transform: 'translateZ(0px)',
         }} />
-        
+
         {/* Mid Layer Grid */}
         <div style={{
           position: 'absolute',
           inset: '10% 10% 10% 10%',
           background: `
-            linear-gradient(rgba(91,225,255,0.05) 1px, transparent 1px) 0 0/ 80px 80px,
-            linear-gradient(90deg, rgba(91,225,255,0.05) 1px, transparent 1px) 0 0/ 80px 80px
+            linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px) 0 0/ 80px 80px,
+            linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px) 0 0/ 80px 80px
           `,
           transform: 'translateZ(50px)',
         }} />
-        
+
         {/* Top Layer Grid */}
         <div style={{
           position: 'absolute',
           inset: '20% 20% 20% 20%',
           background: `
-            linear-gradient(rgba(255,158,74,0.06) 1px, transparent 1px) 0 0/ 60px 60px,
-            linear-gradient(90deg, rgba(255,158,74,0.06) 1px, transparent 1px) 0 0/ 60px 60px
+            linear-gradient(rgba(255,255,255,0.10) 1px, transparent 1px) 0 0/ 60px 60px,
+            linear-gradient(90deg, rgba(255,255,255,0.10) 1px, transparent 1px) 0 0/ 60px 60px
           `,
           transform: 'translateZ(100px)',
         }} />
-        
-        {/* Floating Light Orbs */}
+
+        {/* Dot overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'radial-gradient(rgba(255,255,255,.15) 1px, transparent 1px)',
+            backgroundSize: '8px 8px',
+            transform: 'translateZ(120px)',
+            opacity: 0.7,
+          }}
+        />
+
+        {/* Floating Light Orbs (white) */}
         <div style={{
           position: 'absolute',
           inset: '0% 0% 0% 0%',
@@ -89,7 +147,7 @@ function Grid3DBackdrop() {
                 width: '4px',
                 height: '4px',
                 borderRadius: '50%',
-                background: `radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(91,225,255,0.4) 50%, transparent 100%)`,
+                background: `radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.45) 50%, transparent 100%)`,
                 left: `${20 + (i * 12)}%`,
                 top: `${15 + (i * 8)}%`,
                 animation: `float${i} 8s ease-in-out infinite`,
@@ -99,7 +157,7 @@ function Grid3DBackdrop() {
           ))}
         </div>
       </div>
-      
+
       {/* CSS Animations */}
       <style jsx>{`
         @keyframes float0 { 0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.6; } 50% { transform: translateY(-20px) translateX(10px); opacity: 1; } }
@@ -118,12 +176,12 @@ function Grid3DBackdrop() {
 /* -------------------- Left Sidebar Navigation -------------------- */
 function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; setActivePhase: (phase: string) => void }) {
   const modules = [
-    { id: 'watch', icon: '👁️', description: 'Watch - Observe user workflows' },
-    { id: 'ask', icon: '❓', description: 'Ask - Identify optimization opportunities' },
-    { id: 'redesign', icon: '🔧', description: 'Redesign - Create optimized workflows' },
-    { id: 'automate', icon: '⚡', description: 'Automate - Execute automated processes' },
-    { id: 'chat', icon: '💬', description: 'Chat - AI operator assistance' },
-    { id: 'observe', icon: '📊', description: 'Observe - Review recordings & rules' }
+    { id: 'watch', icon: 'watch', description: 'Watch - Observe user workflows' },
+    { id: 'ask', icon: 'ask', description: 'Ask - Identify optimization opportunities' },
+    { id: 'redesign', icon: 'redesign', description: 'Redesign - Create optimized workflows' },
+    { id: 'automate', icon: 'automate', description: 'Automate - Execute automated processes' },
+    { id: 'chat', icon: 'chat', description: 'Chat - AI operator assistance' },
+    { id: 'observe', icon: 'observe', description: 'Observe - Review recordings & rules' }
   ];
 
   return (
@@ -133,30 +191,31 @@ function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; set
       left: 0,
       bottom: 0,
       width: '60px',
-      background: 'rgba(0,0,0,0.8)',
-      borderRight: '1px solid rgba(255,107,53,0.3)',
-      backdropFilter: 'blur(20px)',
+      background: 'rgba(255, 255, 255, 0.06)',
+      borderRight: `1px solid ${mono.border}`,
+      backdropFilter: 'blur(18px)',
       zIndex: 1000,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       padding: '12px 0',
       gap: '8px',
-      boxShadow: '0 0 30px rgba(255,107,53,0.2)',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
     }}>
-      {/* Logo */}
+      {/* Logo (mono cube) */}
       <div style={{
         width: '36px',
         height: '36px',
         borderRadius: '8px',
-        background: 'var(--accent-cyan)',
+        background: 'rgba(255,255,255,0.10)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: '8px',
         fontSize: '20px',
         fontWeight: 'bold',
-        color: '#001126'
+        color: mono.inkHigh,
+        border: `1px solid ${mono.border}`,
       }}>
         ▲
       </div>
@@ -170,20 +229,39 @@ function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; set
             width: '36px',
             height: '36px',
             borderRadius: '8px',
-            border: 'none',
-            background: activePhase === module.id ? 'var(--accent-cyan)' : 'transparent',
-            color: activePhase === module.id ? '#001126' : 'var(--ink-high)',
+            border: `1px solid ${mono.borderSoft}`,
+            background: activePhase === module.id ? 'rgba(255,255,255,0.14)' : 'transparent',
+            color: activePhase === module.id ? mono.inkHigh : mono.inkMid,
             cursor: 'pointer',
             fontSize: '18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'all 0.2s ease',
-            position: 'relative'
           }}
           title={module.description}
         >
-          {module.icon}
+          {/* Minimal inline SVG icons to match angular theme */}
+          <span aria-hidden>
+            {module.icon === 'watch' && (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5c4 0 7 3 7 7s-3 7-7 7-7-3-7-7 3-7 7-7Z" stroke={mono.inkMid} strokeWidth="1.5"/><circle cx="12" cy="12" r="3" fill={mono.inkHigh} /></svg>
+            )}
+            {module.icon === 'ask' && (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 17h.01" stroke={mono.inkHigh} strokeWidth="1.5"/><path d="M9.1 9.5a3.1 3.1 0 1 1 5.8 1.4c-.5 1.1-1.8 1.6-2.4 2.6" stroke={mono.inkMid} strokeWidth="1.5"/></svg>
+            )}
+            {module.icon === 'redesign' && (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 15l7-7 6 6" stroke={mono.inkMid} strokeWidth="1.5"/><path d="M14 6h6v6" stroke={mono.inkHigh} strokeWidth="1.5"/></svg>
+            )}
+            {module.icon === 'automate' && (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12h6l2-3 2 6 2-3h4" stroke={mono.inkHigh} strokeWidth="1.5"/></svg>
+            )}
+            {module.icon === 'chat' && (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16v9H8l-4 3V6Z" stroke={mono.inkMid} strokeWidth="1.5"/></svg>
+            )}
+            {module.icon === 'observe' && (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5Z" stroke={mono.inkMid} strokeWidth="1.5"/><circle cx="12" cy="12" r="2" fill={mono.inkHigh}/></svg>
+            )}
+          </span>
         </button>
       ))}
 
@@ -201,9 +279,9 @@ function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; set
             width: '36px',
             height: '36px',
             borderRadius: '8px',
-            border: 'none',
+            border: `1px solid ${mono.borderSoft}`,
             background: 'transparent',
-            color: 'var(--ink-mid)',
+            color: mono.inkLow,
             cursor: 'pointer',
             fontSize: '16px',
             display: 'flex',
@@ -221,9 +299,11 @@ function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; set
 }
 
 /* -------------------- External Browser Monitor Component -------------------- */
-function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExtensionStatusChange, onRecordingControl }: { 
-  sessionId: string; 
-  isRecording: boolean; 
+function ExternalBrowserMonitor({
+  sessionId, isRecording, onActionCapture, onExtensionStatusChange, onRecordingControl
+}: {
+  sessionId: string;
+  isRecording: boolean;
   onActionCapture: (action: any) => void;
   onExtensionStatusChange: (connected: boolean) => void;
   onRecordingControl?: (action: 'start' | 'stop') => void;
@@ -233,7 +313,6 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [extensionConnected, setExtensionConnected] = useState(false);
   const [realTimeEvents, setRealTimeEvents] = useState<any[]>([]);
-  const [websocket, setWebsocket] = useState<WebSocket | null>(null);
 
   const openInBrowser = (url: string) => {
     // Clean URL
@@ -246,26 +325,18 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
 
     // Open in new tab
     const newTab = window.open(cleanUrl, '_blank');
-    
+
     if (newTab) {
-      // Add to monitored tabs
       const tabId = `tab_${Date.now()}`;
-      const newTabInfo = {
-        id: tabId,
-        url: cleanUrl,
-        title: 'Loading...',
-        status: 'active' as const
-      };
-      
+      const newTabInfo = { id: tabId, url: cleanUrl, title: 'Loading...', status: 'active' as const };
       setMonitoredTabs(prev => [...prev, newTabInfo]);
       setCurrentTab(tabId);
-      
-      // Record the action
+
       if (isRecording) {
         onActionCapture({
           type: 'open_tab',
           url: cleanUrl,
-          tabId: tabId,
+          tabId,
           timestamp: new Date().toISOString()
         });
       }
@@ -275,99 +346,65 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
   // Poll for extension events via HTTP API
   useEffect(() => {
     let pollInterval: NodeJS.Timeout;
-    
+
     const pollForEvents = async () => {
       try {
         const response = await fetch('/api/extension-events?action=get_recent');
         if (response.ok) {
           const events = await response.json();
           if (events && events.length > 0) {
-            setRealTimeEvents(prev => [...prev.slice(-99), ...events]); // Keep last 100 events
-            
-            // Check for recording control messages from extension
+            setRealTimeEvents(prev => [...prev.slice(-99), ...events]);
+
             events.forEach((eventData: any) => {
-              if (eventData.type === 'recording_control') {
-                console.log('🎮 Recording control from extension:', eventData.action);
-                if (onRecordingControl) {
-                  onRecordingControl(eventData.action === 'start_recording' ? 'start' : 'stop');
-                }
+              if (eventData.type === 'recording_control' && onRecordingControl) {
+                onRecordingControl(eventData.action === 'start_recording' ? 'start' : 'stop');
               }
             });
-            
-            // Also capture for workflow recording
-            if (isRecording) {
-              events.forEach((eventData: any) => {
-                onActionCapture({
-                  type: 'extension_event',
-                  event: eventData,
-                  timestamp: new Date().toISOString()
-                });
-              });
-            }
-            
-            // Check if we're getting recent events (within last 30 seconds)
+
             const recentEvents = events.filter((event: any) => {
               const eventTime = new Date(event.timestamp).getTime();
               const now = Date.now();
-              return (now - eventTime) < 30000; // 30 seconds
+              return (now - eventTime) < 30000;
             });
-            
-            // Only mark as connected if we have recent events
+
             if (recentEvents.length > 0 && !extensionConnected) {
               setExtensionConnected(true);
               onExtensionStatusChange(true);
             } else if (recentEvents.length === 0 && extensionConnected) {
-              // No recent events - mark as disconnected
               setExtensionConnected(false);
               onExtensionStatusChange(false);
             }
           } else {
-            // No events at all - mark as disconnected
             if (extensionConnected) {
               setExtensionConnected(false);
               onExtensionStatusChange(false);
             }
           }
         }
-      } catch (error) {
-        console.log('Polling for events failed:', error);
+      } catch {
         if (extensionConnected) {
           setExtensionConnected(false);
           onExtensionStatusChange(false);
         }
       }
     };
-    
-    // Poll every 2 seconds
+
     pollInterval = setInterval(pollForEvents, 2000);
-    
-    // Initial poll
     pollForEvents();
-    
-    return () => {
-      if (pollInterval) {
-        clearInterval(pollInterval);
-      }
-    };
+
+    return () => clearInterval(pollInterval);
   }, [isRecording, onActionCapture, extensionConnected, onExtensionStatusChange, onRecordingControl]);
 
-  const startMonitoring = () => {
-    setIsMonitoring(true);
-    console.log('Started monitoring browser tabs...');
-  };
-
-  const stopMonitoring = () => {
-    setIsMonitoring(false);
-    console.log('Stopped monitoring browser tabs...');
-  };
+  const startMonitoring = () => setIsMonitoring(true);
+  const stopMonitoring = () => setIsMonitoring(false);
 
   return (
     <div style={{
       width: '100%',
       height: '100%',
-      background: 'var(--panel)',
-      border: '1px solid var(--border)',
-      borderRadius: '12px',
+      background: mono.bgPanel,
+      border: `1px solid ${mono.border}`,
+      borderRadius: '6px',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column'
@@ -378,37 +415,37 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
         alignItems: 'center',
         gap: '12px',
         padding: '16px',
-        background: 'rgba(0, 0, 0, 0.2)',
-        borderBottom: '1px solid var(--border)'
+        background: 'rgba(255,255,255,0.03)',
+        borderBottom: `1px solid ${mono.border}`
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: '12px',
             height: '12px',
             borderRadius: '50%',
-            background: isMonitoring ? '#00ff88' : '#666',
-            boxShadow: isMonitoring ? '0 0 8px #00ff88' : 'none'
+            background: isMonitoring ? mono.white : 'rgba(255,255,255,0.28)',
+            boxShadow: isMonitoring ? `0 0 8px ${mono.whiteFaint}` : 'none'
           }} />
-          <span style={{ color: 'var(--ink-high)', fontSize: '14px', fontWeight: '500' }}>
+          <span style={{ color: mono.inkHigh, fontSize: '14px', fontWeight: 500 }}>
             {isMonitoring ? 'Monitoring Active' : 'Monitoring Inactive'}
           </span>
         </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            background: extensionConnected ? '#00ff88' : '#ff4444',
-            boxShadow: extensionConnected ? '0 0 6px #00ff88' : 'none'
+            background: extensionConnected ? mono.white : 'rgba(255,255,255,0.28)',
+            boxShadow: extensionConnected ? `0 0 6px ${mono.whiteFaint}` : 'none'
           }} />
-          <span style={{ color: 'var(--ink-high)', fontSize: '12px' }}>
+          <span style={{ color: mono.inkHigh, fontSize: '12px' }}>
             Extension: {extensionConnected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
-        
+
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <div style={{ fontSize: '12px', color: 'var(--ink-mid)' }}>
+          <div style={{ fontSize: '12px', color: mono.inkLow }}>
             Use extension popup to control monitoring
           </div>
           <button
@@ -416,17 +453,14 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
               try {
                 await fetch('/api/extension-events?action=clear', { method: 'GET' });
                 setRealTimeEvents([]);
-                console.log('Events cleared');
-              } catch (error) {
-                console.error('Failed to clear events:', error);
-              }
+              } catch {}
             }}
             style={{
               padding: '4px 8px',
-              borderRadius: '4px',
-              border: '1px solid var(--border)',
-              background: 'rgba(255, 68, 68, 0.1)',
-              color: '#ff4444',
+              borderRadius: '3px',
+              border: `1px solid ${mono.border}`,
+              background: 'rgba(255,255,255,0.06)',
+              color: mono.inkHigh,
               cursor: 'pointer',
               fontSize: '10px'
             }}
@@ -437,11 +471,8 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
       </div>
 
       {/* Quick Launch Buttons */}
-      <div style={{
-        padding: '16px',
-        borderBottom: '1px solid var(--border)'
-      }}>
-        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: 'var(--ink-high)' }}>
+      <div style={{ padding: '16px', borderBottom: `1px solid ${mono.border}` }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: mono.inkHigh }}>
           Quick Launch
         </h3>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -461,10 +492,10 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
                 alignItems: 'center',
                 gap: '6px',
                 padding: '8px 12px',
-                borderRadius: '6px',
-                border: '1px solid var(--border)',
-                background: 'var(--panel)',
-                color: 'var(--ink-high)',
+                borderRadius: '4px',
+                border: `1px solid ${mono.border}`,
+                background: mono.bgPanel,
+                color: mono.inkHigh,
                 cursor: 'pointer',
                 fontSize: '12px',
                 transition: 'all 0.2s ease'
@@ -478,11 +509,8 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
       </div>
 
       {/* Custom URL Input */}
-      <div style={{
-        padding: '16px',
-        borderBottom: '1px solid var(--border)'
-      }}>
-        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: 'var(--ink-high)' }}>
+      <div style={{ padding: '16px', borderBottom: `1px solid ${mono.border}` }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: mono.inkHigh }}>
           Custom URL
         </h3>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -492,15 +520,16 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
             style={{
               flex: 1,
               padding: '8px 12px',
-              borderRadius: '6px',
-              border: '1px solid var(--border)',
-              background: 'rgba(0, 0, 0, 0.3)',
-              color: 'var(--ink-high)',
+              borderRadius: '4px',
+              border: `1px solid ${mono.border}`,
+              background: 'rgba(255,255,255,0.04)',
+              color: mono.inkHigh,
               fontSize: '14px'
             }}
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
-                openInBrowser((e.target as HTMLInputElement).value);
+                const v = (e.target as HTMLInputElement).value;
+                if (v) openInBrowser(v);
               }
             }}
           />
@@ -514,13 +543,13 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
             }}
             style={{
               padding: '8px 16px',
-              borderRadius: '6px',
-              border: 'none',
-              background: 'var(--accent-cyan)',
-              color: '#001126',
+              borderRadius: '4px',
+              border: `1px solid ${mono.border}`,
+              background: mono.white,
+              color: '#0d1117',
               cursor: 'pointer',
               fontSize: '14px',
-              fontWeight: '500'
+              fontWeight: 500
             }}
           >
             Open
@@ -530,17 +559,17 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
 
       {/* Real-time Events */}
       <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
-        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: 'var(--ink-high)' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: mono.inkHigh }}>
           Real-time Events ({realTimeEvents.length})
         </h3>
-        
+
         {realTimeEvents.length === 0 ? (
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             height: '200px',
-            color: 'var(--ink-mid)',
+            color: mono.inkLow,
             fontSize: '14px',
             textAlign: 'center'
           }}>
@@ -560,8 +589,8 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
                 style={{
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                  background: 'rgba(0, 0, 0, 0.2)',
+                  border: `1px solid ${mono.border}`,
+                  background: 'rgba(255, 255, 255, 0.04)',
                   fontSize: '12px'
                 }}
               >
@@ -570,24 +599,22 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
                     width: '6px',
                     height: '6px',
                     borderRadius: '50%',
-                    background: event.type === 'click' ? '#00ff88' : 
-                               event.type === 'input' ? '#38e1ff' : 
-                               event.type === 'navigate' ? '#ffaa00' : '#666'
+                    background: 'rgba(255,255,255,0.85)'
                   }} />
-                  <span style={{ fontWeight: '500', color: 'var(--ink-high)' }}>
+                  <span style={{ fontWeight: 500, color: mono.inkHigh }}>
                     {event.type}
                   </span>
-                  <span style={{ color: 'var(--ink-low)', fontSize: '10px' }}>
+                  <span style={{ color: mono.inkLow, fontSize: '10px' }}>
                     {new Date(event.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
                 {event.url && (
-                  <div style={{ color: 'var(--ink-mid)', wordBreak: 'break-all', fontSize: '11px' }}>
+                  <div style={{ color: mono.inkMid, wordBreak: 'break-all', fontSize: '11px' }}>
                     {event.url}
                   </div>
                 )}
                 {event.element && (
-                  <div style={{ color: 'var(--ink-low)', fontSize: '10px', marginTop: '2px' }}>
+                  <div style={{ color: mono.inkLow, fontSize: '10px', marginTop: '2px' }}>
                     {event.element.selector || event.element.tag}
                   </div>
                 )}
@@ -600,127 +627,109 @@ function ExternalBrowserMonitor({ sessionId, isRecording, onActionCapture, onExt
   );
 }
 
-/* -------------------- Watch Phase - Browser Integration -------------------- */
-/* -------------------- Live Mirror Component -------------------- */
+/* -------------------- Watch Phase - Live Mirror -------------------- */
 function LiveMirror() {
   const [extensionEvents, setExtensionEvents] = useState<any[]>([]);
   const [extensionConnected, setExtensionConnected] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [screenRecordings, setScreenRecordings] = useState<any[]>([]);
   const [currentRecording, setCurrentRecording] = useState<string | null>(null);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Poll for extension events and recordings
   useEffect(() => {
     const pollForData = async () => {
       try {
-        // Fetch events
         const eventsResponse = await fetch('/api/extension-events?action=get_recent');
         if (eventsResponse.ok) {
           const events = await eventsResponse.json();
           setExtensionEvents(events);
-          
-          // Check if extension is connected (has recent events within 30 seconds)
+
           const now = Date.now();
           const recentEvents = events.filter((event: any) => {
             const eventTime = new Date(event.timestamp).getTime();
-            return (now - eventTime) < 30000; // 30 seconds
+            return (now - eventTime) < 30000;
           });
-          
+
           setExtensionConnected(recentEvents.length > 0);
         }
 
-        // Fetch screen recordings
         const recordingsResponse = await fetch('/api/extension-events?action=get_recordings');
         if (recordingsResponse.ok) {
           const recordings = await recordingsResponse.json();
           setScreenRecordings(recordings);
-          
-          // Set the most recent recording as current
+
           if (recordings.length > 0 && !currentRecording) {
             const latestRecording = recordings[recordings.length - 1];
             setCurrentRecording(latestRecording.data);
           }
         }
-      } catch (error) {
-        console.error('Failed to fetch extension data:', error);
+      } catch {
         setExtensionConnected(false);
       }
     };
 
-    // Poll every 2 seconds
     const interval = setInterval(pollForData, 2000);
-    pollForData(); // Initial poll
-
+    pollForData();
     return () => clearInterval(interval);
   }, [currentRecording]);
 
-  // Listen for recording control messages
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'recording_control') {
         const action = event.data.action;
         if (action === 'start_recording') {
           setIsRecording(true);
-          setCurrentSessionId(`session_${Date.now()}`);
         } else if (action === 'stop_recording') {
           setIsRecording(false);
-          setCurrentSessionId(null);
         }
       }
     };
-
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
+    <div style={{
+      height: '100%',
+      display: 'flex',
       flexDirection: 'column',
-      background: 'rgba(0,0,0,0.8)',
-      border: '1px solid rgba(255,107,53,0.3)',
-      borderRadius: '16px',
+      background: mono.bgPanel,
+      border: `1px solid ${mono.border}`,
+      borderRadius: '8px',
       padding: '24px',
-      backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
+      backdropFilter: 'blur(18px)',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     }}>
       {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: '24px',
         paddingBottom: '16px',
-        borderBottom: '1px solid rgba(255,107,53,0.2)'
+        borderBottom: `1px solid ${mono.border}`
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '12px',
             height: '12px',
             borderRadius: '50%',
-            background: extensionConnected ? '#00ff88' : '#ff4444',
-            boxShadow: extensionConnected ? '0 0 10px rgba(0,255,136,0.5)' : '0 0 10px rgba(255,68,68,0.5)',
+            background: extensionConnected ? mono.white : 'rgba(255,255,255,0.28)',
+            boxShadow: extensionConnected ? `0 0 10px ${mono.whiteFaint}` : 'none',
           }} />
-          <h2 style={{ 
-            margin: 0, 
-            fontSize: '20px', 
-            color: 'var(--ink-high)', 
-            fontWeight: '600' 
-          }}>
+          <h2 style={{ margin: 0, fontSize: '20px', color: mono.inkHigh, fontWeight: 600 }}>
             Live Mirror
           </h2>
         </div>
-        
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            background: isRecording ? '#00ff88' : '#ff4444',
+            background: isRecording ? mono.white : 'rgba(255,255,255,0.28)',
           }} />
-          <span style={{ fontSize: '14px', color: 'var(--ink-mid)' }}>
+          <span style={{ fontSize: '14px', color: mono.inkLow }}>
             {isRecording ? 'Recording' : 'Standby'}
           </span>
         </div>
@@ -728,19 +737,14 @@ function LiveMirror() {
 
       {/* Screen Recording Player */}
       {currentRecording && (
-        <div style={{ 
+        <div style={{
           marginBottom: '20px',
-          background: 'rgba(0,0,0,0.6)',
-          borderRadius: '12px',
+          background: 'rgba(255,255,255,0.04)',
+          borderRadius: '6px',
           padding: '16px',
-          border: '1px solid rgba(255,107,53,0.2)',
+          border: `1px solid ${mono.border}`,
         }}>
-          <h3 style={{ 
-            margin: '0 0 12px 0', 
-            fontSize: '16px', 
-            color: 'var(--ink-high)',
-            fontWeight: '500'
-          }}>
+          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', color: mono.inkHigh, fontWeight: 500 }}>
             📹 Live Screen Recording
           </h3>
           <video
@@ -748,48 +752,38 @@ function LiveMirror() {
             style={{
               width: '100%',
               maxHeight: '300px',
-              borderRadius: '8px',
-              background: 'rgba(0,0,0,0.8)',
+              borderRadius: '4px',
+              background: 'rgba(0,0,0,0.85)',
             }}
             src={`data:video/webm;base64,${currentRecording}`}
           />
-          <div style={{ 
-            marginTop: '8px', 
-            fontSize: '12px', 
-            color: 'var(--ink-mid)',
-            textAlign: 'center'
-          }}>
+          <div style={{ marginTop: '8px', fontSize: '12px', color: mono.inkLow, textAlign: 'center' }}>
             {screenRecordings.length} recording(s) available
           </div>
         </div>
       )}
 
       {/* Live Activity Feed */}
-      <div style={{ 
+      <div style={{
         flex: 1,
         overflowY: 'auto',
-        background: 'rgba(0,0,0,0.6)',
-        borderRadius: '12px',
+        background: 'rgba(255,255,255,0.04)',
+        borderRadius: '6px',
         padding: '16px',
-        border: '1px solid rgba(255,107,53,0.2)',
+        border: `1px solid ${mono.border}`,
       }}>
-        <h3 style={{ 
-          margin: '0 0 16px 0', 
-          fontSize: '16px', 
-          color: 'var(--ink-high)',
-          fontWeight: '500'
-        }}>
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: mono.inkHigh, fontWeight: 500 }}>
           Real-time Activity ({extensionEvents.length})
         </h3>
-        
+
         {extensionEvents.length === 0 ? (
-          <div style={{ 
-            display: 'flex', 
+          <div style={{
+            display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center', 
+            alignItems: 'center',
             justifyContent: 'center',
             height: '200px',
-            color: 'var(--ink-mid)',
+            color: mono.inkLow,
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>👁️</div>
@@ -803,37 +797,29 @@ function LiveMirror() {
             {extensionEvents.slice(-10).reverse().map((event, index) => (
               <div key={event.id || index} style={{
                 padding: '12px',
-                background: 'rgba(0,0,0,0.4)',
-                borderRadius: '8px',
-                border: '1px solid rgba(255,107,53,0.2)',
-                borderLeft: '3px solid rgba(255,107,53,0.5)',
+                background: 'rgba(255,255,255,0.03)',
+                borderRadius: '4px',
+                border: `1px solid ${mono.border}`,
+                borderLeft: `3px solid ${mono.whiteFaint}`,
               }}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'space-between',
                   marginBottom: '8px'
                 }}>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    fontWeight: '500',
-                    color: 'var(--ink-high)'
-                  }}>
+                  <div style={{ fontSize: '14px', fontWeight: 500, color: mono.inkHigh }}>
                     {event.event?.type === 'click' ? '🖱️ Click' :
                      event.event?.type === 'input' ? '⌨️ Input' :
                      event.event?.type === 'navigation' ? '🧭 Navigation' :
                      event.type === 'browser_event' ? '🎯 Interaction' : '📡 Event'}
                   </div>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: 'var(--ink-mid)',
-                    opacity: 0.8
-                  }}>
+                  <div style={{ fontSize: '12px', color: mono.inkLow, opacity: 0.9 }}>
                     {new Date(event.timestamp).toLocaleTimeString()}
                   </div>
                 </div>
-                
-                <div style={{ fontSize: '13px', color: 'var(--ink-mid)', lineHeight: '1.4' }}>
+
+                <div style={{ fontSize: '13px', color: mono.inkMid, lineHeight: 1.4 }}>
                   <div style={{ marginBottom: '4px' }}>
                     <strong>URL:</strong> {event.url?.substring(0, 60)}...
                   </div>
@@ -846,8 +832,8 @@ function LiveMirror() {
                   )}
                   {event.event?.value && (
                     <div>
-                      <strong>Value:</strong> {event.event.value.length > 40 ? 
-                        event.event.value.substring(0, 40) + '...' : 
+                      <strong>Value:</strong> {event.event.value.length > 40 ?
+                        event.event.value.substring(0, 40) + '...' :
                         event.event.value}
                     </div>
                   )}
@@ -859,14 +845,14 @@ function LiveMirror() {
       </div>
 
       {/* Status Footer */}
-      <div style={{ 
+      <div style={{
         marginTop: '16px',
         padding: '12px',
-        background: 'rgba(0,0,0,0.6)',
-        borderRadius: '8px',
-        border: '1px solid rgba(255,107,53,0.2)',
+        background: 'rgba(255,255,255,0.04)',
+        borderRadius: '4px',
+        border: `1px solid ${mono.border}`,
         fontSize: '12px',
-        color: 'var(--ink-mid)',
+        color: mono.inkLow,
         textAlign: 'center'
       }}>
         {extensionConnected ? (
@@ -883,74 +869,31 @@ function WatchPhase({ sessionId }: { sessionId: string }) {
   return <LiveMirror />;
 }
 
-/* -------------------- Ask Phase -------------------- */
-function AskPhase() {
+/* -------------------- Ask / Redesign / Automate (mono containers) -------------------- */
+function MonoPhase({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      alignItems: 'center', 
+    <div style={{
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
       justifyContent: 'center',
-      background: 'rgba(0,0,0,0.8)',
-      border: '1px solid rgba(255,107,53,0.3)',
-      borderRadius: '16px',
+      background: mono.bgPanel,
+      border: `1px solid ${mono.border}`,
+      borderRadius: '8px',
       padding: '24px',
-      backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
+      backdropFilter: 'blur(18px)',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     }}>
-      <div style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
-        <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ink-high)' }}>Ask Phase</h2>
-        <p>Identify optimization opportunities from captured workflows</p>
+      <div style={{ textAlign: 'center', color: mono.inkLow }}>
+        <h2 style={{ fontSize: '24px', marginBottom: '16px', color: mono.inkHigh }}>{title}</h2>
+        <p>{subtitle}</p>
       </div>
     </div>
   );
 }
-
-/* -------------------- Redesign Phase -------------------- */
-function RedesignPhase() {
-  return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      background: 'rgba(0,0,0,0.8)',
-      border: '1px solid rgba(255,107,53,0.3)',
-      borderRadius: '16px',
-      padding: '24px',
-      backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
-    }}>
-      <div style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
-        <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ink-high)' }}>Redesign Phase</h2>
-        <p>Create optimized workflows from captured data</p>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------- Automate Phase -------------------- */
-function AutomatePhase() {
-  return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      background: 'rgba(0,0,0,0.8)',
-      border: '1px solid rgba(255,107,53,0.3)',
-      borderRadius: '16px',
-      padding: '24px',
-      backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
-    }}>
-      <div style={{ textAlign: 'center', color: 'var(--ink-mid)' }}>
-        <h2 style={{ fontSize: '24px', marginBottom: '16px', color: 'var(--ink-high)' }}>Automate Phase</h2>
-        <p>Execute automated processes based on optimized workflows</p>
-      </div>
-    </div>
-  );
-}
+const AskPhase = () => <MonoPhase title="Ask Phase" subtitle="Identify optimization opportunities from captured workflows" />;
+const RedesignPhase = () => <MonoPhase title="Redesign Phase" subtitle="Create optimized workflows from captured data" />;
+const AutomatePhase = () => <MonoPhase title="Automate Phase" subtitle="Execute automated processes based on optimized workflows" />;
 
 /* -------------------- Chat Module -------------------- */
 function ChatModule({ sid }: { sid: string }) {
@@ -972,9 +915,7 @@ function ChatModule({ sid }: { sid: string }) {
       }
     };
 
-    if (sid) {
-      loadChatHistory();
-    }
+    if (sid) loadChatHistory();
   }, [sid]);
 
   const handleSend = async (message: string) => {
@@ -996,10 +937,7 @@ function ChatModule({ sid }: { sid: string }) {
       const response = await fetch('/api/agent-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: sid,
-          message: message,
-        }),
+        body: JSON.stringify({ sessionId: sid, message }),
       });
 
       if (response.ok) {
@@ -1025,57 +963,38 @@ function ChatModule({ sid }: { sid: string }) {
   };
 
   return (
-    <div style={{ 
-      height: '100%', 
-      display: 'flex', 
+    <div style={{
+      height: '100%',
+      display: 'flex',
       flexDirection: 'column',
-      background: 'rgba(0,0,0,0.8)',
-      border: '1px solid rgba(255,107,53,0.3)',
-      borderRadius: '16px',
+      background: mono.bgPanel,
+      border: `1px solid ${mono.border}`,
+      borderRadius: '8px',
       padding: '24px',
-      backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
+      backdropFilter: 'blur(18px)',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     }}>
       {/* Header */}
-      <div style={{ 
-        marginBottom: '20px',
-        paddingBottom: '16px',
-        borderBottom: '1px solid rgba(255,107,53,0.2)'
-      }}>
-        <h2 style={{ 
-          fontSize: '20px', 
-          margin: 0, 
-          color: 'var(--ink-high)', 
-          fontWeight: '600' 
-        }}>
+      <div style={{ marginBottom: '20px', paddingBottom: '16px', borderBottom: `1px solid ${mono.border}` }}>
+        <h2 style={{ fontSize: '20px', margin: 0, color: mono.inkHigh, fontWeight: 600 }}>
           AI Assistant
         </h2>
-        <p style={{ 
-          fontSize: '14px', 
-          color: 'var(--ink-mid)', 
-          margin: '4px 0 0 0',
-          opacity: 0.8
-        }}>
+        <p style={{ fontSize: '14px', color: mono.inkLow, margin: '4px 0 0 0', opacity: 0.9 }}>
           Workflow optimization and automation guidance
         </p>
       </div>
 
       {/* Messages */}
-      <div style={{ 
-        flex: 1,
-        overflowY: 'auto',
-        marginBottom: '20px',
-        paddingRight: '8px',
-      }}>
+      <div style={{ flex: 1, overflowY: 'auto', marginBottom: '20px', paddingRight: '8px' }}>
         {messages.length === 0 ? (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             height: '100%',
-            color: 'var(--ink-mid)',
+            color: mono.inkLow,
             textAlign: 'center',
-            opacity: 0.7
+            opacity: 0.8
           }}>
             <div>
               <div style={{ fontSize: '32px', marginBottom: '12px' }}>💬</div>
@@ -1101,47 +1020,43 @@ function ChatModule({ sid }: { sid: string }) {
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  background: msg.sender === 'user' 
-                    ? 'rgba(255,107,53,0.3)' 
-                    : 'rgba(255,224,102,0.3)',
+                  background: 'rgba(255,255,255,0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '14px',
-                  fontWeight: '600',
-                  color: msg.sender === 'user' ? '#FF6B35' : '#FFE066',
+                  fontWeight: 600,
+                  color: mono.inkHigh,
                   flexShrink: 0,
-                  border: `1px solid ${msg.sender === 'user' ? 'rgba(255,107,53,0.5)' : 'rgba(255,224,102,0.5)'}`,
+                  border: `1px solid ${mono.border}`,
                 }}>
                   {msg.sender === 'user' ? 'U' : 'AI'}
                 </div>
                 <div style={{
                   maxWidth: '70%',
                   padding: '12px 16px',
-                  borderRadius: '12px',
-                  background: msg.sender === 'user' 
-                    ? 'rgba(255,107,53,0.15)' 
-                    : 'rgba(0,0,0,0.6)',
-                  border: msg.sender === 'user' 
-                    ? '1px solid rgba(255,107,53,0.3)' 
-                    : '1px solid rgba(255,224,102,0.2)',
-                  color: 'var(--ink-high)',
+                  borderRadius: '6px',
+                  background: msg.sender === 'user'
+                    ? 'rgba(255,255,255,0.08)'
+                    : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${msg.sender === 'user' ? mono.border : mono.borderSoft}`,
+                  color: mono.inkHigh,
                   fontSize: '14px',
-                  lineHeight: '1.5',
+                  lineHeight: 1.5,
                 }}>
-                  <ReactMarkdown 
+                  <ReactMarkdown
                     remarkPlugins={[remarkGfm, remarkBreaks]}
                     components={{
                       code: ({ children, ...props }: any) => (
-                        <code 
+                        <code
                           style={{
-                            background: 'rgba(0,0,0,0.7)',
-                            color: '#FF9E4A',
+                            background: 'rgba(0,0,0,0.85)',
+                            color: mono.inkHigh,
                             padding: '2px 6px',
-                            borderRadius: '4px',
+                            borderRadius: '3px',
                             fontSize: '13px',
                             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                            border: '1px solid rgba(255,107,53,0.3)',
+                            border: `1px solid ${mono.border}`,
                           }}
                           {...props}
                         >
@@ -1149,16 +1064,16 @@ function ChatModule({ sid }: { sid: string }) {
                         </code>
                       ),
                       pre: ({ children, ...props }: any) => (
-                        <pre 
+                        <pre
                           style={{
-                            background: 'rgba(0,0,0,0.8)',
-                            color: '#FFE066',
+                            background: 'rgba(0,0,0,0.9)',
+                            color: mono.inkHigh,
                             padding: '12px',
-                            borderRadius: '8px',
+                            borderRadius: '4px',
                             overflowX: 'auto',
                             fontSize: '13px',
                             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-                            border: '1px solid rgba(255,107,53,0.3)',
+                            border: `1px solid ${mono.border}`,
                           }}
                           {...props}
                         >
@@ -1169,23 +1084,18 @@ function ChatModule({ sid }: { sid: string }) {
                   >
                     {msg.text}
                   </ReactMarkdown>
-                  <div style={{ 
-                    fontSize: '11px', 
-                    color: 'var(--ink-mid)', 
-                    marginTop: '8px',
-                    opacity: 0.7
-                  }}>
+                  <div style={{ fontSize: '11px', color: mono.inkLow, marginTop: '8px', opacity: 0.8 }}>
                     {new Date(msg.ts).toLocaleTimeString()}
                   </div>
                 </div>
               </div>
             ))}
             {loading && (
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
                 gap: '12px',
-                color: 'var(--ink-mid)',
+                color: mono.inkLow,
                 fontSize: '14px',
                 fontStyle: 'italic'
               }}>
@@ -1193,14 +1103,14 @@ function ChatModule({ sid }: { sid: string }) {
                   width: '32px',
                   height: '32px',
                   borderRadius: '50%',
-                  background: 'rgba(255,224,102,0.3)',
+                  background: 'rgba(255,255,255,0.12)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#FFE066',
-                  border: '1px solid rgba(255,224,102,0.5)',
+                  fontWeight: 600,
+                  color: mono.inkHigh,
+                  border: `1px solid ${mono.border}`,
                 }}>
                   AI
                 </div>
@@ -1215,10 +1125,10 @@ function ChatModule({ sid }: { sid: string }) {
       {error && (
         <div style={{
           padding: '12px',
-          background: 'rgba(255,68,68,0.1)',
-          border: '1px solid rgba(255,68,68,0.3)',
-          borderRadius: '8px',
-          color: '#ff4444',
+          background: 'rgba(255,255,255,0.06)',
+          border: `1px solid ${mono.border}`,
+          borderRadius: '4px',
+          color: mono.inkHigh,
           fontSize: '14px',
           marginBottom: '16px',
         }}>
@@ -1228,9 +1138,9 @@ function ChatModule({ sid }: { sid: string }) {
 
       {/* Chat Input */}
       <div style={{
-        background: 'rgba(0,0,0,0.6)',
-        border: '1px solid rgba(255,107,53,0.3)',
-        borderRadius: '12px',
+        background: 'rgba(255,255,255,0.04)',
+        border: `1px solid ${mono.border}`,
+        borderRadius: '6px',
         padding: '16px',
       }}>
         <ChatInput onSend={handleSend} loading={loading} error={error} />
@@ -1245,7 +1155,6 @@ function ObserveModuleWrapper() {
   const [selectedRecording, setSelectedRecording] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch recordings on component mount
   useEffect(() => {
     const fetchRecordings = async () => {
       try {
@@ -1254,7 +1163,7 @@ function ObserveModuleWrapper() {
           const data = await response.json();
           setRecordings(data);
           if (data.length > 0 && !selectedRecording) {
-            setSelectedRecording(data[data.length - 1]); // Select most recent
+            setSelectedRecording(data[data.length - 1]);
           }
         }
       } catch (error) {
@@ -1265,8 +1174,6 @@ function ObserveModuleWrapper() {
     };
 
     fetchRecordings();
-    
-    // Refresh recordings every 5 seconds
     const interval = setInterval(fetchRecordings, 5000);
     return () => clearInterval(interval);
   }, [selectedRecording]);
@@ -1278,152 +1185,107 @@ function ObserveModuleWrapper() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
-  };
+  const formatTimestamp = (timestamp: number) => new Date(timestamp).toLocaleString();
 
   return (
-    <div style={{ 
-      height: '100%', 
+    <div style={{
+      height: '100%',
       display: 'flex',
-      background: 'rgba(0,0,0,0.8)',
-      border: '1px solid rgba(255,107,53,0.3)',
-      borderRadius: '16px',
+      background: mono.bgPanel,
+      border: `1px solid ${mono.border}`,
+      borderRadius: '8px',
       padding: '24px',
-      backdropFilter: 'blur(20px)',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,107,53,0.1)',
+      backdropFilter: 'blur(18px)',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     }}>
       {/* Left Panel - Recording List */}
-      <div style={{
-        width: '300px',
-        marginRight: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        <h2 style={{ 
-          fontSize: '20px', 
-          marginBottom: '20px', 
-          color: 'var(--ink-high)',
-          fontWeight: '600'
-        }}>
+      <div style={{ width: '300px', marginRight: '24px', display: 'flex', flexDirection: 'column' }}>
+        <h2 style={{ fontSize: '20px', marginBottom: '20px', color: mono.inkHigh, fontWeight: 600 }}>
           📹 Recordings ({recordings.length})
         </h2>
-        
+
         {loading ? (
-          <div style={{ 
-            textAlign: 'center', 
-            color: 'var(--ink-mid)',
-            padding: '40px 0'
-          }}>
+          <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
             Loading recordings...
           </div>
         ) : recordings.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center', 
-            color: 'var(--ink-mid)',
-            padding: '40px 0'
-          }}>
+          <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
             No recordings yet
             <br />
             <small>Start monitoring to create recordings</small>
           </div>
         ) : (
-          <div style={{ 
-            flex: 1,
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px'
-          }}>
-            {recordings.map((recording, index) => (
-              <div
-                key={recording.timestamp || index}
-                onClick={() => setSelectedRecording(recording)}
-                style={{
-                  padding: '16px',
-                  background: selectedRecording?.timestamp === recording.timestamp 
-                    ? 'rgba(255,107,53,0.2)' 
-                    : 'rgba(0,0,0,0.4)',
-                  border: selectedRecording?.timestamp === recording.timestamp 
-                    ? '1px solid rgba(255,107,53,0.4)' 
-                    : '1px solid rgba(255,107,53,0.2)',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: 'var(--ink-high)'
-                  }}>
-                    Recording #{recordings.length - index}
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {recordings.map((recording, index) => {
+              const selected = selectedRecording?.timestamp === recording.timestamp;
+              return (
+                <div
+                  key={recording.timestamp || index}
+                  onClick={() => setSelectedRecording(recording)}
+                  style={{
+                    padding: '16px',
+                    background: selected ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${selected ? mono.divider : mono.border}`,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: mono.inkHigh }}>
+                      Recording #{recordings.length - index}
+                    </div>
+                    <div style={{
+                      fontSize: '12px',
+                      color: mono.inkHigh,
+                      background: 'rgba(255,255,255,0.10)',
+                      padding: '2px 8px',
+                      borderRadius: '3px',
+                      border: `1px solid ${mono.border}`
+                    }}>
+                      {formatDuration(recording.duration || 0)}
+                    </div>
                   </div>
+
+                  <div style={{ fontSize: '12px', color: mono.inkLow, marginBottom: '8px' }}>
+                    {formatTimestamp(recording.timestamp)}
+                  </div>
+
                   <div style={{
-                    fontSize: '12px',
-                    color: '#FFE066',
-                    background: 'rgba(255,224,102,0.2)',
-                    padding: '2px 8px',
-                    borderRadius: '4px'
+                    fontSize: '11px',
+                    color: mono.inkLow,
+                    background: 'rgba(255,255,255,0.04)',
+                    padding: '4px 8px',
+                    borderRadius: '3px',
+                    textAlign: 'center',
+                    border: `1px solid ${mono.border}`
                   }}>
-                    {formatDuration(recording.duration || 0)}
+                    {Math.round((recording.data?.length || 0) / 1024)} KB
                   </div>
                 </div>
-                
-                <div style={{
-                  fontSize: '12px',
-                  color: 'var(--ink-mid)',
-                  marginBottom: '8px'
-                }}>
-                  {formatTimestamp(recording.timestamp)}
-                </div>
-                
-                <div style={{
-                  fontSize: '11px',
-                  color: 'var(--ink-low)',
-                  background: 'rgba(0,0,0,0.3)',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  textAlign: 'center'
-                }}>
-                  {Math.round((recording.data?.length || 0) / 1024)} KB
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Right Panel - Video Player */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
-        <h3 style={{ 
-          fontSize: '18px', 
-          marginBottom: '20px', 
-          color: 'var(--ink-high)',
-          fontWeight: '500'
-        }}>
-          {selectedRecording ? `Recording #${recordings.length - recordings.findIndex(r => r.timestamp === selectedRecording.timestamp)}` : 'Select a Recording'}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: mono.inkHigh, fontWeight: 500 }}>
+          {selectedRecording
+            ? `Recording #${recordings.length - recordings.findIndex(r => r.timestamp === selectedRecording.timestamp)}`
+            : 'Select a Recording'}
         </h3>
-        
+
         {selectedRecording ? (
           <div style={{
             flex: 1,
             display: 'flex',
             flexDirection: 'column',
-            background: 'rgba(0,0,0,0.6)',
-            borderRadius: '12px',
+            background: 'rgba(255,255,255,0.04)',
+            borderRadius: '6px',
             padding: '20px',
-            border: '1px solid rgba(255,107,53,0.2)',
+            border: `1px solid ${mono.border}`,
           }}>
             {/* Video Player */}
             <video
@@ -1431,44 +1293,39 @@ function ObserveModuleWrapper() {
               style={{
                 width: '100%',
                 maxHeight: '400px',
-                borderRadius: '8px',
-                background: 'rgba(0,0,0,0.8)',
+                borderRadius: '4px',
+                background: 'rgba(0,0,0,0.85)',
                 marginBottom: '20px',
               }}
               src={`data:video/webm;base64,${selectedRecording.data}`}
             />
-            
+
             {/* Recording Details */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '16px',
-              fontSize: '14px',
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '14px' }}>
               <div>
-                <div style={{ color: 'var(--ink-mid)', marginBottom: '4px' }}>Duration</div>
-                <div style={{ color: 'var(--ink-high)', fontWeight: '500' }}>
+                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Duration</div>
+                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
                   {formatDuration(selectedRecording.duration || 0)}
                 </div>
               </div>
-              
+
               <div>
-                <div style={{ color: 'var(--ink-mid)', marginBottom: '4px' }}>File Size</div>
-                <div style={{ color: 'var(--ink-high)', fontWeight: '500' }}>
+                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>File Size</div>
+                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
                   {Math.round((selectedRecording.data?.length || 0) / 1024)} KB
                 </div>
               </div>
-              
+
               <div>
-                <div style={{ color: 'var(--ink-mid)', marginBottom: '4px' }}>Created</div>
-                <div style={{ color: 'var(--ink-high)', fontWeight: '500' }}>
+                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Created</div>
+                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
                   {formatTimestamp(selectedRecording.timestamp)}
                 </div>
               </div>
-              
+
               <div>
-                <div style={{ color: 'var(--ink-mid)', marginBottom: '4px' }}>Format</div>
-                <div style={{ color: 'var(--ink-high)', fontWeight: '500' }}>
+                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Format</div>
+                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
                   WebM (VP9)
                 </div>
               </div>
@@ -1480,10 +1337,10 @@ function ObserveModuleWrapper() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(0,0,0,0.6)',
-            borderRadius: '12px',
-            border: '1px solid rgba(255,107,53,0.2)',
-            color: 'var(--ink-mid)',
+            background: 'rgba(255,255,255,0.04)',
+            borderRadius: '6px',
+            border: `1px solid ${mono.border}`,
+            color: mono.inkLow,
             fontSize: '16px',
           }}>
             Select a recording from the list to play it back
@@ -1513,9 +1370,9 @@ export default function Home() {
       width: '100vw', 
       position: 'relative', 
       overflow: 'hidden',
-      background: 'linear-gradient(135deg, #070a12 0%, #0a0a0a 50%, #0d0d0d 100%)',
+      background: mono.bg0,
     }}>
-      <Grid3DBackdrop />
+      <GlassyTilesBackdrop />
 
       {/* Left Sidebar */}
       <LeftSidebar activePhase={activePhase} setActivePhase={setActivePhase} />
@@ -1547,11 +1404,11 @@ export default function Home() {
           bottom: 0,
           width: 280,
           zIndex: 1000,
-          borderLeft: '1px solid rgba(255,107,53,0.3)',
-          background: 'rgba(0,0,0,0.8)',
+          // borderLeft: '1px solid rgb(255, 255, 255)',
+          background: 'rgba(200,203,194,0.55)',
           backdropFilter: 'blur(20px)',
           overflow: 'auto',
-          boxShadow: '0 0 30px rgba(255,107,53,0.2)',
+          // boxShadow: '0 0 30px rgb(255, 255, 255)',
         }}
       >
         {sid ? <SearchPanel sessionId={sid} /> : <div style={{ padding: 16, color: 'var(--ink-mid)' }}>Loading…</div>}
