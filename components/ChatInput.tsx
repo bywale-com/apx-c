@@ -74,6 +74,18 @@ const isBlockActive = (editor: Editor, format: string) => {
   return !!match;
 };
 
+// Warm light grayscale UI tokens (match app theme)
+const ui = {
+  bgPanel: 'rgba(255,255,255,0.65)',
+  inputBg: 'rgba(255,255,255,0.75)',
+  border: 'rgba(154,156,148,0.45)',
+  borderSoft: 'rgba(154,156,148,0.28)',
+  inkHigh: '#353535',
+  inkMid: '#5c5e58',
+  inkLow: '#8d8f88',
+  white: '#ffffff',
+};
+
 const Element = ({ attributes, children, element }: any) => {
   switch (element.type) {
     case 'code':
@@ -81,14 +93,14 @@ const Element = ({ attributes, children, element }: any) => {
         <pre
           {...attributes}
           style={{
-            color: '#FFE066',
-            backgroundColor: 'rgba(0,0,0,0.8)',
+            color: ui.white,
+            backgroundColor: 'rgba(0,0,0,0.85)',
             fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
-            fontSize: 14,
+            fontSize: 13,
             padding: '12px',
-            borderRadius: 8,
+            borderRadius: 6,
             overflowX: 'auto',
-            border: '1px solid rgba(255,107,53,0.3)',
+            border: `1px solid ${ui.border}`,
             margin: '8px 0',
           }}
         >
@@ -155,16 +167,16 @@ const FormatButton = ({ format, icon }: { format: keyof Omit<CustomText, 'text'>
         toggleMark(editor, format);
       }}
       style={{
-        fontWeight: active ? 'bold' : 'normal',
+        fontWeight: 500,
         marginRight: 8,
-        padding: '6px 12px',
+        padding: '6px 10px',
         cursor: 'pointer',
-        background: active ? 'rgba(255,107,53,0.3)' : 'rgba(0,0,0,0.4)',
-        border: '1px solid rgba(255,107,53,0.3)',
-        borderRadius: '6px',
-        color: active ? '#FF6B35' : '#FFE066',
-        fontSize: '14px',
-        transition: 'all 0.2s ease',
+        background: active ? 'rgba(0,0,0,0.1)' : 'transparent',
+        border: `1px solid ${active ? ui.border : ui.borderSoft}`,
+        borderRadius: 4,
+        color: active ? ui.inkHigh : ui.inkMid,
+        fontSize: 13,
+        transition: 'all 0.15s ease',
       }}
       type="button"
       aria-label={`Toggle ${format}`}
@@ -184,15 +196,15 @@ const CodeBlockButton = () => {
         toggleCodeBlock(editor);
       }}
       style={{
-        fontWeight: active ? 'bold' : 'normal',
-        padding: '6px 12px',
+        fontWeight: 500,
+        padding: '6px 10px',
         cursor: 'pointer',
-        background: active ? 'rgba(255,107,53,0.3)' : 'rgba(0,0,0,0.4)',
-        border: '1px solid rgba(255,107,53,0.3)',
-        borderRadius: '6px',
-        color: active ? '#FF6B35' : '#FFE066',
-        fontSize: '14px',
-        transition: 'all 0.2s ease',
+        background: active ? 'rgba(0,0,0,0.1)' : 'transparent',
+        border: `1px solid ${active ? ui.border : ui.borderSoft}`,
+        borderRadius: 4,
+        color: active ? ui.inkHigh : ui.inkMid,
+        fontSize: 13,
+        transition: 'all 0.15s ease',
       }}
       type="button"
       aria-label="Toggle code block"
@@ -279,15 +291,15 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
   return (
     <div
       style={{
-        border: '1px solid rgba(255,107,53,0.3)',
-        borderRadius: 12,
+        border: `1px solid ${ui.border}`,
+        borderRadius: 8,
         padding: 12,
         minWidth: 300,
         maxWidth: 1200,
         display: 'flex',
         flexDirection: 'column',
-        background: 'rgba(0,0,0,0.6)',
-        backdropFilter: 'blur(10px)',
+        background: ui.bgPanel,
+        backdropFilter: 'blur(12px)',
       }}
     >
       <Slate editor={editor} initialValue={value} onValueChange={newValue => setValue(newValue)}>
@@ -308,12 +320,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
             maxHeight: 150,
             overflowY: 'auto',
             padding: 12,
-            fontSize: 15,
-            lineHeight: '1.4',
-            background: 'rgba(0,0,0,0.7)',
-            border: '1px solid rgba(255,107,53,0.2)',
-            borderRadius: '8px',
-            color: 'var(--ink-high)',
+            fontSize: 14,
+            lineHeight: '1.45',
+            background: ui.inputBg,
+            border: `1px solid ${ui.border}`,
+            borderRadius: 6,
+            color: ui.inkHigh,
             outline: 'none',
           }}
         />
@@ -325,16 +337,16 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
         // disabled={serialize(value).trim().length === 0}
         style={{
           marginTop: 12,
-          padding: '8px 16px',
-          fontSize: 14,
+          padding: '8px 14px',
+          fontSize: 13,
           fontWeight: '500',
-          background: 'rgba(255,107,53,0.3)',
-          border: '1px solid rgba(255,107,53,0.4)',
-          borderRadius: '8px',
-          color: '#FF6B35',
+          background: ui.white,
+          border: `1px solid ${ui.border}`,
+          borderRadius: 6,
+          color: ui.inkHigh,
           cursor: 'pointer',
           alignSelf: 'flex-end',
-          transition: 'all 0.2s ease',
+          transition: 'all 0.15s ease',
         }}
       >
         Send

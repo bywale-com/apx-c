@@ -1354,6 +1354,7 @@ function ObserveModuleWrapper() {
 export default function Home() {
   const [sid, setSid] = useState<string>('');
   const [activePhase, setActivePhase] = useState('watch');
+  const [rightWidth, setRightWidth] = useState<number>(280);
 
   useEffect(() => {
     try {
@@ -1382,7 +1383,7 @@ export default function Home() {
         position: 'absolute',
         top: '0px',
         left: '60px', // Reserve space for left sidebar
-        right: '280px', // Reserve space for right sidebar (reduced from 360px)
+        right: `${rightWidth}px`, // Dynamic based on SearchPanel
         bottom: '0px',
         overflow: 'hidden',
         padding: '24px'
@@ -1402,7 +1403,7 @@ export default function Home() {
           top: 0,
           right: 0,
           bottom: 0,
-          width: 280,
+          width: rightWidth,
           zIndex: 1000,
           // borderLeft: '1px solid rgb(255, 255, 255)',
           background: 'rgba(200,203,194,0.55)',
@@ -1411,7 +1412,7 @@ export default function Home() {
           // boxShadow: '0 0 30px rgb(255, 255, 255)',
         }}
       >
-        {sid ? <SearchPanel sessionId={sid} /> : <div style={{ padding: 16, color: 'var(--ink-mid)' }}>Loading…</div>}
+        {sid ? <SearchPanel sessionId={sid} onWidthChange={setRightWidth} /> : <div style={{ padding: 16, color: 'var(--ink-mid)' }}>Loading…</div>}
       </aside>
     </div>
   );
