@@ -901,6 +901,14 @@ function ChatModule({ sid }: { sid: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function normalizeMarkdown(input: string): string {
+    if (!input) return input;
+    let out = input;
+    // Collapse 4+ backticks to 3 for fenced blocks
+    out = out.replace(/`{4,}/g, '```');
+    return out;
+  }
+
   // Load chat history on mount
   useEffect(() => {
     const loadChatHistory = async () => {
@@ -908,7 +916,8 @@ function ChatModule({ sid }: { sid: string }) {
         const response = await fetch(`/api/chat-logs?sessionId=${sid}`);
         if (response.ok) {
           const data = await response.json();
-          setMessages(data.messages || []);
+          const msgs = (data.messages || []).map((m: any) => ({ ...m, text: normalizeMarkdown(m.text || m.content || '') }));
+          setMessages(msgs);
         }
       } catch (err) {
         console.error('Failed to load chat history:', err);
@@ -916,6 +925,34 @@ function ChatModule({ sid }: { sid: string }) {
     };
 
     if (sid) loadChatHistory();
+  }, [sid]);
+
+  // Poll for async agent messages (webhook updates)
+  useEffect(() => {
+    if (!sid) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/chat-logs?sessionId=${sid}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const incoming = (data.messages || []).map((m: any) => ({ ...m, text: normalizeMarkdown(m.text || m.content || '') }));
+        // Merge without duplicates by id+ts, sort by timestamp
+        setMessages((prev) => {
+          const seen = new Set(prev.map((p: any) => p.id || `${p.ts}-${p.text}`));
+          const merged = [...prev];
+          for (const m of incoming) {
+            const key = m.id || `${m.ts}-${m.text}`;
+            if (!seen.has(key)) {
+              merged.push(m);
+              seen.add(key);
+            }
+          }
+          // Sort by timestamp to maintain chronological order
+          return merged.sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+        });
+      } catch {}
+    }, 2000);
+    return () => clearInterval(interval);
   }, [sid]);
 
   const handleSend = async (message: string) => {
@@ -941,15 +978,7 @@ function ChatModule({ sid }: { sid: string }) {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        const agentMessage = {
-          id: uuidv4(),
-          sessionId: sid,
-          sender: 'agent' as const,
-          text: data.response,
-          ts: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, agentMessage]);
+        // Agent response may arrive asynchronously via webhook; polling will pick it up
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to get response');
