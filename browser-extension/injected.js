@@ -4,14 +4,25 @@
   
   // Prevent multiple injections
   if (window.apexMonitorInjected) return;
+  // Only run in top frame to avoid iframe duplicate events
+  try { if (window.top !== window.self) { window.apexMonitorInjected = true; return; } } catch (_) {}
   window.apexMonitorInjected = true;
   
   let isCapturing = false; // Start with monitoring OFF (will be controlled by extension)
   let sessionId = null;
   let pageUrl = window.location.href;
   
-  // Generate unique session ID for this page
-  sessionId = 'page_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  // Generate or reuse a stable session ID for this page
+  try {
+    if (window.apexMonitorSessionId && typeof window.apexMonitorSessionId === 'string') {
+      sessionId = window.apexMonitorSessionId;
+    } else {
+      sessionId = 'page_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      window.apexMonitorSessionId = sessionId;
+    }
+  } catch (_) {
+    sessionId = 'page_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
   
   // Listen for monitoring state changes from content script
   window.addEventListener('message', (event) => {
@@ -44,6 +55,9 @@
       console.log('🚫 Event blocked - monitoring OFF');
       return;
     }
+    // Attach a coarse fingerprint to help background de-dup
+    const fp = `${eventData.type}|${Math.floor((eventData.timestamp||Date.now())/200)}|${eventData.url||pageUrl}`;
+    eventData.__apxFp = fp;
     
     // Send to content script via postMessage
     window.postMessage({
@@ -181,20 +195,48 @@
   
   // Capture scroll events (throttled)
   let scrollTimeout;
+  const lastScrollPosByEl = new WeakMap(); // Element -> { x, y }
+  const lastScrollSentAtByEl = new WeakMap(); // Element -> ts
   function captureScroll(event) {
     if (!isCapturing) return;
     
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
-      sendEvent({
-        type: 'scroll',
-        scrollY: window.scrollY,
-        scrollX: window.scrollX,
-        timestamp: Date.now(),
-        sessionId: sessionId,
-        url: pageUrl
-      });
-    }, 100);
+      const now = Date.now();
+      // Determine the scrolled element
+      let el = event.target;
+      if (el === document || el === window || !el) {
+        el = document.scrollingElement || document.documentElement || document.body;
+      }
+      let x = 0, y = 0;
+      if (el === document.scrollingElement || el === document.documentElement || el === document.body) {
+        x = window.scrollX || document.documentElement.scrollLeft || 0;
+        y = window.scrollY || document.documentElement.scrollTop || 0;
+      } else if (el && el.scrollTop != null) {
+        // @ts-ignore
+        x = el.scrollLeft || 0;
+        // @ts-ignore
+        y = el.scrollTop || 0;
+      }
+      const lastPos = lastScrollPosByEl.get(el) || { x: NaN, y: NaN };
+      const dx = Math.abs((x || 0) - (lastPos.x || 0));
+      const dy = Math.abs((y || 0) - (lastPos.y || 0));
+      const lastAt = lastScrollSentAtByEl.get(el) || 0;
+      if ((dx >= 4 || dy >= 4) && (now - lastAt >= 200)) {
+        lastScrollPosByEl.set(el, { x, y });
+        lastScrollSentAtByEl.set(el, now);
+        const elInfo = el instanceof Element ? getElementInfo(el) : { tag: 'document' };
+        sendEvent({
+          type: 'scroll',
+          scrollY: y,
+          scrollX: x,
+          element: elInfo,
+          timestamp: now,
+          sessionId: sessionId,
+          url: pageUrl
+        });
+      }
+    }, 220);
   }
   
   // Capture key events (throttled)

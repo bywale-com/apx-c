@@ -320,18 +320,37 @@ document.addEventListener('DOMContentLoaded', function() {
       
       debugLog(`Base64 conversion complete: ${base64.length} characters`);
       
-      const recordingData = {
-        type: 'SCREEN_RECORDING_DATA',
-        data: base64,
-        timestamp: Date.now(),
-        duration: recordedChunks.length * 2000, // 2-second chunks
+      // Chunked upload via background
+      const recordingId = `rec_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+      const targetChunkBytes = 256 * 1024; // ~256KB per chunk
+      const total = Math.ceil((base64.length * 3 / 4) / targetChunkBytes); // approximate by bytes
+      const charsPerChunk = Math.floor(targetChunkBytes * 4 / 3); // base64 char length per target bytes
+      debugLog(`Chunking recording ${recordingId}: ~${total} chunks`);
+
+      for (let i = 0, index = 0; i < base64.length; i += charsPerChunk, index++) {
+        const part = base64.slice(i, i + charsPerChunk);
+        const msg = {
+          type: 'SCREEN_RECORDING_CHUNK',
+          recordingId,
+          index,
+          total,
+          data: part,
+          timestamp: Date.now(),
+          mimeType: mediaRecorder.mimeType || 'video/webm'
+        };
+        chrome.runtime.sendMessage(msg);
+      }
+
+      // Notify completion with metadata
+      chrome.runtime.sendMessage({
+        type: 'SCREEN_RECORDING_COMPLETE',
+        recordingId,
+        duration: recordedChunks.length * 2000,
         size: blob.size,
+        timestamp: Date.now(),
         mimeType: mediaRecorder.mimeType || 'video/webm'
-      };
-      
-      debugLog('Sending to background script...');
-      chrome.runtime.sendMessage(recordingData);
-      debugLog('Recording data sent to background');
+      });
+      debugLog('Recording chunks sent to background');
       
     } catch (error) {
       debugLog(`ERROR processing recording: ${error.message}`);

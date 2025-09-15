@@ -5,6 +5,11 @@ let isMonitoring = false;
 let apexAppUrl = null;
 let monitoredTabs = new Set();
 let injectedTabs = new Set(); // Track which tabs already have scripts injected
+// Rolling de-dup cache per tab: store fingerprints with timestamps
+const tabEventCache = new Map(); // tabId -> Array<{fp:string, ts:number}>
+const DEDUPE_WINDOW_MS = 250;
+// Track active session per tab to ignore stale injectors
+const tabActiveSession = new Map(); // tabId -> { sessionId: string, url: string }
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
@@ -103,7 +108,7 @@ async function sendToApp(data) {
   console.log('sendToApp called with:', data);
   
   const possibleUrls = [
-    'http://localhost:3001/api/extension-events',
+    'http://localhost:3000/api/extension-events',
     'https://chat.apexintro.com/api/extension-events'
   ];
   
@@ -188,23 +193,70 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // Handle messages from content scripts
   if (message.type === 'CAPTURE_EVENT') {
+    const tabId = sender.tab.id;
+    const fp = message.event && message.event.__apxFp;
+    const now = Date.now();
+    // Session filter: prefer the first sessionId seen for current URL
+    const incomingSession = message.event && message.event.sessionId;
+    const incomingUrl = sender.tab.url;
+    const active = tabActiveSession.get(tabId);
+    if (incomingSession) {
+      if (!active) {
+        tabActiveSession.set(tabId, { sessionId: incomingSession, url: incomingUrl });
+      } else {
+        const sameUrl = active.url === incomingUrl;
+        if (sameUrl && active.sessionId !== incomingSession) {
+          console.log('🛑 Ignored stale session for tab', tabId, incomingSession, 'active:', active.sessionId);
+          return;
+        }
+        if (!sameUrl) {
+          tabActiveSession.set(tabId, { sessionId: incomingSession, url: incomingUrl });
+        }
+      }
+    }
+    if (fp) {
+      const list = tabEventCache.get(tabId) || [];
+      // Drop entries older than window
+      const fresh = list.filter(e => now - e.ts < DEDUPE_WINDOW_MS);
+      const dup = fresh.some(e => e.fp === fp);
+      if (dup) {
+        console.log('🛑 Deduped browser_event for tab', tabId, fp);
+        tabEventCache.set(tabId, fresh);
+        return;
+      }
+      fresh.push({ fp, ts: now });
+      tabEventCache.set(tabId, fresh);
+    }
     sendToApp({
       type: 'browser_event',
-      tabId: sender.tab.id,
+      tabId,
       url: sender.tab.url,
       title: sender.tab.title,
       event: message.event,
-      timestamp: Date.now()
+      timestamp: now
     });
   }
   
   // Handle screen recording data from popup
-  if (message.type === 'SCREEN_RECORDING_DATA') {
+  if (message.type === 'SCREEN_RECORDING_CHUNK') {
     sendToApp({
-      type: 'screen_recording',
+      type: 'screen_recording_chunk',
+      recordingId: message.recordingId,
+      index: message.index,
+      total: message.total,
       data: message.data,
-      timestamp: message.timestamp,
-      duration: message.duration
+      mimeType: message.mimeType,
+      timestamp: message.timestamp
+    });
+  }
+  if (message.type === 'SCREEN_RECORDING_COMPLETE') {
+    sendToApp({
+      type: 'screen_recording_complete',
+      recordingId: message.recordingId,
+      duration: message.duration,
+      size: message.size,
+      mimeType: message.mimeType,
+      timestamp: message.timestamp
     });
   }
   
