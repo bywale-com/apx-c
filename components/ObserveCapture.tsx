@@ -66,6 +66,48 @@ function cssSelector(el: Element | null): string | undefined {
 }
 
 export default function ObserveCapture() {
+  // Function to start browser extension monitoring
+  const startBrowserExtensionMonitoring = async () => {
+    try {
+      // Send message to browser extension to start monitoring
+      const response = await fetch('/api/extension-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'start_monitoring',
+          timestamp: Date.now()
+        })
+      });
+      
+      if (response.ok) {
+        console.log('✅ Browser extension monitoring started');
+      } else {
+        console.log('⚠️ Could not start browser extension monitoring');
+      }
+    } catch (error) {
+      console.log('⚠️ Browser extension not available:', error);
+    }
+  };
+
+  const stopBrowserExtensionMonitoring = async () => {
+    try {
+      const response = await fetch('/api/extension-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'stop_monitoring',
+          timestamp: Date.now()
+        })
+      });
+      
+      if (response.ok) {
+        console.log('✅ Browser extension monitoring stopped');
+      }
+    } catch (error) {
+      console.log('⚠️ Could not stop browser extension monitoring:', error);
+    }
+  };
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -188,6 +230,9 @@ export default function ObserveCapture() {
         // Seed a navigate event
         enqueue({ type: 'navigate', url: location.href });
 
+        // Start browser extension monitoring if available
+        startBrowserExtensionMonitoring();
+
         // periodic flush
         flushTimer = setInterval(flush, 1000);
       },
@@ -197,6 +242,10 @@ export default function ObserveCapture() {
         dispatchRecordingChanged(false);
         clearInterval(flushTimer);
         flushTimer = null;
+        
+        // Stop browser extension monitoring
+        stopBrowserExtensionMonitoring();
+        
         // final flush
         flush();
         // freeze episode id (no further events)

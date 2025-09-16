@@ -506,27 +506,61 @@ export default function Landing() {
           </span>
         </div>
         
-        <Link href="/login" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'none',
-          border: 'none',
-          color: '#ffffff',
-          fontSize: '0.9rem',
-          fontWeight: '500',
-          textTransform: 'uppercase',
-          letterSpacing: '1px',
-          cursor: 'pointer',
-          textDecoration: 'none',
-        }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-            <div style={{ width: '18px', height: '2px', backgroundColor: '#ffffff' }} />
-            <div style={{ width: '18px', height: '2px', backgroundColor: '#ffffff' }} />
-            <div style={{ width: '18px', height: '2px', backgroundColor: '#ffffff' }} />
-          </div>
-          Login
-        </Link>
+        <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+          <Link href="/workflow-analysis" style={{
+            color: '#ffffff',
+            fontSize: '0.9rem',
+            fontWeight: '500',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            textDecoration: 'none',
+            opacity: 0.8,
+            transition: 'opacity 0.3s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
+          >
+            Workflow Analysis
+          </Link>
+          
+          <Link href="/debug" style={{
+            color: '#ffffff',
+            fontSize: '0.9rem',
+            fontWeight: '500',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            textDecoration: 'none',
+            opacity: 0.8,
+            transition: 'opacity 0.3s ease'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
+          >
+            Debug
+          </Link>
+          
+          <Link href="/login" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'none',
+            border: 'none',
+            color: '#ffffff',
+            fontSize: '0.9rem',
+            fontWeight: '500',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            cursor: 'pointer',
+            textDecoration: 'none',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <div style={{ width: '18px', height: '2px', backgroundColor: '#ffffff' }} />
+              <div style={{ width: '18px', height: '2px', backgroundColor: '#ffffff' }} />
+              <div style={{ width: '18px', height: '2px', backgroundColor: '#ffffff' }} />
+            </div>
+            Login
+          </Link>
+        </div>
       </header>
 
       <main style={{ 

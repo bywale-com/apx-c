@@ -11,6 +11,7 @@ import SearchPanel from '../components/SearchPanel';
 import ObserveCapture from '../components/ObserveCapture';
 import GlobeBackdrop from '../components/GlobeBackdrop';
 import Tile from '../components/Tile';
+import VideoEventSync from '../components/VideoEventSync';
 import { getOrCreateSessionId } from '../utils/session';
 
 const ObserveModule = dynamic(() => import('../modules/ObserveModule'), { ssr: false });
@@ -1195,30 +1196,44 @@ function ChatModule({ sid }: { sid: string }) {
 function ObserveModuleWrapper() {
   const [recordings, setRecordings] = useState<any[]>([]);
   const [selectedRecording, setSelectedRecording] = useState<any>(null);
+  const [workflowSessions, setWorkflowSessions] = useState<any[]>([]);
+  const [selectedSession, setSelectedSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'recordings' | 'workflows'>('recordings');
 
   useEffect(() => {
-    const fetchRecordings = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/extension-events?action=get_recordings');
-        if (response.ok) {
-          const data = await response.json();
-          setRecordings(data);
-          if (data.length > 0 && !selectedRecording) {
-            setSelectedRecording(data[data.length - 1]);
+        // Fetch recordings
+        const recordingsResponse = await fetch('/api/extension-events?action=get_recordings');
+        if (recordingsResponse.ok) {
+          const recordingsData = await recordingsResponse.json();
+          setRecordings(recordingsData);
+          if (recordingsData.length > 0 && !selectedRecording) {
+            setSelectedRecording(recordingsData[recordingsData.length - 1]);
+          }
+        }
+
+        // Fetch workflow sessions
+        const sessionsResponse = await fetch('/api/extension-events?action=get_workflow_sessions');
+        if (sessionsResponse.ok) {
+          const sessionsData = await sessionsResponse.json();
+          setWorkflowSessions(sessionsData.sessions || []);
+          if (sessionsData.sessions?.length > 0 && !selectedSession) {
+            setSelectedSession(sessionsData.sessions[sessionsData.sessions.length - 1]);
           }
         }
       } catch (error) {
-        console.error('Failed to fetch recordings:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRecordings();
-    const interval = setInterval(fetchRecordings, 5000);
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, [selectedRecording]);
+  }, [selectedRecording, selectedSession]);
 
   const formatDuration = (duration: number) => {
     const seconds = Math.floor(duration / 1000);
@@ -1228,6 +1243,18 @@ function ObserveModuleWrapper() {
   };
 
   const formatTimestamp = (timestamp: number) => new Date(timestamp).toLocaleString();
+
+  const loadSessionDetails = async (sessionId: string) => {
+    try {
+      const response = await fetch(`/api/extension-events?action=get_workflow_session&sessionId=${sessionId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedSession(data);
+      }
+    } catch (error) {
+      console.error('Failed to load session details:', error);
+    }
+  };
 
   return (
     <div style={{
@@ -1242,151 +1269,331 @@ function ObserveModuleWrapper() {
     }}>
       {/* Left Panel - Recording List */}
       <div style={{ width: '300px', marginRight: '24px', display: 'flex', flexDirection: 'column' }}>
+        {/* View Mode Toggle */}
+        <div style={{ 
+          display: 'flex', 
+          marginBottom: '20px',
+          background: 'rgba(255,255,255,0.04)',
+          borderRadius: '6px',
+          padding: '4px',
+          border: `1px solid ${mono.border}`
+        }}>
+          <button
+            onClick={() => setViewMode('recordings')}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              background: viewMode === 'recordings' ? 'rgba(255,255,255,0.10)' : 'transparent',
+              border: 'none',
+              borderRadius: '4px',
+              color: mono.inkHigh,
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            📹 Recordings ({recordings.length})
+          </button>
+          <button
+            onClick={() => setViewMode('workflows')}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              background: viewMode === 'workflows' ? 'rgba(255,255,255,0.10)' : 'transparent',
+              border: 'none',
+              borderRadius: '4px',
+              color: mono.inkHigh,
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            🔍 Workflows ({workflowSessions.length})
+          </button>
+        </div>
+
         <h2 style={{ fontSize: '20px', marginBottom: '20px', color: mono.inkHigh, fontWeight: 600 }}>
-          📹 Recordings ({recordings.length})
+          {viewMode === 'recordings' ? '📹 Recordings' : '🔍 Workflow Sessions'}
         </h2>
 
         {loading ? (
           <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
-            Loading recordings...
+            Loading {viewMode}...
           </div>
-        ) : recordings.length === 0 ? (
-          <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
-            No recordings yet
-            <br />
-            <small>Start monitoring to create recordings</small>
-          </div>
-        ) : (
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {recordings.map((recording, index) => {
-              const selected = selectedRecording?.timestamp === recording.timestamp;
-              return (
-                <div
-                  key={recording.timestamp || index}
-                  onClick={() => setSelectedRecording(recording)}
-                  style={{
-                    padding: '16px',
-                    background: selected ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${selected ? mono.divider : mono.border}`,
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 600, color: mono.inkHigh }}>
-                      Recording #{recordings.length - index}
+        ) : viewMode === 'recordings' ? (
+          recordings.length === 0 ? (
+            <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
+              No recordings yet
+              <br />
+              <small>Start monitoring to create recordings</small>
+            </div>
+          ) : (
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {recordings.map((recording, index) => {
+                const selected = selectedRecording?.timestamp === recording.timestamp;
+                return (
+                  <div
+                    key={recording.timestamp || index}
+                    onClick={() => setSelectedRecording(recording)}
+                    style={{
+                      padding: '16px',
+                      background: selected ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${selected ? mono.divider : mono.border}`,
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: mono.inkHigh }}>
+                        Recording #{recordings.length - index}
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: mono.inkHigh,
+                        background: 'rgba(255,255,255,0.10)',
+                        padding: '2px 8px',
+                        borderRadius: '3px',
+                        border: `1px solid ${mono.border}`
+                      }}>
+                        {formatDuration(recording.duration || 0)}
+                      </div>
                     </div>
+
+                    <div style={{ fontSize: '12px', color: mono.inkLow, marginBottom: '8px' }}>
+                      {formatTimestamp(recording.timestamp)}
+                    </div>
+
                     <div style={{
-                      fontSize: '12px',
-                      color: mono.inkHigh,
-                      background: 'rgba(255,255,255,0.10)',
-                      padding: '2px 8px',
+                      fontSize: '11px',
+                      color: mono.inkLow,
+                      background: 'rgba(255,255,255,0.04)',
+                      padding: '4px 8px',
                       borderRadius: '3px',
-                      border: `1px solid ${mono.border}`
+                      textAlign: 'center',
+                      border: `1px solid ${mono.border}`,
+                      marginBottom: '8px'
                     }}>
-                      {formatDuration(recording.duration || 0)}
+                      {Math.round((recording.data?.length || 0) / 1024)} KB
                     </div>
+                    
+                    {workflowSessions.some(session => session.recordingId === recording.recordingId) && (
+                      <div style={{
+                        fontSize: '10px',
+                        color: '#FF9E4A',
+                        background: 'rgba(255, 158, 74, 0.1)',
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        textAlign: 'center',
+                        border: '1px solid rgba(255, 158, 74, 0.2)'
+                      }}>
+                        🔍 Has Workflow
+                      </div>
+                    )}
                   </div>
+                );
+              })}
+            </div>
+          )
+        ) : (
+          workflowSessions.length === 0 ? (
+            <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
+              No workflow sessions yet
+              <br />
+              <small>Start monitoring to capture workflows</small>
+            </div>
+          ) : (
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {workflowSessions.map((session, index) => {
+                const selected = selectedSession?.sessionId === session.sessionId;
+                return (
+                  <div
+                    key={session.sessionId}
+                    onClick={() => loadSessionDetails(session.sessionId)}
+                    style={{
+                      padding: '16px',
+                      background: selected ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${selected ? mono.divider : mono.border}`,
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: mono.inkHigh }}>
+                        Session {session.sessionId.slice(-8)}
+                      </div>
+                      <div style={{
+                        fontSize: '12px',
+                        color: mono.inkHigh,
+                        background: 'rgba(255,255,255,0.10)',
+                        padding: '2px 8px',
+                        borderRadius: '3px',
+                        border: `1px solid ${mono.border}`
+                      }}>
+                        {formatDuration(session.duration)}
+                      </div>
+                    </div>
 
-                  <div style={{ fontSize: '12px', color: mono.inkLow, marginBottom: '8px' }}>
-                    {formatTimestamp(recording.timestamp)}
-                  </div>
+                    <div style={{ fontSize: '12px', color: mono.inkLow, marginBottom: '8px' }}>
+                      {formatTimestamp(session.startTime)}
+                    </div>
 
-                  <div style={{
-                    fontSize: '11px',
-                    color: mono.inkLow,
-                    background: 'rgba(255,255,255,0.04)',
-                    padding: '4px 8px',
-                    borderRadius: '3px',
-                    textAlign: 'center',
-                    border: `1px solid ${mono.border}`
-                  }}>
-                    {Math.round((recording.data?.length || 0) / 1024)} KB
+                    <div style={{
+                      fontSize: '11px',
+                      color: mono.inkLow,
+                      background: 'rgba(255,255,255,0.04)',
+                      padding: '4px 8px',
+                      borderRadius: '3px',
+                      textAlign: 'center',
+                      border: `1px solid ${mono.border}`,
+                      marginBottom: '8px'
+                    }}>
+                      {session.eventCount} events
+                    </div>
+                    
+                    {session.recordingId && (
+                      <div style={{
+                        fontSize: '10px',
+                        color: '#38E1FF',
+                        background: 'rgba(56, 225, 255, 0.1)',
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        textAlign: 'center',
+                        border: '1px solid rgba(56, 225, 255, 0.2)'
+                      }}>
+                        📹 Has Recording
+                      </div>
+                    )}
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )
         )}
       </div>
 
-      {/* Right Panel - Video Player */}
+      {/* Right Panel - Video Player / Workflow Analysis */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ fontSize: '18px', marginBottom: '20px', color: mono.inkHigh, fontWeight: 500 }}>
-          {selectedRecording
-            ? `Recording #${recordings.length - recordings.findIndex(r => r.timestamp === selectedRecording.timestamp)}`
-            : 'Select a Recording'}
+          {viewMode === 'recordings' 
+            ? (selectedRecording
+                ? `Recording #${recordings.length - recordings.findIndex(r => r.timestamp === selectedRecording.timestamp)}`
+                : 'Select a Recording')
+            : (selectedSession
+                ? `Workflow Session ${selectedSession.sessionId?.slice(-8) || 'Unknown'}`
+                : 'Select a Workflow Session')
+          }
         </h3>
 
-        {selectedRecording ? (
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            background: 'rgba(255,255,255,0.04)',
-            borderRadius: '6px',
-            padding: '20px',
-            border: `1px solid ${mono.border}`,
-          }}>
-            {/* Video Player */}
-            <video
-              controls
-              style={{
-                width: '100%',
-                maxHeight: '400px',
-                borderRadius: '4px',
-                background: 'rgba(0,0,0,0.85)',
-                marginBottom: '20px',
-              }}
-              src={`data:video/webm;base64,${selectedRecording.data}`}
-            />
+        {viewMode === 'recordings' ? (
+          selectedRecording ? (
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'rgba(255,255,255,0.04)',
+              borderRadius: '6px',
+              padding: '20px',
+              border: `1px solid ${mono.border}`,
+            }}>
+              {/* Video Player */}
+              <video
+                controls
+                style={{
+                  width: '100%',
+                  maxHeight: '400px',
+                  borderRadius: '4px',
+                  background: 'rgba(0,0,0,0.85)',
+                  marginBottom: '20px',
+                }}
+                src={`data:video/webm;base64,${selectedRecording.data}`}
+              />
 
-            {/* Recording Details */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '14px' }}>
-              <div>
-                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Duration</div>
-                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
-                  {formatDuration(selectedRecording.duration || 0)}
+              {/* Recording Details */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '14px' }}>
+                <div>
+                  <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Duration</div>
+                  <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
+                    {formatDuration(selectedRecording.duration || 0)}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>File Size</div>
-                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
-                  {Math.round((selectedRecording.data?.length || 0) / 1024)} KB
+                <div>
+                  <div style={{ color: mono.inkLow, marginBottom: '4px' }}>File Size</div>
+                  <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
+                    {Math.round((selectedRecording.data?.length || 0) / 1024)} KB
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Created</div>
-                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
-                  {formatTimestamp(selectedRecording.timestamp)}
+                <div>
+                  <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Created</div>
+                  <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
+                    {formatTimestamp(selectedRecording.timestamp)}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Format</div>
-                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
-                  WebM (VP9)
+                <div>
+                  <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Format</div>
+                  <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
+                    WebM (VP9)
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(255,255,255,0.04)',
+              borderRadius: '6px',
+              border: `1px solid ${mono.border}`,
+              color: mono.inkLow,
+              fontSize: '16px',
+            }}>
+              Select a recording from the list to play it back
+            </div>
+          )
         ) : (
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(255,255,255,0.04)',
-            borderRadius: '6px',
-            border: `1px solid ${mono.border}`,
-            color: mono.inkLow,
-            fontSize: '16px',
-          }}>
-            Select a recording from the list to play it back
-          </div>
+          selectedSession ? (
+            <div style={{
+              flex: 1,
+              background: 'rgba(255,255,255,0.04)',
+              borderRadius: '6px',
+              border: `1px solid ${mono.border}`,
+              overflow: 'hidden'
+            }}>
+              <VideoEventSync
+                videoUrl={selectedSession.recordingId ? `data:video/webm;base64,${recordings.find(r => r.recordingId === selectedSession.recordingId)?.data || ''}` : ''}
+                events={selectedSession.events || []}
+                recordingId={selectedSession.sessionId}
+                onEventSelect={(event) => {
+                  console.log('Selected event:', event);
+                }}
+                onTimelineUpdate={(time) => {
+                  // Handle timeline updates if needed
+                }}
+              />
+            </div>
+          ) : (
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(255,255,255,0.04)',
+              borderRadius: '6px',
+              border: `1px solid ${mono.border}`,
+              color: mono.inkLow,
+              fontSize: '16px',
+            }}>
+              Select a workflow session from the list to analyze it
+            </div>
+          )
         )}
       </div>
     </div>
