@@ -6,7 +6,15 @@ const events: any[] = [];
 const recordings: Array<{ recordingId: string; data: string; mimeType: string; timestamp: number; duration?: number }> = [];
 
 // Workflow session storage
-const workflowSessions: Record<string, { events: any[]; startTime: number; lastEventTime: number; recordingId?: string }> = {};
+type WorkflowSession = {
+  events: any[];
+  startTime: number;
+  lastEventTime: number;
+  recordingId?: string;
+  cleanedEvents?: any[];
+  cleanedAt?: number;
+};
+const workflowSessions: Record<string, WorkflowSession> = {};
 
 export const config = {
   api: {
@@ -64,6 +72,86 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sessionId,
         ...workflowSessions[sessionId]
       });
+    }
+    if (action === 'prune_session') {
+      const sessionId = req.query.sessionId as string;
+      if (!sessionId || !workflowSessions[sessionId]) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+
+      const session = workflowSessions[sessionId];
+      const events = session.events || [];
+
+      // Heuristic pruning
+      const kept: any[] = [];
+      const bySelectorLastInput: Record<string, any> = {};
+      const actionableTags = new Set(['a','button','input','select','textarea']);
+
+      // Find last submit event index
+      const lastSubmitIdx = [...events].reverse().findIndex((e)=>e?.type==='submit');
+      const submitIdx = lastSubmitIdx>=0 ? events.length-1-lastSubmitIdx : -1;
+
+      // Build a window around submit to mark essential inputs (60s prior)
+      const submitTs = submitIdx>=0 ? events[submitIdx].timestamp : Infinity;
+      const essentialWindowStart = isFinite(submitTs) ? submitTs - 60_000 : -Infinity;
+
+      // First pass: filter noise and keep core actions
+      let lastScrollAt = 0;
+      let lastKeyAt = 0;
+      let lastClickBySelector: Record<string, number> = {};
+      for (let i=0;i<events.length;i++){
+        const ev = events[i];
+        if (!ev || !ev.type) continue;
+
+        // Always keep structural events
+        if (ev.type==='page_load' || ev.type==='navigate' || ev.type==='submit') {
+          kept.push(ev); continue;
+        }
+
+        if (ev.type==='scroll') {
+          // throttle scroll: keep if >600ms since last kept scroll
+          if (ev.timestamp - lastScrollAt >= 600) { kept.push(ev); lastScrollAt = ev.timestamp; }
+          continue;
+        }
+
+        if (ev.type==='key') {
+          // keep only if Enter or modifier combos, and throttle
+          if ((ev.key==='Enter' || ev.ctrlKey || ev.metaKey) && (ev.timestamp - lastKeyAt >= 200)) {
+            kept.push(ev); lastKeyAt = ev.timestamp;
+          }
+          continue;
+        }
+
+        if (ev.type==='click') {
+          const sel = ev.element?.selector || '';
+          const tag = (ev.element?.tag||'').toLowerCase();
+          const important = actionableTags.has(tag) || /button|submit|link/i.test(sel);
+          const lastAt = lastClickBySelector[sel] || 0;
+          if (important && (ev.timestamp - lastAt >= 200)) { kept.push(ev); lastClickBySelector[sel] = ev.timestamp; }
+          continue;
+        }
+
+        if (ev.type==='input') {
+          // Keep inputs that are likely part of the submitted form (within window) and changed to non-empty
+          const changed = ev.value != null && String(ev.value).trim() !== '';
+          const withinWindow = ev.timestamp >= essentialWindowStart && ev.timestamp <= submitTs;
+          if (changed && (withinWindow || submitIdx<0)) {
+            const sel = ev.element?.selector || `#unknown_${i}`;
+            bySelectorLastInput[sel] = ev; // last value wins
+          }
+          continue;
+        }
+      }
+
+      // Merge last inputs by selector
+      const mergedInputs = Object.values(bySelectorLastInput);
+      const cleaned = [...kept.filter(e=>e.type!=='input'), ...mergedInputs]
+        .sort((a:any,b:any)=>a.timestamp-b.timestamp);
+
+      session.cleanedEvents = cleaned;
+      session.cleanedAt = Date.now();
+
+      return res.status(200).json({ ok: true, kept: cleaned.length, original: events.length });
     }
     if (action === 'clear') {
       events.length = 0;

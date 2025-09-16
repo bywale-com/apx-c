@@ -10,7 +10,8 @@
     "scripting",
     "webRequest",
     "background",
-    "desktopCapture"
+    "desktopCapture",
+    "windows"
   ],
   "host_permissions": [
     "<all_urls>"

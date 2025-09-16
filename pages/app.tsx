@@ -1200,6 +1200,8 @@ function ObserveModuleWrapper() {
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'recordings' | 'workflows'>('recordings');
+  const [showCleaned, setShowCleaned] = useState(false);
+  const [pruning, setPruning] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -1250,9 +1252,28 @@ function ObserveModuleWrapper() {
       if (response.ok) {
         const data = await response.json();
         setSelectedSession(data);
+        // default to cleaned view if present
+        setShowCleaned(!!data.cleanedEvents && data.cleanedEvents.length > 0);
       }
     } catch (error) {
       console.error('Failed to load session details:', error);
+    }
+  };
+
+  const pruneSelectedSession = async () => {
+    if (!selectedSession?.sessionId) return;
+    setPruning(true);
+    try {
+      const resp = await fetch(`/api/extension-events?action=prune_session&sessionId=${selectedSession.sessionId}`);
+      const resJson = await resp.json();
+      // reload details
+      await loadSessionDetails(selectedSession.sessionId);
+      setShowCleaned(true);
+      console.log('Prune result:', resJson);
+    } catch (e) {
+      console.error('Prune failed', e);
+    } finally {
+      setPruning(false);
     }
   };
 
@@ -1567,9 +1588,26 @@ function ObserveModuleWrapper() {
               border: `1px solid ${mono.border}`,
               overflow: 'hidden'
             }}>
+              {/* Toolbar for prune/toggle */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: `1px solid ${mono.border}`, background: 'rgba(255,255,255,0.03)' }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <button onClick={pruneSelectedSession} disabled={pruning} style={{ padding: '8px 12px', borderRadius: 6, border: `1px solid ${mono.border}`, background: '#ffffff', color: '#000', cursor: pruning ? 'not-allowed' : 'pointer' }}>
+                    {pruning ? 'Pruning…' : 'Prune Workflow'}
+                  </button>
+                  {(selectedSession?.cleanedEvents?.length ?? 0) > 0 && (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: mono.inkHigh }}>
+                      <input type="checkbox" checked={showCleaned} onChange={(e)=>setShowCleaned(e.target.checked)} />
+                      Show cleaned events
+                    </label>
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: mono.inkLow }}>
+                  {showCleaned ? `Showing cleaned events (${selectedSession?.cleanedEvents?.length||0})` : `Showing raw events (${selectedSession?.events?.length||0})`}
+                </div>
+              </div>
               <VideoEventSync
                 videoUrl={selectedSession.recordingId ? `data:video/webm;base64,${recordings.find(r => r.recordingId === selectedSession.recordingId)?.data || ''}` : ''}
-                events={selectedSession.events || []}
+                events={(showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || []}
                 recordingId={selectedSession.sessionId}
                 onEventSelect={(event) => {
                   console.log('Selected event:', event);

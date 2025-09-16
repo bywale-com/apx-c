@@ -64,13 +64,12 @@ document.addEventListener('DOMContentLoaded', function() {
       type: newState ? 'start_monitoring' : 'stop_monitoring'
     });
     
+    // Recording now handled by persistent preview window. Do not start/stop
+    // recording from the popup to avoid being tied to popup lifecycle.
     if (newState) {
-      debugLog('Starting screen recording...');
-      const success = await startScreenRecording();
-      debugLog(`Screen recording start result: ${success}`);
+      debugLog('Monitoring started (preview window will handle recording)');
     } else {
-      debugLog('Stopping screen recording...');
-      stopScreenRecording();
+      debugLog('Monitoring stopped');
     }
     
     isMonitoring = newState;

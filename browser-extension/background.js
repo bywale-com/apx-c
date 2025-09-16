@@ -10,6 +10,10 @@ const tabEventCache = new Map(); // tabId -> Array<{fp:string, ts:number}>
 const DEDUPE_WINDOW_MS = 250;
 // Track active session per tab to ignore stale injectors
 const tabActiveSession = new Map(); // tabId -> { sessionId: string, url: string }
+let previewWindowId = null; // persistent recording preview window
+let previewTabId = null; // tab id for preview.html
+let pendingPreviewCloseTimer = null; // timeout handle while waiting for preview to finalize
+let recordingStarted = false; // becomes true after PREVIEW_STARTED
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
@@ -54,12 +58,14 @@ async function updateMonitoringState(monitoring) {
             monitoredTabs.add(tab.id);
             console.log(`✅ Injected into tab ${tab.id}`);
             
-            setTimeout(() => {
-              console.log(`📤 Background: Sending START_CAPTURING to tab ${tab.id}`);
-              chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURING' }).catch(error => {
-                console.log(`Could not send message to tab ${tab.id}:`, error);
-              });
-            }, 200);
+            if (recordingStarted) {
+              setTimeout(() => {
+                console.log(`📤 Background: Sending START_CAPTURING to tab ${tab.id}`);
+                chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURING' }).catch(error => {
+                  console.log(`Could not send message to tab ${tab.id}:`, error);
+                });
+              }, 200);
+            }
           } catch (error) {
             console.log(`Could not inject into tab ${tab.id}:`, error);
           }
@@ -67,18 +73,48 @@ async function updateMonitoringState(monitoring) {
           console.log(`⏭️ Tab ${tab.id} already has script injected`);
           monitoredTabs.add(tab.id);
           
-          // Still send START_CAPTURING message to existing scripts
-          setTimeout(() => {
-            console.log(`📤 Background: Sending START_CAPTURING to existing tab ${tab.id}`);
-            chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURING' }).catch(error => {
-              console.log(`Could not send message to tab ${tab.id}:`, error);
-            });
-          }, 100);
+          // Send START_CAPTURING only if recording already started
+          if (recordingStarted) {
+            setTimeout(() => {
+              console.log(`📤 Background: Sending START_CAPTURING to existing tab ${tab.id}`);
+              chrome.tabs.sendMessage(tab.id, { type: 'START_CAPTURING' }).catch(error => {
+                console.log(`Could not send message to tab ${tab.id}:`, error);
+              });
+            }, 100);
+          }
         }
       }
     }
     
     connectToApexApp();
+
+    // Open persistent preview window to host the recorder/preview
+    if (previewWindowId == null) {
+      try {
+        chrome.windows.create({
+          url: chrome.runtime.getURL('preview.html'),
+          type: 'popup',
+          width: 170,
+          height: 140,
+          focused: true
+        }).then(async (win) => {
+          previewWindowId = win?.id ?? null;
+          // Attempt to discover the preview tab id within this window
+          try {
+            if (previewWindowId != null) {
+              const tabs = await chrome.tabs.query({ windowId: previewWindowId });
+              const targetUrl = chrome.runtime.getURL('preview.html');
+              const found = tabs.find(t => t.url === targetUrl) || tabs[0];
+              if (found && found.id != null) {
+                previewTabId = found.id;
+              }
+            }
+          } catch {}
+        }).catch((e) => console.log('Could not open preview window:', e));
+      } catch (e) {
+        console.log('Could not open preview window:', e);
+      }
+    }
   } else {
     // Stop monitoring
     for (const tabId of monitoredTabs) {
@@ -91,6 +127,23 @@ async function updateMonitoringState(monitoring) {
     }
     
     monitoredTabs.clear();
+
+    // Ask preview to stop and self-finalize; close when ready or after fallback
+    if (previewTabId != null) {
+      try {
+        chrome.tabs.sendMessage(previewTabId, { type: 'REQUEST_STOP_PREVIEW' }).catch(() => {});
+      } catch {}
+    }
+    // Fallback close if no ready signal within timeout
+    if (pendingPreviewCloseTimer) clearTimeout(pendingPreviewCloseTimer);
+    pendingPreviewCloseTimer = setTimeout(async () => {
+      if (previewWindowId != null) {
+        try { await chrome.windows.remove(previewWindowId); } catch {}
+      }
+      previewWindowId = null;
+      previewTabId = null;
+      pendingPreviewCloseTimer = null;
+    }, 4000);
   }
   
   // Update popup
@@ -158,12 +211,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       }).then(() => {
         monitoredTabs.add(tabId);
         
-        setTimeout(() => {
-          console.log(`📤 Background: Sending START_CAPTURING to new tab ${tabId}`);
-          chrome.tabs.sendMessage(tabId, { type: 'START_CAPTURING' }).catch(error => {
-            console.log(`Could not send message to new tab ${tabId}:`, error);
-          });
-        }, 100);
+        if (recordingStarted) {
+          setTimeout(() => {
+            console.log(`📤 Background: Sending START_CAPTURING to new tab ${tabId}`);
+            chrome.tabs.sendMessage(tabId, { type: 'START_CAPTURING' }).catch(error => {
+              console.log(`Could not send message to new tab ${tabId}:`, error);
+            });
+          }, 100);
+        }
         
         if (isMonitoring) {
           sendToApp({ 
@@ -321,6 +376,44 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     tryComplete(message.recordingId);
   }
   
+  // --- Preview lifecycle wiring ---
+  if (message.type === 'PREVIEW_OPENED') {
+    // Track the preview tab id for targeted messaging
+    if (sender && sender.tab && sender.tab.id) {
+      previewTabId = sender.tab.id;
+      console.log('🎬 Preview opened in tab', previewTabId);
+      // Now that preview is alive, request it to start capture
+      try { chrome.tabs.sendMessage(previewTabId, { type: 'START_PREVIEW' }); } catch {}
+    }
+  }
+
+  if (message.type === 'PREVIEW_STARTED') {
+    console.log('🎥 Preview started recording at', message.timestamp);
+    recordingStarted = true;
+    // Now begin event capture on currently monitored tabs
+    for (const tabId of monitoredTabs) {
+      try {
+        chrome.tabs.sendMessage(tabId, { type: 'START_CAPTURING' }).catch(() => {});
+      } catch {}
+    }
+  }
+
+  if (message.type === 'PREVIEW_READY_TO_CLOSE') {
+    console.log('✅ Preview signaled ready to close');
+    if (pendingPreviewCloseTimer) {
+      clearTimeout(pendingPreviewCloseTimer);
+      pendingPreviewCloseTimer = null;
+    }
+    (async () => {
+      if (previewWindowId != null) {
+        try { await chrome.windows.remove(previewWindowId); } catch {}
+      }
+      previewWindowId = null;
+      previewTabId = null;
+      recordingStarted = false;
+    })();
+  }
+
   // Handle monitoring state requests
   if (message.type === 'GET_MONITORING_STATE') {
     sendResponse({ isMonitoring, monitoredTabs: Array.from(monitoredTabs) });
