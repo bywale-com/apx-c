@@ -126,7 +126,9 @@ async function sendToApp(data) {
       
       if (response.ok) {
         console.log(`✅ Event sent to Apex app successfully at ${url}`);
-        return await response.json();
+        // Return a simple ACK object so callers can rely on ok/status without
+        // depending on specific JSON shapes from the server
+        return { ok: true, status: response.status };
       } else {
         console.log(`❌ Failed to send to ${url}:`, response.status);
         const errorText = await response.text();
@@ -191,6 +193,53 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('📨 Received message:', message.type, sender?.tab?.id || 'popup');
 
+  // --- Recording chunk ACK tracking state ---
+  // recordingId -> { total: number, acked: Set<number>, meta?: { duration,size,mimeType,timestamp }, retries?: number }
+  const ensureRecState = (id) => {
+    // Use global map on window (service worker scope) to persist while background is alive
+    // eslint-disable-next-line no-undef
+    self.__apxRecordingState = self.__apxRecordingState || new Map();
+    const map = self.__apxRecordingState;
+    if (!map.has(id)) {
+      map.set(id, { total: 0, acked: new Set(), meta: undefined, retries: 0 });
+    }
+    return map.get(id);
+  };
+
+  const tryComplete = async (id) => {
+    // eslint-disable-next-line no-undef
+    const map = self.__apxRecordingState;
+    if (!map || !map.has(id)) return;
+    const rec = map.get(id);
+    if (!rec || !rec.meta) return; // need completion metadata first
+    if (rec.acked.size !== rec.total || rec.total === 0) return; // wait for all chunks
+
+    console.log(`📦 All chunks acked for ${id}. Sending completion...`);
+    const result = await sendToApp({
+      type: 'screen_recording_complete',
+      recordingId: id,
+      duration: rec.meta.duration,
+      size: rec.meta.size,
+      mimeType: rec.meta.mimeType,
+      timestamp: rec.meta.timestamp
+    });
+
+    if (result && result.ok) {
+      console.log(`✅ Completion accepted for ${id}`);
+      map.delete(id);
+    } else {
+      // Backoff and retry a few times in case server still assembling
+      rec.retries = (rec.retries || 0) + 1;
+      const backoffMs = Math.min(2000, 300 + rec.retries * 300);
+      if (rec.retries <= 8) {
+        console.log(`⏳ Completion not accepted for ${id}. Retrying in ${backoffMs}ms (attempt ${rec.retries})`);
+        setTimeout(() => tryComplete(id), backoffMs);
+      } else {
+        console.log(`🛑 Gave up retrying completion for ${id} after ${rec.retries} attempts`);
+      }
+    }
+  };
+
   // Handle messages from content scripts
   if (message.type === 'CAPTURE_EVENT') {
     const tabId = sender.tab.id;
@@ -239,6 +288,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Handle screen recording data from popup
   if (message.type === 'SCREEN_RECORDING_CHUNK') {
+    const rec = ensureRecState(message.recordingId);
+    rec.total = message.total || rec.total;
+    // Send and record ACK on success
     sendToApp({
       type: 'screen_recording_chunk',
       recordingId: message.recordingId,
@@ -247,17 +299,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       data: message.data,
       mimeType: message.mimeType,
       timestamp: message.timestamp
+    }).then((result) => {
+      if (result && result.ok) {
+        rec.acked.add(message.index);
+        // If completion info already known, attempt completion when all acked
+        tryComplete(message.recordingId);
+      }
+    }).catch(() => {
+      // Network error already logged by sendToApp
     });
   }
   if (message.type === 'SCREEN_RECORDING_COMPLETE') {
-    sendToApp({
-      type: 'screen_recording_complete',
-      recordingId: message.recordingId,
+    const rec = ensureRecState(message.recordingId);
+    rec.meta = {
       duration: message.duration,
       size: message.size,
       mimeType: message.mimeType,
       timestamp: message.timestamp
-    });
+    };
+    // Try completion now; will only fire when all chunks acked
+    tryComplete(message.recordingId);
   }
   
   // Handle monitoring state requests

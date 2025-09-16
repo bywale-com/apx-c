@@ -193,16 +193,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!buf) return res.status(404).json({ error: 'unknown recordingId' });
       if (buf.chunks.some((c) => c === null)) return res.status(409).json({ error: 'chunks_incomplete' });
       const base64 = buf.chunks.join('');
-      recordings.push({ recordingId, data: base64, mimeType: mimeType || buf.mimeType, timestamp: timestamp || Date.now(), duration });
+      const completedAt = timestamp || Date.now();
+      const rec: { recordingId: string; data: string; mimeType: string; timestamp: number; duration?: number } = {
+        recordingId,
+        data: base64,
+        mimeType: mimeType || buf.mimeType,
+        timestamp: completedAt,
+        duration
+      };
+      recordings.push(rec);
       
-      // Link this recording to the most recent workflow session
-      const recentSessions = Object.entries(workflowSessions)
-        .filter(([_, session]) => session.startTime <= (timestamp || Date.now()))
-        .sort(([_, a], [__, b]) => b.startTime - a.startTime);
-      
-      if (recentSessions.length > 0) {
-        const [sessionId, session] = recentSessions[0];
-        workflowSessions[sessionId].recordingId = recordingId;
+      // Improved linking: choose the session whose time window overlaps most with the recording window
+      // Compute recording time window using duration when available; otherwise assume a short window ending at completedAt
+      const recEnd = completedAt;
+      const assumedDuration = duration ?? 8000; // 8s fallback if missing
+      const recStart = Math.max(0, recEnd - assumedDuration);
+      const graceMs = 1500; // allow slight clock jitter
+
+      let bestSessionId: string | null = null;
+      let bestOverlap = -1;
+      for (const [sid, sess] of Object.entries(workflowSessions)) {
+        // session window
+        const sStart = Math.max(0, (sess.startTime ?? 0) - graceMs);
+        const sEnd = (sess.lastEventTime ?? sess.startTime) + graceMs;
+        const overlap = Math.max(0, Math.min(recEnd, sEnd) - Math.max(recStart, sStart));
+        if (overlap > bestOverlap) {
+          bestOverlap = overlap;
+          bestSessionId = sid;
+        }
+      }
+
+      if (bestSessionId && bestOverlap > 500) { // require >=0.5s overlap to consider a match
+        workflowSessions[bestSessionId].recordingId = recordingId;
       }
       
       delete buffers[recordingId];
