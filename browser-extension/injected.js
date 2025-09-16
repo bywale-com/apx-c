@@ -12,17 +12,9 @@
   let sessionId = null;
   let pageUrl = window.location.href;
   
-  // Generate or reuse a stable session ID for this page
-  try {
-    if (window.apexMonitorSessionId && typeof window.apexMonitorSessionId === 'string') {
-      sessionId = window.apexMonitorSessionId;
-    } else {
-      sessionId = 'page_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      window.apexMonitorSessionId = sessionId;
-    }
-  } catch (_) {
-    sessionId = 'page_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  }
+  // Session ID will be provided by background script when monitoring starts
+  // Don't generate one here to avoid using local session IDs
+  sessionId = null;
   
   // Listen for monitoring state changes from content script
   window.addEventListener('message', (event) => {
@@ -44,6 +36,19 @@
       } else if (message.type === 'STOP_CAPTURING') {
         isCapturing = false;
         console.log('📡 Injected script: STOP_CAPTURING received, isCapturing set to:', isCapturing);
+      } else if (message.type === 'NEW_MONITORING_SESSION') {
+        console.log('🆕 New monitoring session - using global session ID');
+        // Use the global session ID provided by background script
+        if (message.sessionId) {
+          sessionId = message.sessionId;
+          console.log('🆔 Using global session ID:', sessionId);
+        } else {
+          // Fallback if no session ID provided
+          const timestamp = Date.now();
+          const random = Math.random().toString(36).substr(2, 9);
+          sessionId = `session_${timestamp}_${random}`;
+          console.log('🆔 Generated fallback session ID:', sessionId);
+        }
       }
     }
   });
@@ -54,6 +59,13 @@
     if (!isCapturing) {
       console.log('🚫 Event blocked - monitoring OFF');
       return;
+    }
+    // If no session ID yet, generate a temporary one (will be replaced by global ID)
+    if (!sessionId) {
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substr(2, 9);
+      sessionId = `temp_${timestamp}_${random}`;
+      console.log('🆔 Generated temporary session ID:', sessionId);
     }
     // Attach a coarse fingerprint to help background de-dup
     const fp = `${eventData.type}|${Math.floor((eventData.timestamp||Date.now())/200)}|${eventData.url||pageUrl}`;

@@ -30,6 +30,7 @@ interface WorkflowSession {
   events: BrowserEvent[];
   videoUrl?: string;
   recordingId?: string;
+  recordingStartTimestamp?: number;
   metadata: {
     totalEvents: number;
     duration: number;
@@ -218,6 +219,7 @@ export default function WorkflowAnalysis() {
           videoUrl={selectedSession.videoUrl || ''}
           events={selectedSession.events}
           recordingId={selectedSession.recordingId || selectedSession.sessionId}
+          recordingStartTimestamp={selectedSession.recordingStartTimestamp}
           onEventSelect={(event) => {
             console.log('Selected event:', event);
           }}

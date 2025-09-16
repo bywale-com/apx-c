@@ -26,6 +26,7 @@ interface VideoEventSyncProps {
   videoUrl: string;
   events: BrowserEvent[];
   recordingId: string;
+  recordingStartTimestamp?: number; // When the video recording actually started
   onEventSelect?: (event: BrowserEvent) => void;
   onTimelineUpdate?: (currentTime: number) => void;
 }
@@ -34,6 +35,7 @@ const VideoEventSync: React.FC<VideoEventSyncProps> = ({
   videoUrl,
   events,
   recordingId,
+  recordingStartTimestamp,
   onEventSelect,
   onTimelineUpdate
 }) => {
@@ -49,8 +51,8 @@ const VideoEventSync: React.FC<VideoEventSyncProps> = ({
   // Sort events by timestamp
   const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
   
-  // Calculate relative timestamps (assuming first event is at 0)
-  const startTime = sortedEvents.length > 0 ? sortedEvents[0].timestamp : 0;
+  // Calculate relative timestamps using recording start time
+  const startTime = recordingStartTimestamp || (sortedEvents.length > 0 ? sortedEvents[0].timestamp : 0);
   const relativeEvents = sortedEvents.map(event => ({
     ...event,
     relativeTime: event.timestamp - startTime
@@ -96,9 +98,11 @@ const VideoEventSync: React.FC<VideoEventSyncProps> = ({
     setSelectedEvent(event);
     onEventSelect?.(event);
     
-    // Jump to event time in video
+    // Jump to event time in video with 2-second lead-in for readability
     if (videoRef.current && event.relativeTime !== undefined) {
-      videoRef.current.currentTime = event.relativeTime / 1000; // Convert ms to seconds
+      const eventTimeSeconds = event.relativeTime / 1000; // Convert ms to seconds
+      const seekTime = Math.max(0, eventTimeSeconds - 2); // 2-second lead-in
+      videoRef.current.currentTime = seekTime;
     }
   }, [onEventSelect]);
 

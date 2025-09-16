@@ -14,6 +14,9 @@ let previewWindowId = null; // persistent recording preview window
 let previewTabId = null; // tab id for preview.html
 let pendingPreviewCloseTimer = null; // timeout handle while waiting for preview to finalize
 let recordingStarted = false; // becomes true after PREVIEW_STARTED
+let recordingStartTimestamp = null; // timestamp when recording actually started (for video sync)
+let previewWindowCreating = false; // flag to prevent duplicate window creation
+let globalSessionId = null; // single session ID shared across all tabs for this monitoring session
 
 // Initialize extension
 chrome.runtime.onInstalled.addListener(() => {
@@ -34,6 +37,11 @@ chrome.action.onClicked.addListener((tab) => {
 
 // Update monitoring state across all tabs
 async function updateMonitoringState(monitoring) {
+  console.log(`🔄 updateMonitoringState(${monitoring}) called, current state: ${isMonitoring}`);
+  if (isMonitoring === monitoring) {
+    console.log('⏭️ Already in requested state, skipping');
+    return;
+  }
   isMonitoring = monitoring;
   
   if (monitoring) {
@@ -89,7 +97,9 @@ async function updateMonitoringState(monitoring) {
     connectToApexApp();
 
     // Open persistent preview window to host the recorder/preview
-    if (previewWindowId == null) {
+    if (previewWindowId == null && !previewWindowCreating) {
+      console.log('🎬 Creating preview window...');
+      previewWindowCreating = true;
       try {
         chrome.windows.create({
           url: chrome.runtime.getURL('preview.html'),
@@ -99,6 +109,8 @@ async function updateMonitoringState(monitoring) {
           focused: true
         }).then(async (win) => {
           previewWindowId = win?.id ?? null;
+          previewWindowCreating = false;
+          console.log('✅ Preview window created with ID:', previewWindowId);
           // Attempt to discover the preview tab id within this window
           try {
             if (previewWindowId != null) {
@@ -110,9 +122,13 @@ async function updateMonitoringState(monitoring) {
               }
             }
           } catch {}
-        }).catch((e) => console.log('Could not open preview window:', e));
+        }).catch((e) => {
+          console.log('Could not open preview window:', e);
+          previewWindowCreating = false;
+        });
       } catch (e) {
         console.log('Could not open preview window:', e);
+        previewWindowCreating = false;
       }
     }
   } else {
@@ -142,6 +158,8 @@ async function updateMonitoringState(monitoring) {
       }
       previewWindowId = null;
       previewTabId = null;
+      previewWindowCreating = false;
+      globalSessionId = null;
       pendingPreviewCloseTimer = null;
     }, 4000);
   }
@@ -286,11 +304,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       // Backoff and retry a few times in case server still assembling
       rec.retries = (rec.retries || 0) + 1;
       const backoffMs = Math.min(2000, 300 + rec.retries * 300);
-      if (rec.retries <= 8) {
+      if (rec.retries <= 3) { // Reduce retries to avoid spam
         console.log(`⏳ Completion not accepted for ${id}. Retrying in ${backoffMs}ms (attempt ${rec.retries})`);
         setTimeout(() => tryComplete(id), backoffMs);
       } else {
         console.log(`🛑 Gave up retrying completion for ${id} after ${rec.retries} attempts`);
+        map.delete(id); // Clean up after max retries
       }
     }
   };
@@ -337,7 +356,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       url: sender.tab.url,
       title: sender.tab.title,
       event: message.event,
-      timestamp: now
+      timestamp: now,
+      recordingStartTimestamp: recordingStartTimestamp // Include for video sync
     });
   }
   
@@ -353,7 +373,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       total: message.total,
       data: message.data,
       mimeType: message.mimeType,
-      timestamp: message.timestamp
+      timestamp: message.timestamp,
+      recordingStartTimestamp: recordingStartTimestamp
     }).then((result) => {
       if (result && result.ok) {
         rec.acked.add(message.index);
@@ -390,9 +411,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'PREVIEW_STARTED') {
     console.log('🎥 Preview started recording at', message.timestamp);
     recordingStarted = true;
-    // Now begin event capture on currently monitored tabs
+    recordingStartTimestamp = message.timestamp; // Store for video sync
+    
+    // Generate a single global session ID for this monitoring session
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 9);
+    globalSessionId = `session_${timestamp}_${random}`;
+    console.log('🆔 Generated global session ID:', globalSessionId);
+    
+    // Signal new monitoring session to all tabs with the global session ID
     for (const tabId of monitoredTabs) {
       try {
+        chrome.tabs.sendMessage(tabId, { 
+          type: 'NEW_MONITORING_SESSION', 
+          sessionId: globalSessionId 
+        }).catch(() => {});
         chrome.tabs.sendMessage(tabId, { type: 'START_CAPTURING' }).catch(() => {});
       } catch {}
     }
@@ -411,6 +444,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       previewWindowId = null;
       previewTabId = null;
       recordingStarted = false;
+      recordingStartTimestamp = null;
+      previewWindowCreating = false;
+      globalSessionId = null;
     })();
   }
 

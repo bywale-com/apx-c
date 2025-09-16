@@ -50,6 +50,10 @@
         isMonitoring: false
       }, '*');
       sendResponse({ success: true });
+    } else if (message.type === 'NEW_MONITORING_SESSION') {
+      console.log('🆕 Content script: NEW_MONITORING_SESSION with sessionId:', message.sessionId);
+      sendToInjected({ type: 'NEW_MONITORING_SESSION', sessionId: message.sessionId });
+      sendResponse({ success: true });
     } else if (message.type === 'GET_STATUS') {
       sendToInjected({ type: 'GET_STATUS' });
       // Response will come back via message event

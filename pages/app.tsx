@@ -1609,6 +1609,7 @@ function ObserveModuleWrapper() {
                 videoUrl={selectedSession.recordingId ? `data:video/webm;base64,${recordings.find(r => r.recordingId === selectedSession.recordingId)?.data || ''}` : ''}
                 events={(showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || []}
                 recordingId={selectedSession.sessionId}
+                recordingStartTimestamp={recordings.find(r => r.recordingId === selectedSession.recordingId)?.recordingStartTimestamp}
                 onEventSelect={(event) => {
                   console.log('Selected event:', event);
                 }}

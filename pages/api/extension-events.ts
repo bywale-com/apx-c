@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 // In-memory buffers for chunk reassembly (OK for dev; consider Redis/S3 in prod)
-const buffers: Record<string, { chunks: string[]; total: number; mimeType: string; startedAt: number }> = {};
+const buffers: Record<string, { chunks: string[]; total: number; mimeType: string; startedAt: number; recordingStartTimestamp?: number }> = {};
 const events: any[] = [];
-const recordings: Array<{ recordingId: string; data: string; mimeType: string; timestamp: number; duration?: number }> = [];
+const recordings: Array<{ recordingId: string; data: string; mimeType: string; timestamp: number; duration?: number; recordingStartTimestamp?: number }> = [];
 
 // Workflow session storage
 type WorkflowSession = {
@@ -51,14 +51,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json(recordings.slice(-10));
     }
     if (action === 'get_workflow_sessions') {
-      const sessions = Object.entries(workflowSessions).map(([sessionId, session]) => ({
-        sessionId,
-        startTime: session.startTime,
-        lastEventTime: session.lastEventTime,
-        eventCount: session.events.length,
-        duration: session.lastEventTime - session.startTime,
-        recordingId: session.recordingId
-      }));
+      const sessions = Object.entries(workflowSessions).map(([sessionId, session]) => {
+        const recording = session.recordingId ? recordings.find(r => r.recordingId === session.recordingId) : null;
+        return {
+          sessionId,
+          startTime: session.startTime,
+          lastEventTime: session.lastEventTime,
+          eventCount: session.events.length,
+          duration: session.lastEventTime - session.startTime,
+          recordingId: session.recordingId,
+          recordingStartTimestamp: recording?.recordingStartTimestamp
+        };
+      });
       console.log('🔍 Workflow sessions requested:', sessions.length, 'sessions found');
       console.log('📊 Available sessions:', Object.keys(workflowSessions));
       return res.status(200).json({ sessions });
@@ -68,9 +72,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!sessionId || !workflowSessions[sessionId]) {
         return res.status(404).json({ error: 'Session not found' });
       }
+      const session = workflowSessions[sessionId];
+      const recording = session.recordingId ? recordings.find(r => r.recordingId === session.recordingId) : null;
       return res.status(200).json({
         sessionId,
-        ...workflowSessions[sessionId]
+        ...session,
+        recordingStartTimestamp: recording?.recordingStartTimestamp
       });
     }
     if (action === 'prune_session') {
@@ -159,6 +166,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       Object.keys(workflowSessions).forEach(key => delete workflowSessions[key]);
       return res.status(200).json({ ok: true });
     }
+    if (action === 'cleanup_old_sessions') {
+      const cutoffTime = Date.now() - (24 * 60 * 60 * 1000); // 24 hours ago
+      let cleanedCount = 0;
+      
+      for (const [sessionId, session] of Object.entries(workflowSessions)) {
+        if (session.lastEventTime < cutoffTime) {
+          delete workflowSessions[sessionId];
+          cleanedCount++;
+        }
+      }
+      
+      console.log(`🧹 Cleaned up ${cleanedCount} old sessions`);
+      return res.status(200).json({ ok: true, cleanedCount });
+    }
     if (action === 'create_sessions_from_events') {
       // Group events by sessionId or create sessions from ungrouped events
       const browserEvents = events.filter(e => e.type === 'browser_event' && e.event);
@@ -246,6 +267,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         console.log('📝 Storing browser event:', event.type, 'for session:', sessionId);
         
+        // Check if this is a temporary session that should be merged with a global session
+        if (sessionId.startsWith('temp_')) {
+          // Look for a global session that started around the same time
+          const eventTime = event.timestamp;
+          const timeWindow = 30000; // 30 seconds
+          
+          for (const [globalSessionId, globalSession] of Object.entries(workflowSessions)) {
+            if (globalSessionId.startsWith('session_') && 
+                Math.abs(globalSession.startTime - eventTime) < timeWindow) {
+              console.log(`🔄 Merging temp session ${sessionId} into global session ${globalSessionId}`);
+              // Move events from temp session to global session
+              if (workflowSessions[sessionId]) {
+                globalSession.events.push(...workflowSessions[sessionId].events);
+                globalSession.lastEventTime = Math.max(globalSession.lastEventTime, workflowSessions[sessionId].lastEventTime);
+                delete workflowSessions[sessionId];
+              }
+              // Add current event to global session
+              globalSession.events.push(event);
+              globalSession.lastEventTime = Math.max(globalSession.lastEventTime, event.timestamp);
+              console.log('📊 Global session', globalSessionId, 'now has', globalSession.events.length, 'events');
+              return res.status(200).json({ ok: true });
+            }
+          }
+        }
+        
         if (!workflowSessions[sessionId]) {
           workflowSessions[sessionId] = {
             events: [],
@@ -264,30 +310,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (type === 'screen_recording_chunk') {
-      const { recordingId, index, total, data, mimeType } = body as { recordingId: string; index: number; total: number; data: string; mimeType?: string };
+      const { recordingId, index, total, data, mimeType, recordingStartTimestamp } = body as { recordingId: string; index: number; total: number; data: string; mimeType?: string; recordingStartTimestamp?: number };
       if (!recordingId || typeof index !== 'number' || typeof total !== 'number' || !data) {
         return res.status(400).json({ error: 'invalid chunk' });
       }
       const buf = buffers[recordingId] || { chunks: new Array(total).fill(null), total, mimeType: mimeType || 'video/webm', startedAt: Date.now() };
       buf.chunks[index] = data;
       if (mimeType) buf.mimeType = mimeType;
+      // Store recording start timestamp from first chunk
+      if (recordingStartTimestamp && !buf.recordingStartTimestamp) {
+        buf.recordingStartTimestamp = recordingStartTimestamp;
+      }
       buffers[recordingId] = buf;
       return res.status(200).json({ received: index });
     }
 
     if (type === 'screen_recording_complete') {
       const { recordingId, duration, mimeType, timestamp } = body as { recordingId: string; duration?: number; mimeType?: string; timestamp?: number };
+      console.log(`🎬 Processing completion for ${recordingId}, buffer exists:`, !!buffers[recordingId]);
       const buf = buffers[recordingId];
-      if (!buf) return res.status(404).json({ error: 'unknown recordingId' });
-      if (buf.chunks.some((c) => c === null)) return res.status(409).json({ error: 'chunks_incomplete' });
+      if (!buf) {
+        console.log(`❌ No buffer found for ${recordingId}, available buffers:`, Object.keys(buffers));
+        return res.status(404).json({ error: 'unknown recordingId' });
+      }
+      if (buf.chunks.some((c) => c === null)) {
+        console.log(`❌ Incomplete chunks for ${recordingId}, missing:`, buf.chunks.map((c, i) => c === null ? i : null).filter(i => i !== null));
+        return res.status(409).json({ error: 'chunks_incomplete' });
+      }
       const base64 = buf.chunks.join('');
       const completedAt = timestamp || Date.now();
-      const rec: { recordingId: string; data: string; mimeType: string; timestamp: number; duration?: number } = {
+      const rec: { recordingId: string; data: string; mimeType: string; timestamp: number; duration?: number; recordingStartTimestamp?: number } = {
         recordingId,
         data: base64,
         mimeType: mimeType || buf.mimeType,
         timestamp: completedAt,
-        duration
+        duration,
+        recordingStartTimestamp: buf.recordingStartTimestamp
       };
       recordings.push(rec);
       
@@ -301,6 +359,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       let bestSessionId: string | null = null;
       let bestOverlap = -1;
       for (const [sid, sess] of Object.entries(workflowSessions)) {
+        // Skip sessions that already have a recording linked
+        if (sess.recordingId) {
+          console.log(`⏭️ Session ${sid} already has recording ${sess.recordingId}, skipping`);
+          continue;
+        }
+        
         // session window
         const sStart = Math.max(0, (sess.startTime ?? 0) - graceMs);
         const sEnd = (sess.lastEventTime ?? sess.startTime) + graceMs;
@@ -313,6 +377,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (bestSessionId && bestOverlap > 500) { // require >=0.5s overlap to consider a match
         workflowSessions[bestSessionId].recordingId = recordingId;
+        console.log(`🔗 Linked recording ${recordingId} to session ${bestSessionId} (overlap: ${bestOverlap}ms)`);
+      } else {
+        console.log(`❌ No suitable session found for recording ${recordingId} (best overlap: ${bestOverlap}ms)`);
       }
       
       delete buffers[recordingId];
