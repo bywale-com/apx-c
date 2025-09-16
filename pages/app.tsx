@@ -12,6 +12,7 @@ import ObserveCapture from '../components/ObserveCapture';
 import GlobeBackdrop from '../components/GlobeBackdrop';
 import Tile from '../components/Tile';
 import VideoEventSync from '../components/VideoEventSync';
+import EventReplayModal from '../components/EventReplayModal';
 import { getOrCreateSessionId } from '../utils/session';
 
 const ObserveModule = dynamic(() => import('../modules/ObserveModule'), { ssr: false });
@@ -1202,6 +1203,8 @@ function ObserveModuleWrapper() {
   const [viewMode, setViewMode] = useState<'recordings' | 'workflows'>('recordings');
   const [showCleaned, setShowCleaned] = useState(false);
   const [pruning, setPruning] = useState(false);
+  const [replayOpen, setReplayOpen] = useState(false);
+  const [workflowOpen, setWorkflowOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -1222,7 +1225,13 @@ function ObserveModuleWrapper() {
           const sessionsData = await sessionsResponse.json();
           setWorkflowSessions(sessionsData.sessions || []);
           if (sessionsData.sessions?.length > 0 && !selectedSession) {
-            setSelectedSession(sessionsData.sessions[sessionsData.sessions.length - 1]);
+            const defaultSession = sessionsData.sessions[sessionsData.sessions.length - 1];
+            // Ensure we load full details (including events) for the default session
+            try {
+              await loadSessionDetails(defaultSession.sessionId);
+            } catch {
+              setSelectedSession(defaultSession);
+            }
           }
         }
       } catch (error) {
@@ -1236,6 +1245,16 @@ function ObserveModuleWrapper() {
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, [selectedRecording, selectedSession]);
+
+  // Auto-load details for the currently selected session if events are missing
+  useEffect(() => {
+    if (selectedSession?.sessionId) {
+      const hasEvents = Array.isArray(selectedSession.events) || Array.isArray(selectedSession.cleanedEvents);
+      if (!hasEvents) {
+        loadSessionDetails(selectedSession.sessionId);
+      }
+    }
+  }, [selectedSession?.sessionId]);
 
   const formatDuration = (duration: number) => {
     const seconds = Math.floor(duration / 1000);
@@ -1594,6 +1613,10 @@ function ObserveModuleWrapper() {
                   <button onClick={pruneSelectedSession} disabled={pruning} style={{ padding: '8px 12px', borderRadius: 6, border: `1px solid ${mono.border}`, background: '#ffffff', color: '#000', cursor: pruning ? 'not-allowed' : 'pointer' }}>
                     {pruning ? 'Pruning…' : 'Prune Workflow'}
                   </button>
+                  {/* Workflow button */}
+                  <button onClick={() => setWorkflowOpen(true)} style={{ padding: '8px 12px', borderRadius: 6, border: `1px solid ${mono.border}`, background: 'transparent', color: mono.inkHigh, cursor: 'pointer' }}>
+                    Workflow
+                  </button>
                   {(selectedSession?.cleanedEvents?.length ?? 0) > 0 && (
                     <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: mono.inkHigh }}>
                       <input type="checkbox" checked={showCleaned} onChange={(e)=>setShowCleaned(e.target.checked)} />
@@ -1605,18 +1628,95 @@ function ObserveModuleWrapper() {
                   {showCleaned ? `Showing cleaned events (${selectedSession?.cleanedEvents?.length||0})` : `Showing raw events (${selectedSession?.events?.length||0})`}
                 </div>
               </div>
-              <VideoEventSync
-                videoUrl={selectedSession.recordingId ? `data:video/webm;base64,${recordings.find(r => r.recordingId === selectedSession.recordingId)?.data || ''}` : ''}
-                events={(showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || []}
-                recordingId={selectedSession.sessionId}
-                recordingStartTimestamp={recordings.find(r => r.recordingId === selectedSession.recordingId)?.recordingStartTimestamp}
-                onEventSelect={(event) => {
-                  console.log('Selected event:', event);
-                }}
-                onTimelineUpdate={(time) => {
-                  // Handle timeline updates if needed
-                }}
-              />
+              {/* Default Event Replay Modal */}
+              {(() => {
+                const recData = selectedSession.recordingId ? (recordings.find(r => r.recordingId === selectedSession.recordingId) || null) : null;
+                const videoDataUrl = recData ? `data:video/webm;base64,${recData.data}` : '';
+                const evs = (showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || [];
+                const startTs = recData?.recordingStartTimestamp ?? null;
+                return (
+                  <EventReplayModal
+                    open={true}
+                    onClose={() => {}} // No close functionality for default view
+                    videoUrl={videoDataUrl}
+                    events={evs}
+                    recordingStartTimestamp={startTs}
+                    inline={true} // Use inline mode for default view
+                  />
+                );
+              })()}
+
+              {/* Workflow Modal (VideoEventSync) */}
+              {workflowOpen && (
+                <div style={{
+                  position: 'fixed',
+                  inset: 0,
+                  background: 'rgba(0,0,0,0.6)',
+                  zIndex: 9999,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <div style={{
+                    width: '95vw',
+                    height: '90vh',
+                    background: '#111',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden'
+                  }}>
+                    {/* Header */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '16px 20px',
+                      borderBottom: '1px solid rgba(255,255,255,0.12)',
+                      background: 'rgba(255,255,255,0.05)'
+                    }}>
+                      <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+                        Workflow Analysis
+                      </h2>
+                      <button
+                        onClick={() => setWorkflowOpen(false)}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#fff',
+                          fontSize: '24px',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    
+                    {/* VideoEventSync Content */}
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                      <VideoEventSync
+                        videoUrl={selectedSession.recordingId ? `data:video/webm;base64,${recordings.find(r => r.recordingId === selectedSession.recordingId)?.data || ''}` : ''}
+                        events={(showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || []}
+                        recordingId={selectedSession.sessionId}
+                        recordingStartTimestamp={recordings.find(r => r.recordingId === selectedSession.recordingId)?.recordingStartTimestamp}
+                        onEventSelect={(event) => {
+                          console.log('Selected event:', event);
+                        }}
+                        onTimelineUpdate={(time) => {
+                          // Handle timeline updates if needed
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div style={{
@@ -1643,6 +1743,7 @@ export default function Home() {
   const [sid, setSid] = useState<string>('');
   const [activePhase, setActivePhase] = useState('watch');
   const [rightWidth, setRightWidth] = useState<number>(280);
+  const [replayOpen, setReplayOpen] = useState<boolean>(false);
 
   useEffect(() => {
     try {
