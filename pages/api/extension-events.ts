@@ -105,7 +105,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // First pass: filter noise and keep core actions
       let lastScrollAt = 0;
       let lastKeyAt = 0;
+      let lastInputAt = 0;
       let lastClickBySelector: Record<string, number> = {};
+      let clickCountBySelector: Record<string, number> = {};
       for (let i=0;i<events.length;i++){
         const ev = events[i];
         if (!ev || !ev.type) continue;
@@ -122,8 +124,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         if (ev.type==='key') {
-          // keep only if Enter or modifier combos, and throttle
-          if ((ev.key==='Enter' || ev.ctrlKey || ev.metaKey) && (ev.timestamp - lastKeyAt >= 200)) {
+          // Keep if Enter/modifier OR first key after a recent input ("confirm-type" pattern)
+          const isSpecial = ev.key==='Enter' || ev.ctrlKey || ev.metaKey;
+          const isFollowupToInput = lastInputAt>0 && (ev.timestamp - lastInputAt <= 1500);
+          if ((isSpecial || isFollowupToInput) && (ev.timestamp - lastKeyAt >= 200)) {
             kept.push(ev); lastKeyAt = ev.timestamp;
           }
           continue;
@@ -132,9 +136,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (ev.type==='click') {
           const sel = ev.element?.selector || '';
           const tag = (ev.element?.tag||'').toLowerCase();
-          const important = actionableTags.has(tag) || /button|submit|link/i.test(sel);
+          const text = (ev.element?.text||'');
+          // Broaden click importance: allow common button-like patterns and +/- actions
+          const looksButtonLike = /\b(btn|button|submit|link|nav|menu|toggle|plus|minus|add|remove)\b/i.test(sel) || /\+|−|-/u.test(String(text||''));
+          const important = actionableTags.has(tag) || looksButtonLike;
           const lastAt = lastClickBySelector[sel] || 0;
-          if (important && (ev.timestamp - lastAt >= 200)) { kept.push(ev); lastClickBySelector[sel] = ev.timestamp; }
+          const count = clickCountBySelector[sel] || 0;
+          // Keep first click immediately; throttle repeats but allow up to 2 clicks per second for counters
+          const allowBurst = (count < 2) && (ev.timestamp - lastAt <= 1000);
+          if (important && ((ev.timestamp - lastAt >= 250) || allowBurst)) {
+            kept.push(ev);
+            lastClickBySelector[sel] = ev.timestamp;
+            clickCountBySelector[sel] = count + 1;
+          }
           continue;
         }
 
@@ -146,6 +160,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const sel = ev.element?.selector || `#unknown_${i}`;
             bySelectorLastInput[sel] = ev; // last value wins
           }
+          // Track last input time to keep the next key press (even if not Enter)
+          lastInputAt = ev.timestamp;
           continue;
         }
       }

@@ -49,6 +49,12 @@
           sessionId = `session_${timestamp}_${random}`;
           console.log('🆔 Generated fallback session ID:', sessionId);
         }
+      } else if (message.type === 'SESSION_RESET') {
+        // Hard reset of local state after a recording completes
+        console.log('🔄 SESSION_RESET received - clearing local state');
+        isCapturing = false;
+        sessionId = null; // will be set on next NEW_MONITORING_SESSION
+        // no-op for pageUrl
       }
     }
   });

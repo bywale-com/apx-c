@@ -419,6 +419,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     globalSessionId = `session_${timestamp}_${random}`;
     console.log('🆔 Generated global session ID:', globalSessionId);
     
+    // Reset per-tab active session tracking to avoid stale-session rejections
+    try {
+      tabActiveSession.clear();
+    } catch {}
+
     // Signal new monitoring session to all tabs with the global session ID
     for (const tabId of monitoredTabs) {
       try {
@@ -447,6 +452,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       recordingStartTimestamp = null;
       previewWindowCreating = false;
       globalSessionId = null;
+
+      // Broadcast a hard reset to all tabs to clear injected state
+      try {
+        const tabs = await chrome.tabs.query({});
+        for (const tab of tabs) {
+          if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('chrome-extension://')) {
+            try { await chrome.tabs.sendMessage(tab.id, { type: 'SESSION_RESET' }); } catch {}
+          }
+        }
+      } catch {}
+
+      // Clear per-run caches to avoid stale state on next start
+      try { tabActiveSession.clear(); } catch {}
+      try { tabEventCache.clear(); } catch {}
+      try { injectedTabs.clear(); } catch {}
+      try { monitoredTabs.clear(); } catch {}
     })();
   }
 
