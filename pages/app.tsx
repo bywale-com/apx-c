@@ -1642,6 +1642,7 @@ function ObserveModuleWrapper() {
                     events={evs}
                     recordingStartTimestamp={startTs}
                     inline={true} // Use inline mode for default view
+                    sessionId={selectedSession.sessionId}
                   />
                 );
               })()}

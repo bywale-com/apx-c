@@ -13,6 +13,26 @@ type WorkflowSession = {
   recordingId?: string;
   cleanedEvents?: any[];
   cleanedAt?: number;
+  tasks?: Array<{
+    type: string;
+    label: string;
+    startTime: number;
+    endTime: number;
+    eventStartIndex: number;
+    eventEndIndex: number;
+    urlStart?: string;
+    urlEnd?: string;
+  }>;
+  intent?: {
+    qas: Array<{
+      id: string;
+      question: string;
+      answer?: string;
+      askedAt: number;
+      answeredAt?: number;
+      contextTs?: number;
+    }>;
+  };
 };
 const workflowSessions: Record<string, WorkflowSession> = {};
 
@@ -242,6 +262,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'POST') {
     const body = req.body || {};
     const type = body.type;
+    if (type === 'save_intent_answer') {
+      const { sessionId, qaId, answer, answeredAt } = body as { sessionId: string; qaId: string; answer: string; answeredAt?: number };
+      if (!sessionId || !workflowSessions[sessionId] || !qaId || !answer) {
+        return res.status(400).json({ error: 'invalid_intent_payload' });
+      }
+      const session = workflowSessions[sessionId];
+      session.intent = session.intent || { qas: [] };
+      const existing = session.intent.qas.find(q => q.id === qaId);
+      if (existing) {
+        existing.answer = answer;
+        existing.answeredAt = answeredAt || Date.now();
+      } else {
+        session.intent.qas.push({ id: qaId, question: '', answer, askedAt: Date.now(), answeredAt: answeredAt || Date.now() });
+      }
+      return res.status(200).json({ ok: true });
+    }
 
     if (type === 'start_monitoring') {
       // Forward to browser extension via HTTP (if extension is running)
