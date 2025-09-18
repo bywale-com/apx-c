@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import WorkflowBuilder, { WorkflowStep } from './WorkflowBuilder';
 
 type BrowserEvent = {
   type: string;
@@ -25,6 +26,12 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
   const [saving, setSaving] = useState<Record<string, boolean>>({});
   const [chat, setChat] = useState<Array<{ role: 'system'|'user'|'assistant'; content: string }>>([]);
   const [chatInput, setChatInput] = useState<string>('');
+  const [steps, setSteps] = useState<WorkflowStep[]>([]);
+  const [assistantOpen, setAssistantOpen] = useState<boolean>(false);
+  const [mode, setMode] = useState<'focus'|'builder'>('builder');
+  const [split, setSplit] = useState<number>(0.7); // proportion for replay pane in builder mode
+  const draggingRef = useRef<boolean>(false);
+  const primedRef = useRef<boolean>(false);
   const eventsListRef = useRef<HTMLDivElement>(null);
   const [rowHeight, setRowHeight] = useState<number>(56);
 
@@ -33,6 +40,43 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
       setCurrentTime(0);
     }
   }, [open]);
+
+  // Reset priming and chat when session changes
+  useEffect(() => {
+    primedRef.current = false;
+    setChat([]);
+  }, [sessionId]);
+
+  // Persist layout preferences (mode, split, assistant)
+  useEffect(() => {
+    try {
+      const savedMode = localStorage.getItem('apx.canvas.mode');
+      const savedSplit = localStorage.getItem('apx.canvas.split');
+      const savedAssistant = localStorage.getItem('apx.canvas.assistant');
+      if (savedMode === 'focus' || savedMode === 'builder') {
+        setMode(savedMode as 'focus'|'builder');
+      }
+      if (savedSplit) {
+        const v = parseFloat(savedSplit);
+        if (!Number.isNaN(v) && v >= 0.1 && v <= 0.9) setSplit(v);
+      }
+      if (savedAssistant === '1' || savedAssistant === '0') {
+        setAssistantOpen(savedAssistant === '1');
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem('apx.canvas.mode', mode); } catch {}
+  }, [mode]);
+
+  useEffect(() => {
+    try { localStorage.setItem('apx.canvas.split', String(split)); } catch {}
+  }, [split]);
+
+  useEffect(() => {
+    try { localStorage.setItem('apx.canvas.assistant', assistantOpen ? '1' : '0'); } catch {}
+  }, [assistantOpen]);
 
   const sorted = useMemo(() => [...events].sort((a, b) => a.timestamp - b.timestamp), [events]);
   const startTs = useMemo(() => recordingStartTimestamp ?? (sorted[0]?.timestamp ?? 0), [recordingStartTimestamp, sorted]);
@@ -68,6 +112,111 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     return q;
   }, [relative]);
 
+  // Infer initial workflow steps from events
+  const inferredSteps = useMemo<WorkflowStep[]>(() => {
+    if (relative.length === 0) return [];
+    const steps: WorkflowStep[] = [];
+    let currentStart = relative[0].t;
+    let lastUrl: string | undefined = relative[0].url;
+    let labelParts: string[] = [];
+    let lastEventT = currentStart;
+
+    function flush(labelFallback?: string) {
+      const start = currentStart;
+      const end = lastEventT;
+      const label = (labelParts.join(' · ') || labelFallback || 'Step').slice(0, 80);
+      if (steps.length === 0 || end - start >= 0) {
+        steps.push({ id: `inf_${steps.length}_${Math.round(start*1000)}`, label, start, end });
+      }
+      labelParts = [];
+    }
+
+    const isActionableClick = (ev: BrowserEvent) => {
+      const sel = ev.element?.selector || '';
+      const tag = (ev.element?.tag || '').toLowerCase();
+      const text = (ev.element?.text || '').toLowerCase();
+      return ev.type === 'click' && (/button|submit|link/i.test(sel) || ['button','a','input'].includes(tag) || /submit|save|next|continue|apply|login|sign in|search/.test(text));
+    };
+
+    for (let i = 0; i < relative.length; i++) {
+      const ev = relative[i];
+      const prev = i > 0 ? relative[i-1] : undefined;
+      const gap = prev ? ev.t - prev.t : 0;
+      lastEventT = ev.t;
+
+      // Large idle gap starts a new step
+      if (gap > 6) {
+        flush();
+        currentStart = ev.t;
+      }
+
+      // URL change indicates navigation step
+      if (ev.url && ev.url !== lastUrl) {
+        if (labelParts.length) flush();
+        const url = new URL(ev.url, 'http://x').href; // base to parse relative
+        const host = url.replace(/^https?:\/\//,'').split('/')[0];
+        const path = url.split(host)[1] || '/';
+        steps.push({ id: `nav_${steps.length}_${Math.round(ev.t*1000)}`, label: `Navigate: ${host}${path}`, start: ev.t, end: ev.t });
+        currentStart = ev.t;
+        lastUrl = ev.url;
+        continue;
+      }
+
+      // Aggregate inputs into a form-fill label
+      if (ev.type === 'input') {
+        if (!labelParts.some(p => p.startsWith('Fill'))) labelParts.push('Fill fields');
+        continue;
+      }
+
+      // Key events near inputs considered part of fill
+      if (ev.type === 'key') {
+        if (!labelParts.some(p => p.startsWith('Fill'))) labelParts.push('Fill fields');
+        continue;
+      }
+
+      // Clicks form discrete actions
+      if (isActionableClick(ev)) {
+        const text = (ev.element?.text || '').trim();
+        const tag = (ev.element?.tag || '').toLowerCase();
+        const what = text ? text.slice(0,40) : (tag || 'click');
+        labelParts.push(`Click: ${what}`);
+        // If this looks like a submit/confirm click, flush a step
+        if (/submit|save|next|continue|apply|login|sign in|search/i.test(text)) {
+          flush('Submit');
+          currentStart = ev.t;
+        }
+        continue;
+      }
+    }
+
+    // Final flush
+    if (labelParts.length) flush();
+
+    // Merge very short adjacent steps (<0.8s)
+    const merged: WorkflowStep[] = [];
+    for (const s of steps) {
+      const last = merged[merged.length - 1];
+      const sStart = s.start ?? 0;
+      const sEnd = (s.end ?? s.start ?? sStart);
+      const lastStart = last ? (last.start ?? 0) : 0;
+      const lastEnd = last ? (last.end ?? last.start ?? lastStart) : 0;
+      if (last && (sStart - lastEnd) < 0.8) {
+        last.end = Math.max(lastEnd, sEnd);
+        last.label = `${last.label} · ${s.label}`.slice(0, 80);
+      } else {
+        merged.push({ ...s, start: sStart, end: sEnd });
+      }
+    }
+    return merged;
+  }, [relative]);
+
+  // Seed steps once per event set if none exist
+  useEffect(() => {
+    if (steps.length === 0 && inferredSteps.length > 0) {
+      setSteps(inferredSteps);
+    }
+  }, [inferredSteps, steps.length]);
+
   async function saveAnswer(qaId: string) {
     if (!sessionId) return;
     const answer = answers[qaId];
@@ -85,15 +234,25 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
 
   async function sendChat() {
     if (!chatInput.trim()) return;
-    const next = [...chat, { role: 'user', content: chatInput }];
+    const next: Array<{ role: 'system'|'user'|'assistant'; content: string }> = [...chat, { role: 'user', content: chatInput }];
     setChat(next);
     setChatInput('');
     try {
-      const recentUrls = Array.from(new Set(relative.slice(-10).map(e => e.url).filter(Boolean))) as string[];
+      const recentUrls = Array.from(new Set(relative.slice(-20).map(e => e.url).filter(Boolean))) as string[];
+      const compact = relative.slice(0, 800).map(e => ({
+        t: e.t,
+        type: e.type,
+        selector: e.element?.selector ? String(e.element.selector).slice(0, 120) : undefined,
+        tag: e.element?.tag,
+        text: e.element?.text ? String(e.element.text).slice(0, 80) : undefined,
+        value: (e as any).value ?? (e as any).element?.value,
+        key: (e as any).key,
+        url: e.url
+      }));
       const resp = await fetch('/api/intent-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, messages: next, context: { recentUrls } })
+        body: JSON.stringify({ sessionId, messages: next, context: { events: compact, recentUrls } })
       });
       const data = await resp.json();
       const reply = data?.reply || 'Okay.';
@@ -143,18 +302,66 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     setCurrentTime(seek);
   };
 
+  // Prime assistant with full session context once per session open
+  useEffect(() => {
+    if (!open || primedRef.current) return;
+    if (!sessionId) return;
+    // Avoid firing before events load
+    if (!events || events.length === 0) return;
+    primedRef.current = true;
+    (async () => {
+      try {
+        const compact = relative.map(e => ({
+          t: e.t,
+          type: e.type,
+          selector: e.element?.selector ? String(e.element.selector).slice(0, 120) : undefined,
+          tag: e.element?.tag,
+          text: e.element?.text ? String(e.element.text).slice(0, 80) : undefined,
+          value: (e as any).value ?? (e as any).element?.value,
+          key: (e as any).key,
+          url: e.url
+        }));
+        const recentUrls = Array.from(new Set(relative.slice(-20).map(e => e.url).filter(Boolean))) as string[];
+        const seed = [{ role: 'user' as const, content: 'Please analyze the following session context and start by asking: What task was this session about?' }];
+        const resp = await fetch('/api/intent-chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, messages: seed, context: { events: compact, recentUrls } })
+        });
+        const data = await resp.json();
+        const reply = data?.reply || 'What task was this session about?';
+        setChat(c => [...c, { role: 'assistant', content: reply }]);
+      } catch {}
+    })();
+  }, [open, sessionId, events, relative]);
+
   if (!open) return null;
 
   // Inline mode - render without modal wrapper
   if (inline) {
     return (
-      <div style={{ width: '100%', height: '100%', background: '#111', color: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ position:'relative', width: '100%', height: '100%', background: '#111', color: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontWeight: 600 }}>Event Replay</div>
+          <div style={{ display:'flex', gap:8 }}>
+            <button onClick={() => setMode('focus')} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background: mode==='focus'?'rgba(56,225,255,0.16)':'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>Focus</button>
+            <button onClick={() => setMode('builder')} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background: mode==='builder'?'rgba(56,225,255,0.16)':'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>Builder</button>
+            <button onClick={() => setAssistantOpen(v=>!v)} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background:'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>{assistantOpen?'Hide Assistant':'Assistant'}</button>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-          <div style={{ flex: 1, padding: 16, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position:'relative', display: 'flex', flex: 1, minHeight: 0 }}
+          onMouseMove={(e)=>{
+            if (!draggingRef.current) return;
+            const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const next = Math.min(0.9, Math.max(0.1, x / rect.width));
+            setSplit(next);
+          }}
+          onMouseUp={()=>{ draggingRef.current=false; }}
+        >
+          {/* Left: Replay (resizable in builder mode, full in focus) */}
+          <div style={{ flex: mode==='focus'?1: split, padding: 16, display: 'flex', flexDirection: 'column', transition:'flex 180ms ease' }}>
             <video
               ref={videoRef}
               src={videoUrl}
@@ -179,11 +386,29 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
               </div>
             </div>
           </div>
-          <div style={{ width: 420, borderLeft: '1px solid rgba(255,255,255,0.12)', padding: 14, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* Divider for resizing (only in builder mode) */}
+          {mode==='builder' && (
+            <div onMouseDown={()=>{ draggingRef.current=true; }} style={{ width:6, cursor:'col-resize', background:'rgba(255,255,255,0.06)' }} />
+          )}
+          {/* Right: Workflow Builder (only in builder mode) */}
+          {mode==='builder' && (
+            <div style={{ flex: 1 - split, minWidth: 260, borderLeft: '1px solid rgba(255,255,255,0.12)' }}>
+              <WorkflowBuilder
+                steps={steps}
+                currentTime={currentTime}
+                onAdd={() => setSteps(s => [...s, { id: `step_${Date.now()}`, label: 'New Step', start: currentTime }])}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Assistant Drawer Overlay */}
+        <div style={{ position:'absolute', top:48, right:0, bottom:0, width: assistantOpen? 420 : 0, transition:'width 200ms ease', overflow:'hidden', borderLeft: assistantOpen? '1px solid rgba(255,255,255,0.12)':'none', background:'rgba(17,17,17,0.98)' }}>
+          <div style={{ height:'100%', padding: assistantOpen? 14: 0, display:'flex', flexDirection:'column', gap:12 }}>
             {/* Chat Panel */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Assistant</div>
-              <div style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: 8, background: 'rgba(255,255,255,0.03)', maxHeight: 240, overflowY: 'auto' }}>
+              <div style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: 8, background: 'rgba(255,255,255,0.03)', maxHeight: 220, overflowY: 'auto' }}>
                 {chat.length === 0 ? (
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
                     Ask about intent or let the assistant prompt you as events appear.
@@ -217,43 +442,50 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
               </div>
             </div>
 
-            {/* Events Panel */}
-            <div ref={eventsListRef} onScroll={onEventsScroll} style={{ height: `${Math.max(4 * rowHeight, 220)}px`, overflowY: 'auto', position: 'relative' }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 6 }}>Events up to {currentTime.toFixed(1)}s</div>
+            {/* Events Panel (newest-first, vanishing scroll) */}
+            <div
+              ref={eventsListRef}
+              onScroll={onEventsScroll}
+              style={{
+                height: `${Math.max(4 * rowHeight, 220)}px`,
+                overflowY: 'auto',
+                position: 'relative',
+                borderRadius: 6,
+                border: '1px solid rgba(255,255,255,0.12)'
+              }}
+            >
+              {/* Top gradient fade */}
+              <div style={{ position: 'sticky', top: 0, height: 16, background: 'linear-gradient(180deg, rgba(17,17,17,0.9) 0%, rgba(17,17,17,0) 100%)', zIndex: 10 }} />
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 6, padding: '0 14px' }}>Events up to {currentTime.toFixed(1)}s</div>
               {visible.length === 0 ? (
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>No events yet at this time.</div>
+                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, padding: '0 14px' }}>No events yet at this time.</div>
               ) : (
-                (() => {
-                  const ordered = [...visible].sort((a,b)=> b.t - a.t);
-                  return (
-                    <>
-                      {ordered.map((ev, idx) => (
-                        <div
-                          key={`${ev.t}-${idx}`}
-                          style={{
-                            padding: '8px 10px',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: 6,
-                            marginBottom: 8,
-                            background: 'rgba(255,255,255,0.03)',
-                            cursor: 'pointer',
-                            opacity: 1
-                          }}
-                          onClick={() => seekToEvent(ev.t)}
-                        >
-                          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{ev.t.toFixed(1)}s • {ev.type}</div>
-                          {ev.element?.selector && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{ev.element.selector}</div>}
-                          {ev.url && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{ev.url}</div>}
-                        </div>
-                      ))}
-                      {/* Top gradient fade */}
-                      <div style={{ position: 'sticky', top: 0, height: 16, background: 'linear-gradient(180deg, rgba(17,17,17,0.9) 0%, rgba(17,17,17,0) 100%)' }} />
-                      {/* Bottom gradient fade */}
-                      <div style={{ position: 'sticky', bottom: 0, height: 16, background: 'linear-gradient(0deg, rgba(17,17,17,0.9) 0%, rgba(17,17,17,0) 100%)' }} />
-                    </>
-                  );
-                })()
+                [...visible]
+                  .sort((a,b)=> b.t - a.t)
+                  .map((ev, idx) => (
+                    <div
+                      key={`${ev.t}-${idx}`}
+                      style={{
+                        padding: '8px 10px',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 6,
+                        marginBottom: 8,
+                        background: 'rgba(255,255,255,0.03)',
+                        cursor: 'pointer',
+                        opacity: 1,
+                        marginLeft: 14,
+                        marginRight: 14
+                      }}
+                      onClick={() => seekToEvent(ev.t)}
+                    >
+                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{ev.t.toFixed(1)}s • {ev.type}</div>
+                      {ev.element?.selector && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{ev.element.selector}</div>}
+                      {ev.url && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{ev.url}</div>}
+                    </div>
+                  ))
               )}
+              {/* Bottom gradient fade */}
+              <div style={{ position: 'sticky', bottom: 0, height: 16, background: 'linear-gradient(0deg, rgba(17,17,17,0.9) 0%, rgba(17,17,17,0) 100%)', zIndex: 10 }} />
             </div>
           </div>
         </div>

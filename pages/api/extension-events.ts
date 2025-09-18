@@ -35,6 +35,8 @@ type WorkflowSession = {
   };
 };
 const workflowSessions: Record<string, WorkflowSession> = {};
+// Bindings of temporary sessionIds to their resolved global sessionIds
+const tempToGlobal: Record<string, string> = {};
 
 export const config = {
   api: {
@@ -86,6 +88,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log('🔍 Workflow sessions requested:', sessions.length, 'sessions found');
       console.log('📊 Available sessions:', Object.keys(workflowSessions));
       return res.status(200).json({ sessions });
+    }
+    if (action === 'merge_existing_temps') {
+      // Maintenance endpoint: merge temp_* sessions into best-overlap session_ windows
+      let merged = 0;
+      const graceMs = 60_000; // 60s window padding
+      for (const [tempId, tempSess] of Object.entries(workflowSessions)) {
+        if (!tempId.startsWith('temp_')) continue;
+        // Find best overlapping global session
+        let bestId: string | null = null;
+        let bestOverlap = -1;
+        for (const [sid, sess] of Object.entries(workflowSessions)) {
+          if (!sid.startsWith('session_')) continue;
+          const sStart = Math.max(0, (sess.startTime ?? 0) - graceMs);
+          const sEnd = (sess.lastEventTime ?? sess.startTime) + graceMs;
+          const tStart = Math.max(0, (tempSess.startTime ?? 0) - graceMs);
+          const tEnd = (tempSess.lastEventTime ?? tempSess.startTime) + graceMs;
+          const overlap = Math.max(0, Math.min(sEnd, tEnd) - Math.max(sStart, tStart));
+          if (overlap > bestOverlap) { bestOverlap = overlap; bestId = sid; }
+        }
+        if (bestId && bestOverlap > 500) {
+          workflowSessions[bestId].events.push(...tempSess.events);
+          workflowSessions[bestId].events.sort((a:any,b:any)=>a.timestamp-b.timestamp);
+          workflowSessions[bestId].startTime = Math.min(workflowSessions[bestId].startTime, tempSess.startTime);
+          workflowSessions[bestId].lastEventTime = Math.max(workflowSessions[bestId].lastEventTime, tempSess.lastEventTime);
+          tempToGlobal[tempId] = bestId;
+          delete workflowSessions[tempId];
+          merged++;
+        }
+      }
+      return res.status(200).json({ ok: true, merged });
     }
     if (action === 'get_workflow_session') {
       const sessionId = req.query.sessionId as string;
@@ -321,26 +353,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         
         // Check if this is a temporary session that should be merged with a global session
         if (sessionId.startsWith('temp_')) {
-          // Look for a global session that started around the same time
-          const eventTime = event.timestamp;
-          const timeWindow = 30000; // 30 seconds
-          
+          const eventTime = event.timestamp as number;
+          const graceMs = 60_000; // allow wide overlap window
+
+          // If we already mapped this temp session, route to the mapped global session
+          const mapped = tempToGlobal[sessionId];
+          if (mapped && workflowSessions[mapped]) {
+            const globalSession = workflowSessions[mapped];
+            globalSession.events.push(event);
+            globalSession.lastEventTime = Math.max(globalSession.lastEventTime, eventTime);
+            console.log(`➡️ Routed temp ${sessionId} event to mapped session ${mapped}`);
+            return res.status(200).json({ ok: true });
+          }
+
+          // Find best overlapping global session based on window inclusion/overlap
+          let bestId: string | null = null;
+          let bestOverlap = -1;
           for (const [globalSessionId, globalSession] of Object.entries(workflowSessions)) {
-            if (globalSessionId.startsWith('session_') && 
-                Math.abs(globalSession.startTime - eventTime) < timeWindow) {
-              console.log(`🔄 Merging temp session ${sessionId} into global session ${globalSessionId}`);
-              // Move events from temp session to global session
-              if (workflowSessions[sessionId]) {
-                globalSession.events.push(...workflowSessions[sessionId].events);
-                globalSession.lastEventTime = Math.max(globalSession.lastEventTime, workflowSessions[sessionId].lastEventTime);
-                delete workflowSessions[sessionId];
-              }
-              // Add current event to global session
-              globalSession.events.push(event);
-              globalSession.lastEventTime = Math.max(globalSession.lastEventTime, event.timestamp);
-              console.log('📊 Global session', globalSessionId, 'now has', globalSession.events.length, 'events');
-              return res.status(200).json({ ok: true });
+            if (!globalSessionId.startsWith('session_')) continue;
+            const sStart = Math.max(0, (globalSession.startTime ?? 0) - graceMs);
+            const sEnd = (globalSession.lastEventTime ?? globalSession.startTime) + graceMs;
+            const overlap = Math.max(0, Math.min(sEnd, eventTime) - Math.max(sStart, eventTime));
+            const withinWindow = eventTime >= sStart && eventTime <= sEnd;
+            const score = withinWindow ? 1_000_000 : overlap; // strongly prefer inclusion
+            if (score > bestOverlap) { bestOverlap = score; bestId = globalSessionId; }
+          }
+
+          if (bestId) {
+            console.log(`🔄 Merging temp session ${sessionId} into global session ${bestId}`);
+            // Move any accumulated events from temp session to global
+            if (workflowSessions[sessionId]) {
+              workflowSessions[bestId].events.push(...workflowSessions[sessionId].events);
+              workflowSessions[bestId].events.sort((a:any,b:any)=>a.timestamp-b.timestamp);
+              workflowSessions[bestId].startTime = Math.min(workflowSessions[bestId].startTime, workflowSessions[sessionId].startTime);
+              workflowSessions[bestId].lastEventTime = Math.max(workflowSessions[bestId].lastEventTime, workflowSessions[sessionId].lastEventTime);
+              delete workflowSessions[sessionId];
             }
+            // Route current event to global
+            workflowSessions[bestId].events.push(event);
+            workflowSessions[bestId].lastEventTime = Math.max(workflowSessions[bestId].lastEventTime, event.timestamp);
+            tempToGlobal[sessionId] = bestId;
+            console.log('📊 Global session', bestId, 'now has', workflowSessions[bestId].events.length, 'events');
+            return res.status(200).json({ ok: true });
           }
         }
         
