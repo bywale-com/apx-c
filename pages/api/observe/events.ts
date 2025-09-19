@@ -34,6 +34,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   );
 
   if (error) return res.status(500).json({ error: error.message });
+  
+  // Also create workflow sessions from web app events
+  try {
+    const workflowEvents = events.map((e: any) => ({
+      type: e.action?.type || 'unknown',
+      element: e.action?.target || null,
+      value: e.action?.value || null,
+      coordinates: e.action?.coordinates || null,
+      timestamp: new Date(e.ts).getTime(),
+      sessionId: e.session_id,
+      url: e.app?.url || '',
+      episodeId: e.episode_id
+    }));
+
+    // Send to extension-events API to create workflow sessions
+    await fetch('http://localhost:3000/api/extension-events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'browser_event',
+        event: workflowEvents[0], // Send first event to create session
+        timestamp: Date.now()
+      })
+    });
+
+    // Send remaining events
+    for (const event of workflowEvents.slice(1)) {
+      await fetch('http://localhost:3000/api/extension-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'browser_event',
+          event: event,
+          timestamp: Date.now()
+        })
+      });
+    }
+  } catch (workflowError) {
+    console.log('Could not create workflow sessions:', workflowError);
+  }
+
   res.status(204).end();
 }
 

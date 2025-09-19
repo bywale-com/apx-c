@@ -1,5 +1,6 @@
 // pages/api/agent-chat.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { setSessionMapping } from '../../lib/session-mapping'
 
 /**
  * ENV you should set (in .env.local or server env):
@@ -13,9 +14,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).end(`Method ${req.method} Not Allowed`)
   }
 
-  const { message } = req.body ?? {}
+  const { message, sessionId } = req.body ?? {}
   if (!message || typeof message !== 'string') {
     return res.status(400).json({ error: 'Invalid message' })
+  }
+  if (!sessionId || typeof sessionId !== 'string') {
+    return res.status(400).json({ error: 'sessionId required' })
   }
 
   const url = process.env.N8N_AGENT_URL
@@ -27,12 +31,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // You can extend payload to include user/session metadata
   const payload = {
     message, // keep markdown intact
+    sessionId, // pass through the frontend session ID
     meta: {
       ip: req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? null,
       ua: req.headers['user-agent'] ?? null,
       ts: new Date().toISOString(),
     },
   }
+
+  // Create session mapping BEFORE sending to n8n
+  // n8n uses the client IP as session ID, so we can predict it
+  const n8nSessionId = req.headers['x-forwarded-for'] ?? req.socket.remoteAddress ?? 'unknown'
+  console.log(`Creating mapping: n8n session ${n8nSessionId} -> frontend session ${sessionId}`)
+  console.log(`Request headers:`, { 
+    'x-forwarded-for': req.headers['x-forwarded-for'], 
+    'x-real-ip': req.headers['x-real-ip'],
+    remoteAddress: req.socket.remoteAddress 
+  })
+  
+  // Create multiple mappings to handle different IP formats
+  setSessionMapping(n8nSessionId, sessionId)
+  // Also map the external IP that n8n might use (from previous logs)
+  setSessionMapping('13.58.129.81', sessionId)
 
   const controller = new AbortController()
   const id = setTimeout(() => controller.abort(), timeoutMs)

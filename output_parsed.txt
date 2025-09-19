@@ -1,0 +1,3696 @@
+{
+  "sessionId": "session_1758204997097_swm3j10ma",
+  "events": [
+    {
+      "type": "click",
+      "element": {
+        "tag": "a",
+        "id": "sj_dca74bdc62828f49",
+        "className": "jcs-JobTitle css-1baag51 eu4oa1w0",
+        "text": "Inside Sales - Technical",
+        "selector": "#sj_dca74bdc62828f49",
+        "role": "button",
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 222,
+        "y": 307
+      },
+      "timestamp": 1758205010709,
+      "sessionId": "session_1758204997097_swm3j10ma",
+      "url": "https://ca.indeed.com/?vjk=4e532604baebbd54&advn=3611041511264283",
+      "__apxFp": "click|8791025053|https://ca.indeed.com/?vjk=4e532604baebbd54&advn=3611041511264283"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.indeed.com/?vjk=dca74bdc62828f49&advn=7714126550772278",
+      "title": "Job Search Canada | Indeed",
+      "timestamp": 1758205015373,
+      "sessionId": "session_1758204997097_swm3j10ma",
+      "__apxFp": "navigate|8791025076|https://ca.indeed.com/?vjk=dca74bdc62828f49&advn=7714126550772278"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "span",
+        "id": null,
+        "className": "9510117f5b75f31f838b6cdb12efe1ae552b6e76dceab277d40364a233e59a45 css-1ebo7dz eu4oa1w0",
+        "text": "Apply now",
+        "selector": "#abfd049e1d6cb07d9f9e7c8363841bbe9bbade5e4444ffb23cd8b44e5eaf8a2a > div.04593c98478119d1530c435fdafd0afedfd12d810d1a0e4fe3c38362b1b82140 > span.9510117f5b75f31f838b6cdb12efe1ae552b6e76dceab277d40364a233e59a45.css-1ebo7dz",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 610,
+        "y": 208
+      },
+      "timestamp": 1758205018899,
+      "sessionId": "session_1758204997097_swm3j10ma",
+      "url": "https://ca.indeed.com/?vjk=dca74bdc62828f49&advn=7714126550772278",
+      "__apxFp": "click|8791025094|https://ca.indeed.com/?vjk=dca74bdc62828f49&advn=7714126550772278"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 588,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205053627,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-selection-module/resume-selection",
+      "__apxFp": "scroll|8791025268|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-selection-module/resume-selection"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "button",
+        "id": null,
+        "className": "mosaic-provider-module-apply-resume-selection-6xgesl e8ju0x50",
+        "text": "Continue",
+        "selector": "#mosaic-provider-module-apply-resume-selection > div.mosaic-provider-module-apply-resume-selection-s3c942.eu4oa1w0 > div.entered.mosaic-provider-module-apply-resume-selection-16zsrq6 > div > form.mosaic-provider-module-apply-resume-selection-ya9mpl.eu4oa1w0 > div.mosaic-provider-module-apply-resume-selection-1wgodkb.e37uo190 > button.mosaic-provider-module-apply-resume-selection-6xgesl.e8ju0x50",
+        "role": null,
+        "type": "button",
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 465,
+        "y": 551
+      },
+      "timestamp": 1758205057157,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-selection-module/resume-selection",
+      "__apxFp": "click|8791025285|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-selection-module/resume-selection"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module",
+      "title": "Upload or create a resume for this application | Indeed",
+      "timestamp": 1758205058543,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025292|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "title": "Upload or create a resume for this application | Indeed",
+      "timestamp": 1758205059156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025295|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module",
+      "title": "Upload or create a resume for this application | Indeed",
+      "timestamp": 1758205058543,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025292|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "title": "Upload or create a resume for this application | Indeed",
+      "timestamp": 1758205059156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025295|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 0,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205058918,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module",
+      "__apxFp": "scroll|8791025294|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 347.3333435058594,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205060382,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "scroll|8791025301|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 347.3333435058594,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205060382,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "scroll|8791025301|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r2:",
+        "className": "mosaic-provider-module-apply-questions-lbys49 e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:r2:",
+        "role": null,
+        "type": "text",
+        "name": "q_41e430f6505f9cf8f28901d77503f933",
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 302,
+        "y": 327
+      },
+      "timestamp": 1758205063900,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "click|8791025319|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r2:",
+        "className": "mosaic-provider-module-apply-questions-lbys49 e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:r2:",
+        "role": null,
+        "type": "text",
+        "name": "q_41e430f6505f9cf8f28901d77503f933",
+        "placeholder": null
+      },
+      "value": "5",
+      "redacted": false,
+      "timestamp": 1758205066226,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025331|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r2:",
+        "className": "mosaic-provider-module-apply-questions-lbys49 e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:r2:",
+        "role": null,
+        "type": "text",
+        "name": "q_41e430f6505f9cf8f28901d77503f933",
+        "placeholder": null
+      },
+      "value": "5",
+      "redacted": false,
+      "timestamp": 1758205066226,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025331|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r2:",
+        "className": "mosaic-provider-module-apply-questions-lbys49 e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:r2:",
+        "role": null,
+        "type": "text",
+        "name": "q_41e430f6505f9cf8f28901d77503f933",
+        "placeholder": null
+      },
+      "value": "5",
+      "redacted": false,
+      "timestamp": 1758205066226,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025331|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "key",
+      "key": "5",
+      "code": "Digit5",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205066481,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "key|8791025332|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r2:",
+        "className": "mosaic-provider-module-apply-questions-79ltxz e1jgz0i3",
+        "text": null,
+        "selector": "#number-input-:r2:",
+        "role": null,
+        "type": "text",
+        "name": "q_41e430f6505f9cf8f28901d77503f933",
+        "placeholder": null
+      },
+      "value": "5",
+      "redacted": false,
+      "timestamp": 1758205070174,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025350|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r2:",
+        "className": "mosaic-provider-module-apply-questions-79ltxz e1jgz0i3",
+        "text": null,
+        "selector": "#number-input-:r2:",
+        "role": null,
+        "type": "text",
+        "name": "q_41e430f6505f9cf8f28901d77503f933",
+        "placeholder": null
+      },
+      "value": "5",
+      "redacted": false,
+      "timestamp": 1758205070174,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025350|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "div",
+        "id": null,
+        "className": "ia-Questions mosaic-provider-module-apply-questions-u74ql7 eu4oa1w0",
+        "text": "Answer these questions from the employerThese questions are from the employer. If a question seems i",
+        "selector": "#mosaic-provider-module-apply-questions > div.ia-Questions.mosaic-provider-module-apply-questions-u74ql7",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 275,
+        "y": 637
+      },
+      "timestamp": 1758205070325,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "click|8791025351|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r8:",
+        "className": "mosaic-provider-module-apply-questions-lbys49 e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:r8:",
+        "role": null,
+        "type": "text",
+        "name": "q_3ce7376b7678a23c0ba8f92e165c12ff",
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 277,
+        "y": 623
+      },
+      "timestamp": 1758205071837,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "click|8791025359|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r8:",
+        "className": "mosaic-provider-module-apply-questions-lbys49 e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:r8:",
+        "role": null,
+        "type": "text",
+        "name": "q_3ce7376b7678a23c0ba8f92e165c12ff",
+        "placeholder": null
+      },
+      "value": "2",
+      "redacted": false,
+      "timestamp": 1758205075975,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025379|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "key",
+      "key": "2",
+      "code": "Digit2",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205076062,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "key|8791025380|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 444.6666564941406,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205077812,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "scroll|8791025389|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r8:",
+        "className": "mosaic-provider-module-apply-questions-79ltxz e1jgz0i3",
+        "text": null,
+        "selector": "#number-input-:r8:",
+        "role": null,
+        "type": "text",
+        "name": "q_3ce7376b7678a23c0ba8f92e165c12ff",
+        "placeholder": null
+      },
+      "value": "2",
+      "redacted": false,
+      "timestamp": 1758205078224,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025391|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "button",
+        "id": null,
+        "className": "4e8ddd6da04d9f8ce871aa5f64f43eb7e8e33fa1111794327b645e112dce8b74 e212fc8ff3344634e8c43a28a5620c368bf44c7db370d30a7dd4ae97d632a6f1 mosaic-provider-module-apply-questions-6xgesl e8ju0x50",
+        "text": "Continue",
+        "selector": "#mosaic-provider-module-apply-questions > div.ia-Questions.mosaic-provider-module-apply-questions-u74ql7 > button.4e8ddd6da04d9f8ce871aa5f64f43eb7e8e33fa1111794327b645e112dce8b74.e212fc8ff3344634e8c43a28a5620c368bf44c7db370d30a7dd4ae97d632a6f1",
+        "role": null,
+        "type": "button",
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 412,
+        "y": 580
+      },
+      "timestamp": 1758205078326,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "click|8791025391|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:r8:",
+        "className": "mosaic-provider-module-apply-questions-79ltxz e1jgz0i3",
+        "text": null,
+        "selector": "#number-input-:r8:",
+        "role": null,
+        "type": "text",
+        "name": "q_3ce7376b7678a23c0ba8f92e165c12ff",
+        "placeholder": null
+      },
+      "value": "2",
+      "redacted": false,
+      "timestamp": 1758205078224,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025391|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "button",
+        "id": null,
+        "className": "4e8ddd6da04d9f8ce871aa5f64f43eb7e8e33fa1111794327b645e112dce8b74 e212fc8ff3344634e8c43a28a5620c368bf44c7db370d30a7dd4ae97d632a6f1 mosaic-provider-module-apply-questions-6xgesl e8ju0x50",
+        "text": "Continue",
+        "selector": "#mosaic-provider-module-apply-questions > div.ia-Questions.mosaic-provider-module-apply-questions-u74ql7 > button.4e8ddd6da04d9f8ce871aa5f64f43eb7e8e33fa1111794327b645e112dce8b74.e212fc8ff3344634e8c43a28a5620c368bf44c7db370d30a7dd4ae97d632a6f1",
+        "role": null,
+        "type": "button",
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 412,
+        "y": 580
+      },
+      "timestamp": 1758205078326,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "click|8791025391|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 88.66666412353516,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205080116,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025400|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "title": "Answer Screener Questions from the employer | ca.indeed.com",
+      "timestamp": 1758205079825,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025399|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 88.66666412353516,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205080116,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025400|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 128.6666717529297,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205085008,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025425|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 128.6666717529297,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205085008,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025425|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 128.6666717529297,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205085008,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025425|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 428.6666564941406,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205083288,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025416|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 428.6666564941406,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205083288,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025416|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 128.6666717529297,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205085008,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025425|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 128.6666717529297,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205085008,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025425|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "title": "Qualification check | Indeed",
+      "timestamp": 1758205087086,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025435|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "title": "Qualification check | Indeed",
+      "timestamp": 1758205087086,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025435|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 347.3333435058594,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205087556,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "scroll|8791025437|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 347.3333435058594,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205087556,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "scroll|8791025437|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "div",
+        "id": null,
+        "className": "css-erro7q eu4oa1w0",
+        "text": "Answer these questions from the employerThese questions are from the employer. If a question seems i",
+        "selector": "#ia-container > div.css-5nnpq8.eu4oa1w0 > div.css-1u76fo4.eu4oa1w0 > div.css-56j5qw.eu4oa1w0 > div.css-18qvb5z.e37uo190 > div.css-1lqx5xq.e37uo190 > div.css-erro7q.eu4oa1w0",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 149,
+        "y": 600
+      },
+      "timestamp": 1758205088916,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "click|8791025444|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:rk:",
+        "className": "mosaic-provider-module-apply-questions-79ltxz e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:rk:",
+        "role": null,
+        "type": "text",
+        "name": "q_3ce7376b7678a23c0ba8f92e165c12ff",
+        "placeholder": null
+      },
+      "value": "4",
+      "redacted": false,
+      "timestamp": 1758205089476,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025447|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 64.66666412353516,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205081069,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025405|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:rk:",
+        "className": "mosaic-provider-module-apply-questions-79ltxz e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:rk:",
+        "role": null,
+        "type": "text",
+        "name": "q_3ce7376b7678a23c0ba8f92e165c12ff",
+        "placeholder": null
+      },
+      "value": "4",
+      "redacted": false,
+      "timestamp": 1758205089476,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025447|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 64.66666412353516,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205081069,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention",
+      "__apxFp": "scroll|8791025405|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/intervention"
+    },
+    {
+      "type": "key",
+      "key": "4",
+      "code": "Digit4",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205089809,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "key|8791025449|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "number-input-:rk:",
+        "className": "mosaic-provider-module-apply-questions-79ltxz e1jgz0i3 focus-visible",
+        "text": null,
+        "selector": "#number-input-:rk:",
+        "role": null,
+        "type": "text",
+        "name": "q_3ce7376b7678a23c0ba8f92e165c12ff",
+        "placeholder": null
+      },
+      "value": "4",
+      "redacted": false,
+      "timestamp": 1758205091984,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "input|8791025459|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "button",
+        "id": null,
+        "className": "4e8ddd6da04d9f8ce871aa5f64f43eb7e8e33fa1111794327b645e112dce8b74 e212fc8ff3344634e8c43a28a5620c368bf44c7db370d30a7dd4ae97d632a6f1 mosaic-provider-module-apply-questions-6xgesl e8ju0x50",
+        "text": "Continue",
+        "selector": "#mosaic-provider-module-apply-questions > div.ia-Questions.mosaic-provider-module-apply-questions-u74ql7 > button.4e8ddd6da04d9f8ce871aa5f64f43eb7e8e33fa1111794327b645e112dce8b74.e212fc8ff3344634e8c43a28a5620c368bf44c7db370d30a7dd4ae97d632a6f1",
+        "role": null,
+        "type": "button",
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 310,
+        "y": 681
+      },
+      "timestamp": 1758205092086,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1",
+      "__apxFp": "click|8791025460|https://ca.smartapply.indeed.com/beta/indeedapply/form/questions-module/questions/1"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module",
+      "title": "Answer Screener Questions from the employer | ca.indeed.com",
+      "timestamp": 1758205094691,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025473|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module",
+      "title": "Answer Screener Questions from the employer | ca.indeed.com",
+      "timestamp": 1758205094691,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025473|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module",
+      "title": "Answer Screener Questions from the employer | ca.indeed.com",
+      "timestamp": 1758205094691,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025473|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 0,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205095076,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module",
+      "__apxFp": "scroll|8791025475|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 0,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205095076,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module",
+      "__apxFp": "scroll|8791025475|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 0,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205095076,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module",
+      "__apxFp": "scroll|8791025475|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "title": "Answer Screener Questions from the employer | ca.indeed.com",
+      "timestamp": 1758205095658,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025478|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "title": "Answer Screener Questions from the employer | ca.indeed.com",
+      "timestamp": 1758205095658,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025478|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "title": "Answer Screener Questions from the employer | ca.indeed.com",
+      "timestamp": 1758205095658,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025478|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "title": "Answer Screener Questions from the employer | ca.indeed.com",
+      "timestamp": 1758205095658,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025478|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 334,
+        "y": 554
+      },
+      "timestamp": 1758205099158,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "click|8791025495|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 334,
+        "y": 554
+      },
+      "timestamp": 1758205099158,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "click|8791025495|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205103558,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025517|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "A",
+      "redacted": false,
+      "timestamp": 1758205103788,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025518|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "A",
+      "redacted": false,
+      "timestamp": 1758205103788,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025518|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "A",
+      "redacted": false,
+      "timestamp": 1758205103788,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025518|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "A",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205103855,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025519|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "A",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205103855,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025519|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104023,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025520|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Ac",
+      "redacted": false,
+      "timestamp": 1758205104161,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025520|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Ac",
+      "redacted": false,
+      "timestamp": 1758205104161,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025520|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Ac",
+      "redacted": false,
+      "timestamp": 1758205104161,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025520|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Ac",
+      "redacted": false,
+      "timestamp": 1758205104161,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025520|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "c",
+      "code": "KeyC",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104218,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025521|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Ac",
+      "redacted": false,
+      "timestamp": 1758205104161,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025520|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "c",
+      "code": "KeyC",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104218,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025521|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "c",
+      "code": "KeyC",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104218,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025521|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Acc",
+      "redacted": false,
+      "timestamp": 1758205104314,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025521|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Acc",
+      "redacted": false,
+      "timestamp": 1758205104314,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025521|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Acc",
+      "redacted": false,
+      "timestamp": 1758205104314,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025521|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "c",
+      "code": "KeyC",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104367,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025521|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Acco",
+      "redacted": false,
+      "timestamp": 1758205104461,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "c",
+      "code": "KeyC",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104367,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025521|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Acco",
+      "redacted": false,
+      "timestamp": 1758205104461,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Acco",
+      "redacted": false,
+      "timestamp": 1758205104461,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Acco",
+      "redacted": false,
+      "timestamp": 1758205104461,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Acco",
+      "redacted": false,
+      "timestamp": 1758205104461,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "o",
+      "code": "KeyO",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104543,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "o",
+      "code": "KeyO",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104543,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "o",
+      "code": "KeyO",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104543,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "o",
+      "code": "KeyO",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205104543,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025522|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Accou",
+      "redacted": false,
+      "timestamp": 1758205105077,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025525|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Accou",
+      "redacted": false,
+      "timestamp": 1758205105077,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025525|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Accoun",
+      "redacted": false,
+      "timestamp": 1758205105156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025525|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Accoun",
+      "redacted": false,
+      "timestamp": 1758205105156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025525|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Accoun",
+      "redacted": false,
+      "timestamp": 1758205105156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025525|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account",
+      "redacted": false,
+      "timestamp": 1758205105220,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025526|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account ",
+      "redacted": false,
+      "timestamp": 1758205105278,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025526|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account",
+      "redacted": false,
+      "timestamp": 1758205105220,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025526|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account E",
+      "redacted": false,
+      "timestamp": 1758205105342,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025526|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account ",
+      "redacted": false,
+      "timestamp": 1758205105278,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025526|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account Ex",
+      "redacted": false,
+      "timestamp": 1758205105566,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025527|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account Ex",
+      "redacted": false,
+      "timestamp": 1758205105566,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025527|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account Exe",
+      "redacted": false,
+      "timestamp": 1758205105719,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025528|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "e",
+      "code": "KeyE",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205106266,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025531|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account Exec",
+      "redacted": false,
+      "timestamp": 1758205107455,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025537|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "u",
+      "code": "KeyU",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205107602,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025538|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account Execut",
+      "redacted": false,
+      "timestamp": 1758205107670,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025538|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "i",
+      "code": "KeyI",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205107851,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025539|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account Executiv",
+      "redacted": false,
+      "timestamp": 1758205107977,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025539|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "v",
+      "code": "KeyV",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205108032,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025540|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account Executive",
+      "redacted": false,
+      "timestamp": 1758205108081,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025540|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 480,
+        "y": 642
+      },
+      "timestamp": 1758205111626,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "click|8791025558|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "div",
+        "id": null,
+        "className": "mosaic-provider-module-apply-resume-s3c942 eu4oa1w0",
+        "text": "Enter a job that shows relevant experienceWe share one job title with the employer to introduce you ",
+        "selector": "#mosaic-provider-module-apply-resume > div.mosaic-provider-module-apply-resume-s3c942.eu4oa1w0",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 585,
+        "y": 627
+      },
+      "timestamp": 1758205110922,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "click|8791025554|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "job-title-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#job-title-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "jobTitle",
+        "placeholder": null
+      },
+      "value": "Account Executive",
+      "redacted": false,
+      "timestamp": 1758205110742,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025553|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 480,
+        "y": 642
+      },
+      "timestamp": 1758205111626,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "click|8791025558|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112426,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025562|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112426,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025562|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "A",
+      "redacted": false,
+      "timestamp": 1758205112560,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025562|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "A",
+      "redacted": false,
+      "timestamp": 1758205112560,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025562|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "A",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112609,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025563|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "A",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112609,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025563|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "A",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112609,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025563|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112775,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025563|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112775,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025563|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112775,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025563|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205112775,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025563|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Am",
+      "redacted": false,
+      "timestamp": 1758205112832,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025564|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Am",
+      "redacted": false,
+      "timestamp": 1758205112832,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025564|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Am",
+      "redacted": false,
+      "timestamp": 1758205112832,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025564|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Am",
+      "redacted": false,
+      "timestamp": 1758205112832,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025564|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Am",
+      "redacted": false,
+      "timestamp": 1758205112832,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025564|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "a",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113061,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "a",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113061,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "a",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113061,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Am",
+      "redacted": false,
+      "timestamp": 1758205112832,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025564|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "a",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113061,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Ama",
+      "redacted": false,
+      "timestamp": 1758205112967,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025564|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Ama",
+      "redacted": false,
+      "timestamp": 1758205112967,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025564|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "z",
+      "code": "KeyZ",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113395,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025566|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amaz",
+      "redacted": false,
+      "timestamp": 1758205113174,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amaz",
+      "redacted": false,
+      "timestamp": 1758205113174,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "z",
+      "code": "KeyZ",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113395,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025566|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amaz",
+      "redacted": false,
+      "timestamp": 1758205113174,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amaz",
+      "redacted": false,
+      "timestamp": 1758205113174,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amaz",
+      "redacted": false,
+      "timestamp": 1758205113174,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "a",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113061,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "a",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113061,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazo",
+      "redacted": false,
+      "timestamp": 1758205113463,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025567|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "a",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113061,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "a",
+      "code": "KeyA",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113061,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amaz",
+      "redacted": false,
+      "timestamp": 1758205113174,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025565|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon ",
+      "redacted": false,
+      "timestamp": 1758205113656,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025568|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon ",
+      "redacted": false,
+      "timestamp": 1758205113656,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025568|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": " ",
+      "code": "Space",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113873,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025569|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon K",
+      "redacted": false,
+      "timestamp": 1758205114084,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025570|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Key",
+      "redacted": false,
+      "timestamp": 1758205114422,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025572|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "y",
+      "code": "KeyY",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205114622,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025573|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "y",
+      "code": "KeyY",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205114622,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025573|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Ke",
+      "redacted": false,
+      "timestamp": 1758205114353,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025571|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Key",
+      "redacted": false,
+      "timestamp": 1758205114422,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025572|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "y",
+      "code": "KeyY",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205114622,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025573|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Key",
+      "redacted": false,
+      "timestamp": 1758205117156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025585|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Key",
+      "redacted": false,
+      "timestamp": 1758205117156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025585|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Key",
+      "redacted": false,
+      "timestamp": 1758205117156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025585|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Key",
+      "redacted": false,
+      "timestamp": 1758205117156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025585|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Key",
+      "redacted": false,
+      "timestamp": 1758205117156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025585|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Key",
+      "redacted": false,
+      "timestamp": 1758205117156,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025585|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "button",
+        "id": null,
+        "className": "mosaic-provider-module-apply-resume-6xgesl e8ju0x50",
+        "text": "Continue",
+        "selector": "#mosaic-provider-module-apply-resume > div.mosaic-provider-module-apply-resume-s3c942.eu4oa1w0 > div.entered.mosaic-provider-module-apply-resume-16zsrq6 > div > div.mosaic-provider-module-apply-resume-2xt5og.eu4oa1w0 > div.mosaic-provider-module-apply-resume-1wgodkb.e37uo190 > button.mosaic-provider-module-apply-resume-6xgesl.e8ju0x50",
+        "role": null,
+        "type": "button",
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 443,
+        "y": 739
+      },
+      "timestamp": 1758205117201,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "click|8791025586|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "button",
+        "id": null,
+        "className": "mosaic-provider-module-apply-resume-6xgesl e8ju0x50",
+        "text": "Continue",
+        "selector": "#mosaic-provider-module-apply-resume > div.mosaic-provider-module-apply-resume-s3c942.eu4oa1w0 > div.entered.mosaic-provider-module-apply-resume-16zsrq6 > div > div.mosaic-provider-module-apply-resume-2xt5og.eu4oa1w0 > div.mosaic-provider-module-apply-resume-1wgodkb.e37uo190 > button.mosaic-provider-module-apply-resume-6xgesl.e8ju0x50",
+        "role": null,
+        "type": "button",
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 443,
+        "y": 739
+      },
+      "timestamp": 1758205117201,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "click|8791025586|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "button",
+        "id": null,
+        "className": "mosaic-provider-module-apply-resume-6xgesl e8ju0x50",
+        "text": "Continue",
+        "selector": "#mosaic-provider-module-apply-resume > div.mosaic-provider-module-apply-resume-s3c942.eu4oa1w0 > div.entered.mosaic-provider-module-apply-resume-16zsrq6 > div > div.mosaic-provider-module-apply-resume-2xt5og.eu4oa1w0 > div.mosaic-provider-module-apply-resume-1wgodkb.e37uo190 > button.mosaic-provider-module-apply-resume-6xgesl.e8ju0x50",
+        "role": null,
+        "type": "button",
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 443,
+        "y": 739
+      },
+      "timestamp": 1758205117201,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "click|8791025586|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "title": "Add relevant work experience information | ca.indeed.com",
+      "timestamp": 1758205119812,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025599|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "key",
+      "key": "z",
+      "code": "KeyZ",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205113395,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025566|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazo",
+      "redacted": false,
+      "timestamp": 1758205113463,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025567|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "title": "Add relevant work experience information | ca.indeed.com",
+      "timestamp": 1758205119812,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025599|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "title": "Add relevant work experience information | ca.indeed.com",
+      "timestamp": 1758205119812,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025599|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 500,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205127774,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025638|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 500,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205127774,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025638|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1000,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205129079,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025645|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1000,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205129079,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025645|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1000,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205129079,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025645|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1000,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205129079,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025645|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1000,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205129079,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025645|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1500,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205130208,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025651|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1500,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205130208,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025651|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1500,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205130208,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025651|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1500,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205130208,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025651|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 1500,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205130208,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025651|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 2000,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205131385,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025656|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 2000,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205131385,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025656|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 2000,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205131385,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025656|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 2481.333251953125,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205132492,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025662|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 2481.333251953125,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205132492,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025662|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 2481.333251953125,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205132492,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "scroll|8791025662|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "span",
+        "id": null,
+        "className": null,
+        "text": "Submit your application",
+        "selector": "#mosaic-provider-module-apply-preview > div.mosaic-provider-module-apply-preview-135lymv.eu4oa1w0 > div.entered.mosaic-provider-module-apply-preview-1tdrjoz > button.mosaic-provider-module-apply-preview-qk38d9.e8ju0x50 > span",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 404,
+        "y": 587
+      },
+      "timestamp": 1758205135923,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "click|8791025679|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "span",
+        "id": null,
+        "className": null,
+        "text": "Submit your application",
+        "selector": "#mosaic-provider-module-apply-preview > div.mosaic-provider-module-apply-preview-135lymv.eu4oa1w0 > div.entered.mosaic-provider-module-apply-preview-1tdrjoz > button.mosaic-provider-module-apply-preview-qk38d9.e8ju0x50 > span",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 404,
+        "y": 587
+      },
+      "timestamp": 1758205135923,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "click|8791025679|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "span",
+        "id": null,
+        "className": null,
+        "text": "Submit your application",
+        "selector": "#mosaic-provider-module-apply-preview > div.mosaic-provider-module-apply-preview-135lymv.eu4oa1w0 > div.entered.mosaic-provider-module-apply-preview-1tdrjoz > button.mosaic-provider-module-apply-preview-qk38d9.e8ju0x50 > span",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 404,
+        "y": 587
+      },
+      "timestamp": 1758205135923,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "click|8791025679|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "span",
+        "id": null,
+        "className": null,
+        "text": "Submit your application",
+        "selector": "#mosaic-provider-module-apply-preview > div.mosaic-provider-module-apply-preview-135lymv.eu4oa1w0 > div.entered.mosaic-provider-module-apply-preview-1tdrjoz > button.mosaic-provider-module-apply-preview-qk38d9.e8ju0x50 > span",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 404,
+        "y": 587
+      },
+      "timestamp": 1758205135923,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "click|8791025679|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "click",
+      "element": {
+        "tag": "span",
+        "id": null,
+        "className": null,
+        "text": "Submit your application",
+        "selector": "#mosaic-provider-module-apply-preview > div.mosaic-provider-module-apply-preview-135lymv.eu4oa1w0 > div.entered.mosaic-provider-module-apply-preview-1tdrjoz > button.mosaic-provider-module-apply-preview-qk38d9.e8ju0x50 > span",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "coordinates": {
+        "x": 404,
+        "y": 587
+      },
+      "timestamp": 1758205135923,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module",
+      "__apxFp": "click|8791025679|https://ca.smartapply.indeed.com/beta/indeedapply/form/review-module"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply",
+      "title": "Review the contents of this job application | Indeed",
+      "timestamp": 1758205137871,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025689|https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply",
+      "title": "Review the contents of this job application | Indeed",
+      "timestamp": 1758205137871,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025689|https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply",
+      "title": "Review the contents of this job application | Indeed",
+      "timestamp": 1758205137871,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025689|https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 0,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205138317,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply",
+      "__apxFp": "scroll|8791025691|https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply"
+    },
+    {
+      "type": "navigate",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply",
+      "title": "Review the contents of this job application | Indeed",
+      "timestamp": 1758205137871,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "__apxFp": "navigate|8791025689|https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 0,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205138317,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply",
+      "__apxFp": "scroll|8791025691|https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply"
+    },
+    {
+      "type": "scroll",
+      "scrollY": 0,
+      "scrollX": 0,
+      "element": {
+        "tag": "html",
+        "id": null,
+        "className": "loading js-focus-visible",
+        "text": "\n    \n    \n    \n    \n        \n            \n                window.invisibleReCaptchaKey = '6Lcr30spA",
+        "selector": "html.loading.js-focus-visible",
+        "role": null,
+        "type": null,
+        "name": null,
+        "placeholder": null
+      },
+      "timestamp": 1758205138317,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply",
+      "__apxFp": "scroll|8791025691|https://ca.smartapply.indeed.com/beta/indeedapply/form/post-apply"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon",
+      "redacted": false,
+      "timestamp": 1758205113525,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025567|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon",
+      "redacted": false,
+      "timestamp": 1758205113525,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025567|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon",
+      "redacted": false,
+      "timestamp": 1758205113525,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025567|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "key",
+      "key": "CapsLock",
+      "code": "CapsLock",
+      "ctrlKey": false,
+      "altKey": false,
+      "shiftKey": false,
+      "metaKey": false,
+      "timestamp": 1758205114005,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "key|8791025570|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    },
+    {
+      "type": "input",
+      "element": {
+        "tag": "input",
+        "id": "company-name-input",
+        "className": "mosaic-provider-module-apply-resume-79ltxz ehiczq0 focus-visible",
+        "text": null,
+        "selector": "#company-name-input",
+        "role": "combobox",
+        "type": "text",
+        "name": "companyName",
+        "placeholder": null
+      },
+      "value": "Amazon Ke",
+      "redacted": false,
+      "timestamp": 1758205114353,
+      "sessionId": "temp_1758205040319_kv0n4u76f",
+      "url": "https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience",
+      "__apxFp": "input|8791025571|https://ca.smartapply.indeed.com/beta/indeedapply/form/resume-module/relevant-experience"
+    }
+  ],
+  "startTime": 1758205010709,
+  "lastEventTime": 1758205138317,
+  "recordingId": "rec_1758204996342_9l1dbt",
+  "recordingStartTimestamp": 1758204996899
+}

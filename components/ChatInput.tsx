@@ -74,6 +74,18 @@ const isBlockActive = (editor: Editor, format: string) => {
   return !!match;
 };
 
+// Warm light grayscale UI tokens (match app theme)
+const ui = {
+  bgPanel: 'rgba(255,255,255,0.65)',
+  inputBg: 'rgba(255,255,255,0.75)',
+  border: 'rgba(154,156,148,0.45)',
+  borderSoft: 'rgba(154,156,148,0.28)',
+  inkHigh: '#353535',
+  inkMid: '#5c5e58',
+  inkLow: '#8d8f88',
+  white: '#ffffff',
+};
+
 const Element = ({ attributes, children, element }: any) => {
   switch (element.type) {
     case 'code':
@@ -81,13 +93,15 @@ const Element = ({ attributes, children, element }: any) => {
         <pre
           {...attributes}
           style={{
-            color: '#0ea732ff',
-            backgroundColor: '#333333',
-            fontFamily: 'monospace',
-            fontSize: 14,
-            padding: '10px',
-            borderRadius: 4,
+            color: ui.white,
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+            fontSize: 13,
+            padding: '12px',
+            borderRadius: 6,
             overflowX: 'auto',
+            border: '1px solid ' + ui.border,
+            margin: '8px 0',
           }}
         >
           <code>{children}</code>
@@ -109,38 +123,61 @@ const escapeMarkdown = (text: string): string =>
   text.replace(/([\`\*\_\[\]\(\)\>\#\+\\\-\!])/g, '\\$1');
 
 const serialize = (nodes: Descendant[]): string => {
-  return nodes
-    .map((n) => {
-      if (SlateElement.isElement(n) && n.type === 'code') {
-        const codeText = Node.string(n);
-        return `\`\`\`\n${codeText}\n\`\`\``;
-      }
+  const serialized = nodes.map((n) => {
+    if (SlateElement.isElement(n) && n.type === 'code') {
+      const codeText = Node.string(n);
+      return '```\n' + codeText + '\n```';
+    }
 
-      if (SlateElement.isElement(n) && n.type === 'paragraph') {
-        return n.children
-          .map((leaf: CustomText) => {
-            let text = escapeMarkdown(leaf.text);
+    if (SlateElement.isElement(n) && n.type === 'paragraph') {
+      return n.children
+        .map((leaf: CustomText) => {
+          let text = escapeMarkdown(leaf.text);
 
-            if (leaf.bold && leaf.italic) {
-              text = `***${text}***`;
-            } else if (leaf.bold) {
-              text = `**${text}**`;
-            } else if (leaf.italic) {
-              text = `*${text}*`;
-            }
+          if (leaf.bold && leaf.italic) {
+            text = '***' + text + '***';
+          } else if (leaf.bold) {
+            text = '**' + text + '**';
+          } else if (leaf.italic) {
+            text = '*' + text + '*';
+          }
 
-            if (leaf.code) {
-              text = `\`${text}\``;
-            }
+          if (leaf.code) {
+            text = '`' + text + '`';
+          }
 
-            return text;
-          })
-          .join('');
-      }
+          return text;
+        })
+        .join('');
+    }
 
-      return '';
-    })
-    .join('\n\n');
+    return '';
+  });
+
+  // Merge consecutive code blocks into one
+  let result = '';
+  let inCodeBlock = false;
+  
+  for (let i = 0; i < serialized.length; i++) {
+    const current = serialized[i];
+    const isCodeBlock = current.startsWith('```');
+    
+    if (isCodeBlock && inCodeBlock) {
+      // Merge with previous code block - remove the closing ``` and opening ```
+      const codeContent = current.replace(/^```\n/, '').replace(/\n```$/, '');
+      result = result.replace(/\n```$/, '\n' + codeContent + '\n```');
+    } else if (isCodeBlock && !inCodeBlock) {
+      // Start new code block
+      result += (result ? '\n\n' : '') + current;
+      inCodeBlock = true;
+    } else {
+      // Regular content
+      result += (result ? '\n\n' : '') + current;
+      inCodeBlock = false;
+    }
+  }
+  
+  return result;
 };
 
 const FormatButton = ({ format, icon }: { format: keyof Omit<CustomText, 'text'>; icon: string }) => {
@@ -153,13 +190,19 @@ const FormatButton = ({ format, icon }: { format: keyof Omit<CustomText, 'text'>
         toggleMark(editor, format);
       }}
       style={{
-        fontWeight: active ? 'bold' : 'normal',
+        fontWeight: 500,
         marginRight: 8,
-        padding: '4px 8px',
+        padding: '6px 10px',
         cursor: 'pointer',
+        background: active ? 'rgba(0,0,0,0.1)' : 'transparent',
+        border: '1px solid ' + (active ? ui.border : ui.borderSoft),
+        borderRadius: 4,
+        color: active ? ui.inkHigh : ui.inkMid,
+        fontSize: 13,
+        transition: 'all 0.15s ease',
       }}
       type="button"
-      aria-label={`Toggle ${format}`}
+      aria-label={'Toggle ' + format}
     >
       {icon}
     </button>
@@ -176,9 +219,15 @@ const CodeBlockButton = () => {
         toggleCodeBlock(editor);
       }}
       style={{
-        fontWeight: active ? 'bold' : 'normal',
-        padding: '4px 8px',
+        fontWeight: 500,
+        padding: '6px 10px',
         cursor: 'pointer',
+        background: active ? 'rgba(0,0,0,0.1)' : 'transparent',
+        border: '1px solid ' + (active ? ui.border : ui.borderSoft),
+        borderRadius: 4,
+        color: active ? ui.inkHigh : ui.inkMid,
+        fontSize: 13,
+        transition: 'all 0.15s ease',
       }}
       type="button"
       aria-label="Toggle code block"
@@ -265,13 +314,15 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
   return (
     <div
       style={{
-        border: '10px solid #333333',
-        borderRadius: 6,
-        padding: 8,
+        border: '1px solid ' + ui.border,
+        borderRadius: 8,
+        padding: 12,
         minWidth: 300,
         maxWidth: 1200,
         display: 'flex',
         flexDirection: 'column',
+        background: ui.bgPanel,
+        backdropFilter: 'blur(12px)',
       }}
     >
       <Slate editor={editor} initialValue={value} onValueChange={newValue => setValue(newValue)}>
@@ -291,9 +342,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
             minHeight: 70,
             maxHeight: 150,
             overflowY: 'auto',
-            padding: 6,
-            fontSize: 15,
-            lineHeight: '1.4',
+            padding: 12,
+            fontSize: 14,
+            lineHeight: '1.45',
+            background: ui.inputBg,
+            border: '1px solid ' + ui.border,
+            borderRadius: 6,
+            color: ui.inkHigh,
+            outline: 'none',
           }}
         />
       </Slate>
@@ -303,11 +359,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
         onClick={handleSend}
         // disabled={serialize(value).trim().length === 0}
         style={{
-          marginTop: 6,
-          padding: '6px 12px',
-          fontSize: 14,
-          // cursor: serialize(value).trim().length === 0 ? 'not-allowed' : 'pointer',
+          marginTop: 12,
+          padding: '8px 14px',
+          fontSize: 13,
+          fontWeight: '500',
+          background: ui.white,
+          border: '1px solid ' + ui.border,
+          borderRadius: 6,
+          color: ui.inkHigh,
+          cursor: 'pointer',
           alignSelf: 'flex-end',
+          transition: 'all 0.15s ease',
         }}
       >
         Send
