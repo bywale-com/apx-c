@@ -3,6 +3,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 // In-memory buffers for chunk reassembly (OK for dev; consider Redis/S3 in prod)
 const buffers: Record<string, { chunks: string[]; total: number; mimeType: string; startedAt: number; recordingStartTimestamp?: number }> = {};
 const events: any[] = [];
+// Simple per-session LRU dedup cache keyed by __apxFp
+const dedupCacheBySession: Record<string, Map<string, number>> = {};
+const DEDUP_TTL_MS = 10_000;
 const recordings: Array<{ recordingId: string; data: string; mimeType: string; timestamp: number; duration?: number; recordingStartTimestamp?: number }> = [];
 
 // Workflow session storage
@@ -72,6 +75,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (action === 'get_recordings') {
       return res.status(200).json(recordings.slice(-10));
     }
+    if (action === 'list_buffers') {
+      const list = Object.entries(buffers).map(([id, b]) => ({
+        recordingId: id,
+        total: b.total,
+        received: b.chunks.filter((c)=>c!==null).length,
+        missing: b.chunks.map((c,i)=>c===null?i:null).filter(i=>i!==null),
+        mimeType: b.mimeType,
+        startedAt: b.startedAt,
+        recordingStartTimestamp: b.recordingStartTimestamp
+      }));
+      return res.status(200).json({ buffers: list });
+    }
     if (action === 'get_workflow_sessions') {
       const sessions = Object.entries(workflowSessions).map(([sessionId, session]) => {
         const recording = session.recordingId ? recordings.find(r => r.recordingId === session.recordingId) : null;
@@ -131,6 +146,135 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...session,
         recordingStartTimestamp: recording?.recordingStartTimestamp
       });
+    }
+    if (action === 'get_session_compact') {
+      const sessionId = req.query.sessionId as string;
+      const sess = workflowSessions[sessionId];
+      if (!sess) return res.status(404).json({ error: 'Session not found' });
+      // Stage-1 compaction (online, idempotent)
+      const startTs = sess.startTime || (sess.events[0]?.timestamp || 0);
+      const kompact: any[] = [];
+      const byField: Record<string, { firstT:number; lastT:number; finalValue:string; changeCount:number; tag?:string }> = {};
+      const SPECIAL = new Set(['Enter','Tab','Escape','Backspace','ArrowLeft','ArrowRight','ArrowUp','ArrowDown']);
+      const firstKeySeenFor: Set<string> = new Set();
+      let lastUrl: string | undefined = undefined;
+      let lastScroll: { t:number; f:number; dir:number } | null = null;
+      for (const e of sess.events) {
+        const t = Math.max(0, (e.timestamp - startTs));
+        if (e.type === 'navigate') {
+          if (e.url && e.url !== lastUrl) {
+            kompact.push({ t, k:'nav', u:e.url });
+            lastUrl = e.url;
+          }
+          continue;
+        }
+        if (e.type === 'scroll') {
+          const f = typeof e.vf === 'number' ? e.vf : undefined;
+          if (typeof f === 'number') {
+            if (!lastScroll) { lastScroll = { t, f, dir: 0 }; kompact.push({ t, k:'scr', f }); }
+            else {
+              const dir = Math.sign(f - lastScroll.f);
+              const idle = t - lastScroll.t >= 600;
+              const flip = lastScroll.dir !== 0 && dir !== 0 && dir !== lastScroll.dir;
+              if (idle || flip) { kompact.push({ t, k:'scr', f }); lastScroll = { t, f, dir: dir||lastScroll.dir }; }
+              else { lastScroll.f = f; lastScroll.t = t; }
+            }
+          }
+          continue;
+        }
+        if (e.type === 'key') {
+          const sel = e.element?.selHash || e.element?.selector;
+          const keep = SPECIAL.has(String(e.key)) || (sel && !firstKeySeenFor.has(sel));
+          if (keep) {
+            if (sel) firstKeySeenFor.add(sel);
+            kompact.push({ t, k:'key', v:e.key, s: e.element?.selHash });
+          }
+          continue;
+        }
+        if (e.type === 'input') {
+          const sel = e.element?.selHash || e.element?.selector || `#f_${e.element?.id || 'unknown'}`;
+          const rec = byField[sel] || { firstT: t, lastT: t, finalValue: '', changeCount: 0, tag: e.element?.tag };
+          rec.lastT = t; rec.changeCount += 1; if (typeof e.value === 'string') rec.finalValue = e.value; byField[sel] = rec;
+          continue;
+        }
+        if (e.type === 'click') {
+          kompact.push({ t, k:'clk', s: e.element?.selHash, g: e.element?.tag, v: (e.element?.text||'').slice(0,40), x: e.coordinates?.x, y: e.coordinates?.y });
+          continue;
+        }
+        if (e.type === 'submit') { kompact.push({ t, k:'sub', s: e.element?.selHash || e.element?.selector }); continue; }
+        if (e.type === 'page_load') { kompact.push({ t, k:'pl', u: e.url }); continue; }
+      }
+      // Emit coalesced inputs
+      for (const [s, rec] of Object.entries(byField)) {
+        kompact.push({ t: rec.firstT, k:'inp', s, g: rec.tag, v: rec.finalValue, lastT: rec.lastT, changes: rec.changeCount });
+      }
+      kompact.sort((a,b)=>a.t-b.t);
+      return res.status(200).json({ sessionId, compact: kompact });
+    }
+    if (action === 'get_session_actions') {
+      const sessionId = req.query.sessionId as string;
+      const sess = workflowSessions[sessionId];
+      if (!sess) return res.status(404).json({ error: 'Session not found' });
+      // Build compact first (reuse logic) then derive simple action units
+      const startTs = sess.startTime || (sess.events[0]?.timestamp || 0);
+      const compact: any[] = [];
+      const byField: Record<string, { firstT:number; lastT:number; finalValue:string; changeCount:number; specials:Set<string>; tag?:string }> = {};
+      const SPECIAL = new Set(['Enter','Tab','Escape','Backspace','ArrowLeft','ArrowRight','ArrowUp','ArrowDown']);
+      let lastUrl: string | undefined = undefined;
+      let scrollSegs: Array<{startT:number; endT:number}> = [];
+      let curScroll: {startT:number; lastT:number; lastF?:number; dir?:number} | null = null;
+      for (const e of sess.events) {
+        const t = Math.max(0, (e.timestamp - startTs));
+        if (e.type === 'navigate') {
+          if (e.url && e.url !== lastUrl) { compact.push({ t, k:'nav', u:e.url }); lastUrl = e.url; }
+          continue;
+        }
+        if (e.type === 'scroll') {
+          const f = typeof e.vf === 'number' ? e.vf : undefined;
+          if (typeof f === 'number') {
+            if (!curScroll) { curScroll = { startT: t, lastT: t, lastF: f, dir: 0 }; }
+            else {
+              const dir = Math.sign(f - (curScroll.lastF ?? f));
+              const idle = t - curScroll.lastT >= 600;
+              const flip = (curScroll.dir ?? 0) !== 0 && dir !== 0 && dir !== curScroll.dir;
+              if (idle || flip) { scrollSegs.push({ startT: curScroll.startT, endT: curScroll.lastT }); curScroll = { startT: t, lastT: t, lastF: f, dir: dir||curScroll.dir }; }
+              else { curScroll.lastT = t; curScroll.lastF = f; curScroll.dir = dir||curScroll.dir; }
+            }
+          }
+          continue;
+        }
+        if (e.type === 'key') {
+          const sel = e.element?.selHash || e.element?.selector || '';
+          if (!byField[sel]) byField[sel] = { firstT: t, lastT: t, finalValue: '', changeCount: 0, specials: new Set(), tag: e.element?.tag };
+          if (SPECIAL.has(String(e.key))) byField[sel].specials.add(String(e.key));
+          continue;
+        }
+        if (e.type === 'input') {
+          const sel = e.element?.selHash || e.element?.selector || `#f_${e.element?.id || 'unknown'}`;
+          const rec = byField[sel] || { firstT: t, lastT: t, finalValue: '', changeCount: 0, specials: new Set(), tag: e.element?.tag };
+          rec.lastT = t; rec.changeCount += 1; if (typeof e.value === 'string') rec.finalValue = e.value; byField[sel] = rec;
+          continue;
+        }
+        if (e.type === 'click') { compact.push({ t, k:'clk', s: e.element?.selHash, g: e.element?.tag, v: (e.element?.text||'').slice(0,40) }); continue; }
+        if (e.type === 'submit') { compact.push({ t, k:'sub', s: e.element?.selHash || e.element?.selector }); continue; }
+        if (e.type === 'page_load') { compact.push({ t, k:'pl', u: e.url }); continue; }
+      }
+      if (curScroll) scrollSegs.push({ startT: curScroll.startT, endT: curScroll.lastT });
+      compact.sort((a,b)=>a.t-b.t);
+
+      // Derive Action Units
+      const actions: any[] = [];
+      for (const c of compact) {
+        if (c.k === 'nav') actions.push({ type:'NAVIGATE', t: c.t, url: c.u });
+        if (c.k === 'clk') actions.push({ type:'CLICK', t: c.t, selector: c.s, tag: c.g, text: c.v });
+        if (c.k === 'sub') actions.push({ type:'FORM_SUBMIT', t: c.t, selector: c.s });
+      }
+      for (const [sel, rec] of Object.entries(byField)) {
+        actions.push({ type:'TYPE', selector: sel, fieldKind: rec.tag, durationMs: (rec.lastT - (rec.firstT)), finalLen: (rec.finalValue||'').length, changeCount: rec.changeCount, usedSpecialKeys: Array.from(rec.specials) });
+      }
+      if (scrollSegs.length > 0) actions.push({ type:'SCROLL', segments: scrollSegs.length, totalIdleMs: 0 });
+      actions.sort((a,b)=> (a.t??0)-(b.t??0));
+      return res.status(200).json({ sessionId, actions });
     }
     if (action === 'prune_session') {
       const sessionId = req.query.sessionId as string;
@@ -350,6 +494,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const event = body.event;
         
         console.log('📝 Storing browser event:', event.type, 'for session:', sessionId);
+
+        // Inline dedup by __apxFp per session (10s TTL)
+        const fp = String(event.__apxFp || '');
+        if (fp) {
+          const now = Date.now();
+          const cache = dedupCacheBySession[sessionId] || (dedupCacheBySession[sessionId] = new Map());
+          // purge expired
+          for (const [k, ts] of cache) { if (now - ts > DEDUP_TTL_MS) cache.delete(k); }
+          if (cache.has(fp)) {
+            return res.status(200).json({ ok: true, deduped: true });
+          }
+          cache.set(fp, now);
+        }
         
         // Check if this is a temporary session that should be merged with a global session
         if (sessionId.startsWith('temp_')) {

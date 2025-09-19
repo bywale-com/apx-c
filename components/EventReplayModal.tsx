@@ -28,9 +28,11 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
   const [chatInput, setChatInput] = useState<string>('');
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
   const [assistantOpen, setAssistantOpen] = useState<boolean>(false);
+  const [assistantWidth, setAssistantWidth] = useState<number>(420);
   const [mode, setMode] = useState<'focus'|'builder'>('builder');
   const [split, setSplit] = useState<number>(0.7); // proportion for replay pane in builder mode
   const draggingRef = useRef<boolean>(false);
+  const assistantDraggingRef = useRef<boolean>(false);
   const primedRef = useRef<boolean>(false);
   const eventsListRef = useRef<HTMLDivElement>(null);
   const [rowHeight, setRowHeight] = useState<number>(56);
@@ -53,6 +55,7 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
       const savedMode = localStorage.getItem('apx.canvas.mode');
       const savedSplit = localStorage.getItem('apx.canvas.split');
       const savedAssistant = localStorage.getItem('apx.canvas.assistant');
+      const savedAssistantWidth = localStorage.getItem('apx.canvas.assistantWidth');
       if (savedMode === 'focus' || savedMode === 'builder') {
         setMode(savedMode as 'focus'|'builder');
       }
@@ -62,6 +65,10 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
       }
       if (savedAssistant === '1' || savedAssistant === '0') {
         setAssistantOpen(savedAssistant === '1');
+      }
+      if (savedAssistantWidth) {
+        const w = parseInt(savedAssistantWidth, 10);
+        if (!Number.isNaN(w) && w >= 280 && w <= 720) setAssistantWidth(w);
       }
     } catch {}
   }, []);
@@ -77,6 +84,10 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
   useEffect(() => {
     try { localStorage.setItem('apx.canvas.assistant', assistantOpen ? '1' : '0'); } catch {}
   }, [assistantOpen]);
+
+  useEffect(() => {
+    try { localStorage.setItem('apx.canvas.assistantWidth', String(assistantWidth)); } catch {}
+  }, [assistantWidth]);
 
   const sorted = useMemo(() => [...events].sort((a, b) => a.timestamp - b.timestamp), [events]);
   const startTs = useMemo(() => recordingStartTimestamp ?? (sorted[0]?.timestamp ?? 0), [recordingStartTimestamp, sorted]);
@@ -239,16 +250,9 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     setChatInput('');
     try {
       const recentUrls = Array.from(new Set(relative.slice(-20).map(e => e.url).filter(Boolean))) as string[];
-      const compact = relative.slice(0, 800).map(e => ({
-        t: e.t,
-        type: e.type,
-        selector: e.element?.selector ? String(e.element.selector).slice(0, 120) : undefined,
-        tag: e.element?.tag,
-        text: e.element?.text ? String(e.element.text).slice(0, 80) : undefined,
-        value: (e as any).value ?? (e as any).element?.value,
-        key: (e as any).key,
-        url: e.url
-      }));
+      const compactResp = await fetch(`/api/extension-events?action=get_session_compact&sessionId=${encodeURIComponent(sessionId||'')}`);
+      const compactJson = await compactResp.json();
+      const compact = Array.isArray(compactJson?.compact) ? compactJson.compact.slice(-800) : [];
       const resp = await fetch('/api/intent-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -302,7 +306,7 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     setCurrentTime(seek);
   };
 
-  // Prime assistant with full session context once per session open
+  // Prime assistant with compact session context once per session open
   useEffect(() => {
     if (!open || primedRef.current) return;
     if (!sessionId) return;
@@ -311,16 +315,10 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     primedRef.current = true;
     (async () => {
       try {
-        const compact = relative.map(e => ({
-          t: e.t,
-          type: e.type,
-          selector: e.element?.selector ? String(e.element.selector).slice(0, 120) : undefined,
-          tag: e.element?.tag,
-          text: e.element?.text ? String(e.element.text).slice(0, 80) : undefined,
-          value: (e as any).value ?? (e as any).element?.value,
-          key: (e as any).key,
-          url: e.url
-        }));
+        // Fetch compact events from server instead of sending full list
+        const compactResp = await fetch(`/api/extension-events?action=get_session_compact&sessionId=${encodeURIComponent(sessionId)}`);
+        const compactJson = await compactResp.json();
+        const compact = Array.isArray(compactJson?.compact) ? compactJson.compact.slice(-800) : [];
         const recentUrls = Array.from(new Set(relative.slice(-20).map(e => e.url).filter(Boolean))) as string[];
         const seed = [{ role: 'user' as const, content: 'Please analyze the following session context and start by asking: What task was this session about?' }];
         const resp = await fetch('/api/intent-chat', {
@@ -352,13 +350,18 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
 
         <div style={{ position:'relative', display: 'flex', flex: 1, minHeight: 0 }}
           onMouseMove={(e)=>{
-            if (!draggingRef.current) return;
             const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const next = Math.min(0.9, Math.max(0.1, x / rect.width));
-            setSplit(next);
+            if (draggingRef.current) {
+              const x = e.clientX - rect.left;
+              const next = Math.min(0.9, Math.max(0.1, x / rect.width));
+              setSplit(next);
+            } else if (assistantDraggingRef.current) {
+              const fromRight = rect.right - e.clientX;
+              const w = Math.min(720, Math.max(280, Math.round(fromRight)));
+              setAssistantWidth(w);
+            }
           }}
-          onMouseUp={()=>{ draggingRef.current=false; }}
+          onMouseUp={()=>{ draggingRef.current=false; assistantDraggingRef.current=false; }}
         >
           {/* Left: Replay (resizable in builder mode, full in focus) */}
           <div style={{ flex: mode==='focus'?1: split, padding: 16, display: 'flex', flexDirection: 'column', transition:'flex 180ms ease' }}>
@@ -402,8 +405,15 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
           )}
         </div>
 
+        {/* Assistant Drawer Resizer (visible when open) */}
+        {assistantOpen && (
+          <div
+            onMouseDown={()=>{ assistantDraggingRef.current = true; }}
+            style={{ position:'absolute', top:48, bottom:0, right: assistantOpen ? assistantWidth : 0, width: 6, cursor:'col-resize', background:'rgba(255,255,255,0.06)' }}
+          />
+        )}
         {/* Assistant Drawer Overlay */}
-        <div style={{ position:'absolute', top:48, right:0, bottom:0, width: assistantOpen? 420 : 0, transition:'width 200ms ease', overflow:'hidden', borderLeft: assistantOpen? '1px solid rgba(255,255,255,0.12)':'none', background:'rgba(17,17,17,0.98)' }}>
+        <div style={{ position:'absolute', top:48, right:0, bottom:0, width: assistantOpen? assistantWidth : 0, transition:'width 200ms ease', overflow:'hidden', borderLeft: assistantOpen? '1px solid rgba(255,255,255,0.12)':'none', background:'rgba(17,17,17,0.98)' }}>
           <div style={{ height:'100%', padding: assistantOpen? 14: 0, display:'flex', flexDirection:'column', gap:12 }}>
             {/* Chat Panel */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
