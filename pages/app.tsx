@@ -1,5 +1,5 @@
 // pages/app.tsx - Workflow Redesign Platform (Monochrome / Infographic Style)
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -177,14 +177,90 @@ function Grid3DBackdrop() {
 
 /* -------------------- Left Sidebar Navigation -------------------- */
 function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; setActivePhase: (phase: string) => void }) {
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [recordings, setRecordings] = useState<any[]>([]);
+  const [workflowSessions, setWorkflowSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const modules = [
-    { id: 'watch', icon: 'watch', description: 'Watch - Observe user workflows' },
-    { id: 'ask', icon: 'ask', description: 'Ask - Identify optimization opportunities' },
-    { id: 'redesign', icon: 'redesign', description: 'Redesign - Create optimized workflows' },
-    { id: 'automate', icon: 'automate', description: 'Automate - Execute automated processes' },
-    { id: 'chat', icon: 'chat', description: 'Chat - AI operator assistance' },
-    { id: 'observe', icon: 'observe', description: 'Observe - Review recordings & rules' }
+    { id: 'watch', description: 'Watch - Observe user workflows' },
+    { 
+      id: 'recordings', 
+      description: 'Recordings - View screen recordings', 
+      hasDropdown: true
+    },
+    { 
+      id: 'observe', 
+      description: 'Observe - Review workflows & analysis', 
+      hasDropdown: true
+    },
+    { id: 'chat', description: 'Chat - AI operator assistance' }
   ];
+
+  // Fetch data for sidebar
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch recordings
+        const recordingsResponse = await fetch('/api/extension-events?action=get_recordings');
+        if (recordingsResponse.ok) {
+          const recordingsData = await recordingsResponse.json();
+          setRecordings(recordingsData);
+        }
+
+        // Fetch workflow sessions
+        const sessionsResponse = await fetch('/api/extension-events?action=get_workflow_sessions');
+        if (sessionsResponse.ok) {
+          const sessionsData = await sessionsResponse.json();
+          setWorkflowSessions(sessionsData.sessions || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatDuration = (duration: number) => {
+    const seconds = Math.floor(duration / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatTimestamp = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const toggleDropdown = (moduleId: string) => {
+    setExpandedModules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId);
+      } else {
+        newSet.add(moduleId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleModuleClick = (module: any) => {
+    if (module.hasDropdown) {
+      toggleDropdown(module.id);
+    } else {
+      setActivePhase(module.id);
+    }
+  };
+
+  const handleSubItemClick = (parentId: string, subItemId: string) => {
+    setActivePhase(subItemId);
+  };
 
   return (
     <aside style={{
@@ -192,83 +268,174 @@ function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; set
       top: 0,
       left: 0,
       bottom: 0,
-      width: '60px',
-      background: 'rgba(255, 255, 255, 0.06)',
-      borderRight: `1px solid ${mono.border}`,
-      backdropFilter: 'blur(18px)',
+      width: '200px',
+      background: 'rgba(15, 15, 15, 0.95)',
+      borderRight: `1px solid rgba(255, 255, 255, 0.1)`,
+      backdropFilter: 'blur(20px)',
       zIndex: 1000,
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
-      padding: '12px 0',
-      gap: '8px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      padding: '16px 0',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
     }}>
-      {/* Logo (mono cube) */}
+      {/* Logo */}
       <div style={{
-        width: '36px',
-        height: '36px',
-        borderRadius: '8px',
-        background: 'rgba(255,255,255,0.10)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: '8px',
-        fontSize: '20px',
-        fontWeight: 'bold',
-        color: mono.inkHigh,
-        border: `1px solid ${mono.border}`,
+        padding: '0 16px 16px 16px',
+        borderBottom: `1px solid rgba(255, 255, 255, 0.1)`,
+        marginBottom: '16px'
       }}>
-        ▲
+        <div style={{
+          fontSize: '16px',
+          fontWeight: '600',
+          color: '#ffffff',
+          letterSpacing: '0.5px'
+        }}>
+          APX-C
+        </div>
       </div>
 
-      {/* Module Icons */}
-      {modules.map((module) => (
-        <button
-          key={module.id}
-          onClick={() => setActivePhase(module.id)}
-          style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '8px',
-            border: `1px solid ${mono.borderSoft}`,
-            background: activePhase === module.id ? 'rgba(255,255,255,0.14)' : 'transparent',
-            color: activePhase === module.id ? mono.inkHigh : mono.inkMid,
-            cursor: 'pointer',
-            fontSize: '18px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s ease',
-          }}
-          title={module.description}
-        >
-          {/* Minimal inline SVG icons to match angular theme */}
-          <span aria-hidden>
-            {module.icon === 'watch' && (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5c4 0 7 3 7 7s-3 7-7 7-7-3-7-7 3-7 7-7Z" stroke={mono.inkMid} strokeWidth="1.5"/><circle cx="12" cy="12" r="3" fill={mono.inkHigh} /></svg>
-            )}
-            {module.icon === 'ask' && (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 17h.01" stroke={mono.inkHigh} strokeWidth="1.5"/><path d="M9.1 9.5a3.1 3.1 0 1 1 5.8 1.4c-.5 1.1-1.8 1.6-2.4 2.6" stroke={mono.inkMid} strokeWidth="1.5"/></svg>
-            )}
-            {module.icon === 'redesign' && (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 15l7-7 6 6" stroke={mono.inkMid} strokeWidth="1.5"/><path d="M14 6h6v6" stroke={mono.inkHigh} strokeWidth="1.5"/></svg>
-            )}
-            {module.icon === 'automate' && (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 12h6l2-3 2 6 2-3h4" stroke={mono.inkHigh} strokeWidth="1.5"/></svg>
-            )}
-            {module.icon === 'chat' && (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6h16v9H8l-4 3V6Z" stroke={mono.inkMid} strokeWidth="1.5"/></svg>
-            )}
-            {module.icon === 'observe' && (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5Z" stroke={mono.inkMid} strokeWidth="1.5"/><circle cx="12" cy="12" r="2" fill={mono.inkHigh}/></svg>
-            )}
-          </span>
-        </button>
-      ))}
+      {/* Module List */}
+      <div style={{ flex: 1, padding: '0 8px' }}>
+        {modules.map((module) => {
+          const isExpanded = expandedModules.has(module.id);
+          const isActive = activePhase === module.id || (module.subItems && module.subItems.some(sub => activePhase === sub.id));
+          
+          return (
+            <div key={module.id} style={{ marginBottom: '4px' }}>
+              {/* Main Module Button */}
+              <button
+                onClick={() => handleModuleClick(module)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: `1px solid ${isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)'}`,
+                  background: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                  color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.2s ease',
+                  marginBottom: '2px'
+                }}
+                title={module.description}
+              >
+                <span style={{ textTransform: 'capitalize' }}>{module.id}</span>
+                {module.hasDropdown && (
+                  <span style={{
+                    fontSize: '10px',
+                    transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease'
+                  }}>
+                    ▶
+                  </span>
+                )}
+              </button>
+
+              {/* Sub Items - Recordings */}
+              {module.hasDropdown && isExpanded && module.id === 'recordings' && (
+                <div style={{ marginLeft: '12px', marginTop: '4px' }}>
+                  {loading ? (
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '11px', padding: '4px 12px' }}>
+                      Loading...
+                    </div>
+                  ) : recordings.length === 0 ? (
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '11px', padding: '4px 12px' }}>
+                      No recordings
+                    </div>
+                  ) : (
+                    recordings.map((recording, index) => {
+                      const isActive = activePhase === `recording-${recording.timestamp}`;
+                      return (
+                        <button
+                          key={recording.timestamp || index}
+                          onClick={() => setActivePhase(`recording-${recording.timestamp}`)}
+                          style={{
+                            width: '100%',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            border: `1px solid ${isActive ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)'}`,
+                            background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                            color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            fontWeight: '400',
+                            textAlign: 'left',
+                            transition: 'all 0.2s ease',
+                            marginBottom: '2px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start'
+                          }}
+                        >
+                          <div style={{ fontWeight: '500' }}>Recording #{recordings.length - index}</div>
+                          <div style={{ fontSize: '10px', opacity: 0.7 }}>
+                            {formatDuration(recording.duration || 0)} • {formatTimestamp(recording.timestamp)}
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+
+              {/* Sub Items - Workflow Sessions */}
+              {module.hasDropdown && isExpanded && module.id === 'observe' && (
+                <div style={{ marginLeft: '12px', marginTop: '4px' }}>
+                  {loading ? (
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '11px', padding: '4px 12px' }}>
+                      Loading...
+                    </div>
+                  ) : workflowSessions.length === 0 ? (
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '11px', padding: '4px 12px' }}>
+                      No sessions
+                    </div>
+                  ) : (
+                    workflowSessions.map((session, index) => {
+                      const isActive = activePhase === `session-${session.sessionId}`;
+                      return (
+                        <button
+                          key={session.sessionId}
+                          onClick={() => setActivePhase(`session-${session.sessionId}`)}
+                          style={{
+                            width: '100%',
+                            padding: '6px 12px',
+                            borderRadius: '4px',
+                            border: `1px solid ${isActive ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)'}`,
+                            background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                            color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
+                            cursor: 'pointer',
+                            fontSize: '11px',
+                            fontWeight: '400',
+                            textAlign: 'left',
+                            transition: 'all 0.2s ease',
+                            marginBottom: '2px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start'
+                          }}
+                        >
+                          <div style={{ fontWeight: '500' }}>Session {session.sessionId.slice(-8)}</div>
+                          <div style={{ fontSize: '10px', opacity: 0.7 }}>
+                            {formatDuration(session.duration)} • {session.eventCount} events
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {/* Logout Button */}
-      <div style={{ marginTop: 'auto', paddingTop: '12px' }}>
+      <div style={{ padding: '0 8px', borderTop: `1px solid rgba(255, 255, 255, 0.1)`, paddingTop: '16px' }}>
         <button
           onClick={async () => {
             try {
@@ -278,22 +445,21 @@ function LeftSidebar({ activePhase, setActivePhase }: { activePhase: string; set
             }
           }}
           style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '8px',
-            border: `1px solid ${mono.borderSoft}`,
+            width: '100%',
+            padding: '8px 12px',
+            borderRadius: '6px',
+            border: '1px solid rgba(255, 255, 255, 0.05)',
             background: 'transparent',
-            color: mono.inkLow,
+            color: 'rgba(255, 255, 255, 0.6)',
             cursor: 'pointer',
-            fontSize: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontSize: '13px',
+            fontWeight: '500',
+            textAlign: 'left',
             transition: 'all 0.2s ease'
           }}
           title="Logout"
         >
-          🚪
+          Logout
         </button>
       </div>
     </aside>
@@ -871,14 +1037,55 @@ function WatchPhase({ sessionId }: { sessionId: string }) {
   return <LiveMirror />;
 }
 
-/* -------------------- Ask / Redesign / Automate (mono containers) -------------------- */
-function MonoPhase({ title, subtitle }: { title: string; subtitle: string }) {
+/* -------------------- Recordings Module -------------------- */
+function RecordingsModule({ selectedRecordingId }: { selectedRecordingId?: string }) {
+  const [recordings, setRecordings] = useState<any[]>([]);
+  const [selectedRecording, setSelectedRecording] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecordings = async () => {
+      try {
+        const recordingsResponse = await fetch('/api/extension-events?action=get_recordings');
+        if (recordingsResponse.ok) {
+          const recordingsData = await recordingsResponse.json();
+          setRecordings(recordingsData);
+          
+          // Set selected recording based on prop
+          if (selectedRecordingId) {
+            const found = recordingsData.find(r => r.timestamp.toString() === selectedRecordingId);
+            if (found) {
+              setSelectedRecording(found);
+            }
+          } else if (recordingsData.length > 0 && !selectedRecording) {
+            setSelectedRecording(recordingsData[recordingsData.length - 1]);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch recordings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecordings();
+    const interval = setInterval(fetchRecordings, 5000);
+    return () => clearInterval(interval);
+  }, [selectedRecording, selectedRecordingId]);
+
+  const formatDuration = (duration: number) => {
+    const seconds = Math.floor(duration / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatTimestamp = (timestamp: number) => new Date(timestamp).toLocaleString();
+
   return (
     <div style={{
       height: '100%',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
       background: mono.bgPanel,
       border: `1px solid ${mono.border}`,
       borderRadius: '8px',
@@ -886,16 +1093,87 @@ function MonoPhase({ title, subtitle }: { title: string; subtitle: string }) {
       backdropFilter: 'blur(18px)',
       boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     }}>
-      <div style={{ textAlign: 'center', color: mono.inkLow }}>
-        <h2 style={{ fontSize: '24px', marginBottom: '16px', color: mono.inkHigh }}>{title}</h2>
-        <p>{subtitle}</p>
+      {/* Main Content Area - Video Player */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: mono.inkHigh, fontWeight: 500 }}>
+          {selectedRecording
+            ? `Recording #${recordings.length - recordings.findIndex(r => r.timestamp === selectedRecording.timestamp)}`
+            : 'Select a Recording'}
+        </h3>
+
+        {selectedRecording ? (
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            background: 'rgba(255,255,255,0.04)',
+            borderRadius: '6px',
+            padding: '20px',
+            border: `1px solid ${mono.border}`,
+          }}>
+            {/* Video Player */}
+            <video
+              controls
+              style={{
+                width: '100%',
+                maxHeight: '400px',
+                borderRadius: '4px',
+                background: 'rgba(0,0,0,0.85)',
+                marginBottom: '20px',
+              }}
+              src={`data:video/webm;base64,${selectedRecording.data}`}
+            />
+
+            {/* Recording Details */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '14px' }}>
+              <div>
+                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Duration</div>
+                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
+                  {formatDuration(selectedRecording.duration || 0)}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>File Size</div>
+                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
+                  {Math.round((selectedRecording.data?.length || 0) / 1024)} KB
+                </div>
+              </div>
+
+              <div>
+                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Created</div>
+                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
+                  {formatTimestamp(selectedRecording.timestamp)}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Format</div>
+                <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
+                  WebM (VP9)
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255,255,255,0.04)',
+            borderRadius: '6px',
+            border: `1px solid ${mono.border}`,
+            color: mono.inkLow,
+            fontSize: '16px',
+          }}>
+            Select a recording from the list to play it back
+          </div>
+        )}
       </div>
     </div>
   );
 }
-const AskPhase = () => <MonoPhase title="Ask Phase" subtitle="Identify optimization opportunities from captured workflows" />;
-const RedesignPhase = () => <MonoPhase title="Redesign Phase" subtitle="Create optimized workflows from captured data" />;
-const AutomatePhase = () => <MonoPhase title="Automate Phase" subtitle="Execute automated processes based on optimized workflows" />;
 
 /* -------------------- Chat Module -------------------- */
 function ChatModule({ sid }: { sid: string }) {
@@ -1193,18 +1471,235 @@ function ChatModule({ sid }: { sid: string }) {
   );
 }
 
-/* -------------------- Observe Module Wrapper -------------------- */
-function ObserveModuleWrapper() {
+/* -------------------- Events Dropdown Component -------------------- */
+function EventsDropdown({ 
+  events, 
+  currentTime, 
+  onEventSelect, 
+  isMoveable = false,
+  recordingStartTimestamp
+}: { 
+  events: any[]; 
+  currentTime: number; 
+  onEventSelect: (event: any) => void;
+  isMoveable?: boolean;
+  recordingStartTimestamp?: number;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const eventsListRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate relative timestamps using recording start time (same as original)
+  const startTime = recordingStartTimestamp || (events.length > 0 ? events[0].timestamp : 0);
+  const relative = events.map(event => ({
+    ...event,
+    relativeTime: event.timestamp - startTime
+  }));
+  
+  // Filter events that have occurred up to current time (same as original)
+  const visible = relative.filter(ev => ev.relativeTime <= currentTime * 1000).map(ev => ({
+    ...ev,
+    t: ev.relativeTime / 1000 // Convert to seconds
+  }));
+  
+  // Debug: Log to see what's happening
+  console.log('EventsDropdown Debug:', {
+    eventsLength: events.length,
+    visibleLength: visible.length,
+    currentTime,
+    startTime,
+    relative: relative.slice(0, 3) // First 3 events for debugging
+  });
+  
+  const rowHeight = 60; // Same as original
+
+  // Seek to event function (same as original)
+  const seekToEvent = (tSeconds: number) => {
+    const seek = Math.max(0, tSeconds - 2);
+    onEventSelect({ type: 'seek', time: seek });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isMoveable) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    
+    // Store the initial offset from mouse to element
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    
+    // Store offset separately from position
+    setDragOffset({ x: offsetX, y: offsetY });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !isMoveable) return;
+      e.preventDefault();
+      
+      // Calculate new position based on mouse position minus the initial offset
+      const newX = e.clientX - dragOffset.x;
+      const newY = e.clientY - dragOffset.y;
+      
+      // Constrain to viewport bounds
+      const constrainedX = Math.max(0, Math.min(newX, window.innerWidth - 200));
+      const constrainedY = Math.max(0, Math.min(newY, window.innerHeight - 150));
+      
+      setPosition({ x: constrainedX, y: constrainedY });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = 'none'; // Prevent text selection while dragging
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = ''; // Restore text selection
+    };
+  }, [isDragging, isMoveable, dragOffset.x, dragOffset.y]);
+
+  return (
+    <div 
+      style={{
+        position: isMoveable ? 'absolute' : 'relative',
+        top: isMoveable ? `${position.y}px` : 'auto',
+        left: isMoveable ? `${position.x}px` : 'auto',
+        zIndex: isMoveable ? 1000 : 'auto',
+        background: 'rgba(15, 15, 15, 0.95)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '4px',
+        backdropFilter: 'blur(20px)',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
+        minWidth: '180px',
+        maxWidth: '200px'
+      }}
+      onMouseDown={handleMouseDown}
+    >
+      {/* Header */}
+      <div 
+        style={{
+          padding: '8px 12px',
+          borderBottom: `1px solid rgba(255, 255, 255, 0.1)`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: isDragging ? 'grabbing' : (isMoveable ? 'grab' : 'pointer'),
+          userSelect: 'none'
+        }}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <span style={{ 
+          fontSize: '11px', 
+          fontWeight: '500', 
+          color: '#ffffff',
+          textTransform: 'uppercase',
+          letterSpacing: '0.3px'
+        }}>
+          Events ({visible.length})
+        </span>
+        <span style={{
+          fontSize: '10px',
+          color: 'rgba(255, 255, 255, 0.6)',
+          transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+          transition: 'transform 0.2s ease'
+        }}>
+          ▶
+        </span>
+      </div>
+
+      {/* Events List - Same as original */}
+      {isExpanded && (
+        <div
+          ref={eventsListRef}
+          style={{
+            height: `${Math.max(3 * 40, 120)}px`, // Much smaller height
+            overflowY: 'auto',
+            position: 'relative',
+            borderRadius: 4,
+            border: '1px solid rgba(255,255,255,0.12)',
+            background: 'rgba(17,17,17,0.98)'
+          }}
+        >
+          {/* Top gradient fade */}
+          <div style={{ position: 'sticky', top: 0, height: 16, background: 'linear-gradient(180deg, rgba(17,17,17,0.9) 0%, rgba(17,17,17,0) 100%)', zIndex: 10 }} />
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)', marginBottom: 4, padding: '0 8px' }}>
+            Events up to {currentTime.toFixed(1)}s
+          </div>
+          {visible.length === 0 ? (
+            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, padding: '0 8px' }}>
+              No events yet at this time.
+            </div>
+          ) : (
+            [...visible]
+              .sort((a,b)=> b.t - a.t) // Newest first, same as original
+              .map((ev, idx) => (
+                <div
+                  key={`${ev.t}-${idx}`}
+                  style={{
+                    padding: '4px 6px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 3,
+                    marginBottom: 4,
+                    background: 'rgba(255,255,255,0.03)',
+                    cursor: 'pointer',
+                    opacity: 1,
+                    marginLeft: 8,
+                    marginRight: 8
+                  }}
+                  onClick={() => seekToEvent(ev.t)}
+                >
+                  <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)' }}>
+                    {ev.t.toFixed(1)}s • {ev.event?.type || ev.type || 'Event'}
+                  </div>
+                  {ev.event?.element?.selector && (
+                    <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.6)' }}>
+                      {ev.event.element.selector}
+                    </div>
+                  )}
+                  {ev.url && (
+                    <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.45)' }}>
+                      {ev.url}
+                    </div>
+                  )}
+                </div>
+              ))
+          )}
+          {/* Bottom gradient fade */}
+          <div style={{ position: 'sticky', bottom: 0, height: 16, background: 'linear-gradient(0deg, rgba(17,17,17,0.9) 0%, rgba(17,17,17,0) 100%)', zIndex: 10 }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------- Workflow Session View -------------------- */
+function WorkflowSessionView({ 
+  selectedSessionId, 
+  onEventsUpdate, 
+  onVideoTimeUpdate 
+}: { 
+  selectedSessionId?: string;
+  onEventsUpdate: (events: any[]) => void;
+  onVideoTimeUpdate: (time: number) => void;
+}) {
   const [recordings, setRecordings] = useState<any[]>([]);
-  const [selectedRecording, setSelectedRecording] = useState<any>(null);
-  const [workflowSessions, setWorkflowSessions] = useState<any[]>([]);
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'recordings' | 'workflows'>('recordings');
   const [showCleaned, setShowCleaned] = useState(false);
   const [pruning, setPruning] = useState(false);
-  const [replayOpen, setReplayOpen] = useState(false);
   const [workflowOpen, setWorkflowOpen] = useState(false);
+  const [currentVideoTime, setCurrentVideoTime] = useState<number>(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -1214,25 +1709,11 @@ function ObserveModuleWrapper() {
         if (recordingsResponse.ok) {
           const recordingsData = await recordingsResponse.json();
           setRecordings(recordingsData);
-          if (recordingsData.length > 0 && !selectedRecording) {
-            setSelectedRecording(recordingsData[recordingsData.length - 1]);
-          }
         }
 
-        // Fetch workflow sessions
-        const sessionsResponse = await fetch('/api/extension-events?action=get_workflow_sessions');
-        if (sessionsResponse.ok) {
-          const sessionsData = await sessionsResponse.json();
-          setWorkflowSessions(sessionsData.sessions || []);
-          if (sessionsData.sessions?.length > 0 && !selectedSession) {
-            const defaultSession = sessionsData.sessions[sessionsData.sessions.length - 1];
-            // Ensure we load full details (including events) for the default session
-            try {
-              await loadSessionDetails(defaultSession.sessionId);
-            } catch {
-              setSelectedSession(defaultSession);
-            }
-          }
+        // Load selected session details
+        if (selectedSessionId) {
+          await loadSessionDetails(selectedSessionId);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -1244,7 +1725,16 @@ function ObserveModuleWrapper() {
     fetchData();
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, [selectedRecording, selectedSession]);
+  }, [selectedSessionId]);
+
+  // Clear events when session ID changes to prevent mixing
+  useEffect(() => {
+    if (selectedSessionId) {
+      // Clear previous session data when switching
+      setSelectedSession(null);
+      onEventsUpdate([]);
+    }
+  }, [selectedSessionId, onEventsUpdate]);
 
   // Auto-load details for the currently selected session if events are missing
   useEffect(() => {
@@ -1256,20 +1746,41 @@ function ObserveModuleWrapper() {
     }
   }, [selectedSession?.sessionId]);
 
-  const formatDuration = (duration: number) => {
-    const seconds = Math.floor(duration / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  // Pass events data to parent when session changes
+  useEffect(() => {
+    if (selectedSession) {
+      const events = showCleaned ? selectedSession.cleanedEvents : selectedSession.events;
+      if (Array.isArray(events)) {
+        console.log(`[WorkflowSessionView] Passing ${events.length} events for session ${selectedSession.sessionId}`);
+        onEventsUpdate(events);
+      }
+    } else {
+      // Clear events when no session is selected
+      console.log('[WorkflowSessionView] Clearing events - no session selected');
+      onEventsUpdate([]);
+    }
+  }, [selectedSession, showCleaned, onEventsUpdate]);
 
-  const formatTimestamp = (timestamp: number) => new Date(timestamp).toLocaleString();
+  // Track video time for EventsDropdown - connect to actual video
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Find the video element in the EventReplayModal
+      const videoElement = document.querySelector('video');
+      if (videoElement) {
+        setCurrentVideoTime(videoElement.currentTime);
+      }
+    }, 100); // Check every 100ms for smooth updates
+
+    return () => clearInterval(interval);
+  }, []);
 
   const loadSessionDetails = async (sessionId: string) => {
     try {
+      console.log(`[WorkflowSessionView] Loading session details for: ${sessionId}`);
       const response = await fetch(`/api/extension-events?action=get_workflow_session&sessionId=${sessionId}`);
       if (response.ok) {
         const data = await response.json();
+        console.log(`[WorkflowSessionView] Loaded session ${sessionId} with ${data.events?.length || 0} raw events and ${data.cleanedEvents?.length || 0} cleaned events`);
         setSelectedSession(data);
         // default to cleaned view if present
         setShowCleaned(!!data.cleanedEvents && data.cleanedEvents.length > 0);
@@ -1303,439 +1814,137 @@ function ObserveModuleWrapper() {
       background: mono.bgPanel,
       border: `1px solid ${mono.border}`,
       borderRadius: '8px',
-      padding: '24px',
+      padding: '0px', // Remove padding to let EventReplayModal fill entire space
       backdropFilter: 'blur(18px)',
       boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
     }}>
-      {/* Left Panel - Recording List */}
-      <div style={{ width: '300px', marginRight: '24px', display: 'flex', flexDirection: 'column' }}>
-        {/* View Mode Toggle */}
-        <div style={{ 
-          display: 'flex', 
-          marginBottom: '20px',
+      {/* Main Content Area - EventReplayModal fills entire space */}
+      {selectedSession ? (
+        (() => {
+          const recData = selectedSession.recordingId ? (recordings.find(r => r.recordingId === selectedSession.recordingId) || null) : null;
+          const videoDataUrl = recData ? `data:video/webm;base64,${recData.data}` : '';
+          const evs = (showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || [];
+          const startTs = recData?.recordingStartTimestamp ?? null;
+          return (
+            <div style={{ position: 'relative', height: '100%', width: '100%', flex: 1 }}>
+              <EventReplayModal
+                open={true}
+                onClose={() => {}} // No close functionality for default view
+                videoUrl={videoDataUrl}
+                events={evs}
+                recordingStartTimestamp={startTs}
+                inline={true} // Use inline mode for default view
+                sessionId={selectedSession.sessionId}
+                onPruneWorkflow={pruneSelectedSession}
+                onOpenWorkflow={() => setWorkflowOpen(true)}
+                pruning={pruning}
+              />
+              
+              {/* Events Dropdown Overlay */}
+              <EventsDropdown 
+                events={evs}
+                currentTime={currentVideoTime}
+                onEventSelect={(event) => {
+                  if (event.type === 'seek') {
+                    // Handle seeking to event time
+                    console.log('Seeking to:', event.time);
+                  } else {
+                    console.log('Selected event:', event);
+                  }
+                }}
+                isMoveable={true}
+                recordingStartTimestamp={startTs}
+              />
+            </div>
+          );
+        })()
+      ) : (
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           background: 'rgba(255,255,255,0.04)',
           borderRadius: '6px',
-          padding: '4px',
-          border: `1px solid ${mono.border}`
+          border: `1px solid ${mono.border}`,
+          color: mono.inkLow,
+          fontSize: '16px',
         }}>
-          <button
-            onClick={() => setViewMode('recordings')}
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              background: viewMode === 'recordings' ? 'rgba(255,255,255,0.10)' : 'transparent',
-              border: 'none',
-              borderRadius: '4px',
-              color: mono.inkHigh,
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            📹 Recordings ({recordings.length})
-          </button>
-          <button
-            onClick={() => setViewMode('workflows')}
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              background: viewMode === 'workflows' ? 'rgba(255,255,255,0.10)' : 'transparent',
-              border: 'none',
-              borderRadius: '4px',
-              color: mono.inkHigh,
-              fontSize: '14px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            🔍 Workflows ({workflowSessions.length})
-          </button>
+          Select a workflow session from the list to analyze it
         </div>
+      )}
 
-        <h2 style={{ fontSize: '20px', marginBottom: '20px', color: mono.inkHigh, fontWeight: 600 }}>
-          {viewMode === 'recordings' ? '📹 Recordings' : '🔍 Workflow Sessions'}
-        </h2>
-
-        {loading ? (
-          <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
-            Loading {viewMode}...
-          </div>
-        ) : viewMode === 'recordings' ? (
-          recordings.length === 0 ? (
-            <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
-              No recordings yet
-              <br />
-              <small>Start monitoring to create recordings</small>
-            </div>
-          ) : (
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {recordings.map((recording, index) => {
-                const selected = selectedRecording?.timestamp === recording.timestamp;
-                return (
-                  <div
-                    key={recording.timestamp || index}
-                    onClick={() => setSelectedRecording(recording)}
-                    style={{
-                      padding: '16px',
-                      background: selected ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${selected ? mono.divider : mono.border}`,
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: mono.inkHigh }}>
-                        Recording #{recordings.length - index}
-                      </div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: mono.inkHigh,
-                        background: 'rgba(255,255,255,0.10)',
-                        padding: '2px 8px',
-                        borderRadius: '3px',
-                        border: `1px solid ${mono.border}`
-                      }}>
-                        {formatDuration(recording.duration || 0)}
-                      </div>
-                    </div>
-
-                    <div style={{ fontSize: '12px', color: mono.inkLow, marginBottom: '8px' }}>
-                      {formatTimestamp(recording.timestamp)}
-                    </div>
-
-                    <div style={{
-                      fontSize: '11px',
-                      color: mono.inkLow,
-                      background: 'rgba(255,255,255,0.04)',
-                      padding: '4px 8px',
-                      borderRadius: '3px',
-                      textAlign: 'center',
-                      border: `1px solid ${mono.border}`,
-                      marginBottom: '8px'
-                    }}>
-                      {Math.round((recording.data?.length || 0) / 1024)} KB
-                    </div>
-                    
-                    {workflowSessions.some(session => session.recordingId === recording.recordingId) && (
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#FF9E4A',
-                        background: 'rgba(255, 158, 74, 0.1)',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        textAlign: 'center',
-                        border: '1px solid rgba(255, 158, 74, 0.2)'
-                      }}>
-                        🔍 Has Workflow
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )
-        ) : (
-          workflowSessions.length === 0 ? (
-            <div style={{ textAlign: 'center', color: mono.inkLow, padding: '40px 0' }}>
-              No workflow sessions yet
-              <br />
-              <small>Start monitoring to capture workflows</small>
-            </div>
-          ) : (
-            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {workflowSessions.map((session, index) => {
-                const selected = selectedSession?.sessionId === session.sessionId;
-                return (
-                  <div
-                    key={session.sessionId}
-                    onClick={() => loadSessionDetails(session.sessionId)}
-                    style={{
-                      padding: '16px',
-                      background: selected ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${selected ? mono.divider : mono.border}`,
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: mono.inkHigh }}>
-                        Session {session.sessionId.slice(-8)}
-                      </div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: mono.inkHigh,
-                        background: 'rgba(255,255,255,0.10)',
-                        padding: '2px 8px',
-                        borderRadius: '3px',
-                        border: `1px solid ${mono.border}`
-                      }}>
-                        {formatDuration(session.duration)}
-                      </div>
-                    </div>
-
-                    <div style={{ fontSize: '12px', color: mono.inkLow, marginBottom: '8px' }}>
-                      {formatTimestamp(session.startTime)}
-                    </div>
-
-                    <div style={{
-                      fontSize: '11px',
-                      color: mono.inkLow,
-                      background: 'rgba(255,255,255,0.04)',
-                      padding: '4px 8px',
-                      borderRadius: '3px',
-                      textAlign: 'center',
-                      border: `1px solid ${mono.border}`,
-                      marginBottom: '8px'
-                    }}>
-                      {session.eventCount} events
-                    </div>
-                    
-                    {session.recordingId && (
-                      <div style={{
-                        fontSize: '10px',
-                        color: '#38E1FF',
-                        background: 'rgba(56, 225, 255, 0.1)',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        textAlign: 'center',
-                        border: '1px solid rgba(56, 225, 255, 0.2)'
-                      }}>
-                        📹 Has Recording
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )
-        )}
-      </div>
-
-      {/* Right Panel - Video Player / Workflow Analysis */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: mono.inkHigh, fontWeight: 500 }}>
-          {viewMode === 'recordings' 
-            ? (selectedRecording
-                ? `Recording #${recordings.length - recordings.findIndex(r => r.timestamp === selectedRecording.timestamp)}`
-                : 'Select a Recording')
-            : (selectedSession
-                ? `Workflow Session ${selectedSession.sessionId?.slice(-8) || 'Unknown'}`
-                : 'Select a Workflow Session')
-          }
-        </h3>
-
-        {viewMode === 'recordings' ? (
-          selectedRecording ? (
+      {/* Workflow Modal (VideoEventSync) */}
+      {workflowOpen && selectedSession && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.6)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            width: '95vw',
+            height: '90vh',
+            background: '#111',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,0.15)',
+            borderRadius: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            {/* Header */}
             <div style={{
-              flex: 1,
               display: 'flex',
-              flexDirection: 'column',
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: '6px',
-              padding: '20px',
-              border: `1px solid ${mono.border}`,
-            }}>
-              {/* Video Player */}
-              <video
-                controls
-                style={{
-                  width: '100%',
-                  maxHeight: '400px',
-                  borderRadius: '4px',
-                  background: 'rgba(0,0,0,0.85)',
-                  marginBottom: '20px',
-                }}
-                src={`data:video/webm;base64,${selectedRecording.data}`}
-              />
-
-              {/* Recording Details */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', fontSize: '14px' }}>
-                <div>
-                  <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Duration</div>
-                  <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
-                    {formatDuration(selectedRecording.duration || 0)}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ color: mono.inkLow, marginBottom: '4px' }}>File Size</div>
-                  <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
-                    {Math.round((selectedRecording.data?.length || 0) / 1024)} KB
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Created</div>
-                  <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
-                    {formatTimestamp(selectedRecording.timestamp)}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ color: mono.inkLow, marginBottom: '4px' }}>Format</div>
-                  <div style={{ color: mono.inkHigh, fontWeight: 500 }}>
-                    WebM (VP9)
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div style={{
-              flex: 1,
-              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: '6px',
-              border: `1px solid ${mono.border}`,
-              color: mono.inkLow,
-              fontSize: '16px',
+              padding: '16px 20px',
+              borderBottom: '1px solid rgba(255,255,255,0.12)',
+              background: 'rgba(255,255,255,0.05)'
             }}>
-              Select a recording from the list to play it back
-            </div>
-          )
-        ) : (
-          selectedSession ? (
-            <div style={{
-              flex: 1,
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: '6px',
-              border: `1px solid ${mono.border}`,
-              overflow: 'hidden'
-            }}>
-              {/* Toolbar for prune/toggle */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', borderBottom: `1px solid ${mono.border}`, background: 'rgba(255,255,255,0.03)' }}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <button onClick={pruneSelectedSession} disabled={pruning} style={{ padding: '8px 12px', borderRadius: 6, border: `1px solid ${mono.border}`, background: '#ffffff', color: '#000', cursor: pruning ? 'not-allowed' : 'pointer' }}>
-                    {pruning ? 'Pruning…' : 'Prune Workflow'}
-                  </button>
-                  {/* Workflow button */}
-                  <button onClick={() => setWorkflowOpen(true)} style={{ padding: '8px 12px', borderRadius: 6, border: `1px solid ${mono.border}`, background: 'transparent', color: mono.inkHigh, cursor: 'pointer' }}>
-                    Workflow
-                  </button>
-                  {(selectedSession?.cleanedEvents?.length ?? 0) > 0 && (
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: mono.inkHigh }}>
-                      <input type="checkbox" checked={showCleaned} onChange={(e)=>setShowCleaned(e.target.checked)} />
-                      Show cleaned events
-                    </label>
-                  )}
-                </div>
-                <div style={{ fontSize: 12, color: mono.inkLow }}>
-                  {showCleaned ? `Showing cleaned events (${selectedSession?.cleanedEvents?.length||0})` : `Showing raw events (${selectedSession?.events?.length||0})`}
-                </div>
-              </div>
-              {/* Default Event Replay Modal */}
-              {(() => {
-                const recData = selectedSession.recordingId ? (recordings.find(r => r.recordingId === selectedSession.recordingId) || null) : null;
-                const videoDataUrl = recData ? `data:video/webm;base64,${recData.data}` : '';
-                const evs = (showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || [];
-                const startTs = recData?.recordingStartTimestamp ?? null;
-                return (
-                  <EventReplayModal
-                    open={true}
-                    onClose={() => {}} // No close functionality for default view
-                    videoUrl={videoDataUrl}
-                    events={evs}
-                    recordingStartTimestamp={startTs}
-                    inline={true} // Use inline mode for default view
-                    sessionId={selectedSession.sessionId}
-                  />
-                );
-              })()}
-
-              {/* Workflow Modal (VideoEventSync) */}
-              {workflowOpen && (
-                <div style={{
-                  position: 'fixed',
-                  inset: 0,
-                  background: 'rgba(0,0,0,0.6)',
-                  zIndex: 9999,
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+                Workflow Analysis
+              </h2>
+              <button
+                onClick={() => setWorkflowOpen(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
-                }}>
-                  <div style={{
-                    width: '95vw',
-                    height: '90vh',
-                    background: '#111',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    borderRadius: 10,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden'
-                  }}>
-                    {/* Header */}
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '16px 20px',
-                      borderBottom: '1px solid rgba(255,255,255,0.12)',
-                      background: 'rgba(255,255,255,0.05)'
-                    }}>
-                      <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
-                        Workflow Analysis
-                      </h2>
-                      <button
-                        onClick={() => setWorkflowOpen(false)}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#fff',
-                          fontSize: '24px',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          borderRadius: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        ×
-                      </button>
-                    </div>
-                    
-                    {/* VideoEventSync Content */}
-                    <div style={{ flex: 1, overflow: 'hidden' }}>
-                      <VideoEventSync
-                        videoUrl={selectedSession.recordingId ? `data:video/webm;base64,${recordings.find(r => r.recordingId === selectedSession.recordingId)?.data || ''}` : ''}
-                        events={(showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || []}
-                        recordingId={selectedSession.sessionId}
-                        recordingStartTimestamp={recordings.find(r => r.recordingId === selectedSession.recordingId)?.recordingStartTimestamp}
-                        onEventSelect={(event) => {
-                          console.log('Selected event:', event);
-                        }}
-                        onTimelineUpdate={(time) => {
-                          // Handle timeline updates if needed
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+                }}
+              >
+                ×
+              </button>
             </div>
-          ) : (
-            <div style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(255,255,255,0.04)',
-              borderRadius: '6px',
-              border: `1px solid ${mono.border}`,
-              color: mono.inkLow,
-              fontSize: '16px',
-            }}>
-              Select a workflow session from the list to analyze it
+            
+            {/* VideoEventSync Content */}
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <VideoEventSync
+                videoUrl={selectedSession.recordingId ? `data:video/webm;base64,${recordings.find(r => r.recordingId === selectedSession.recordingId)?.data || ''}` : ''}
+                events={(showCleaned ? selectedSession.cleanedEvents : selectedSession.events) || []}
+                recordingId={selectedSession.sessionId}
+                recordingStartTimestamp={recordings.find(r => r.recordingId === selectedSession.recordingId)?.recordingStartTimestamp}
+                onEventSelect={(event) => {
+                  console.log('Selected event:', event);
+                }}
+                onTimelineUpdate={(time) => {
+                  // Handle timeline updates if needed
+                }}
+              />
             </div>
-          )
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1745,6 +1954,8 @@ export default function Home() {
   const [activePhase, setActivePhase] = useState('watch');
   const [rightWidth, setRightWidth] = useState<number>(280);
   const [replayOpen, setReplayOpen] = useState<boolean>(false);
+  const [currentSessionEvents, setCurrentSessionEvents] = useState<any[]>([]);
+  const [currentVideoTime, setCurrentVideoTime] = useState<number>(0);
 
   useEffect(() => {
     try {
@@ -1772,18 +1983,32 @@ export default function Home() {
       <div style={{
         position: 'absolute',
         top: '0px',
-        left: '60px', // Reserve space for left sidebar
+        left: '200px', // Reserve space for left sidebar
         right: `${rightWidth}px`, // Dynamic based on SearchPanel
         bottom: '0px',
         overflow: 'hidden',
         padding: '24px'
       }}>
         {activePhase === 'watch' && <WatchPhase sessionId={sid} />}
-        {activePhase === 'ask' && <AskPhase />}
-        {activePhase === 'redesign' && <RedesignPhase />}
-        {activePhase === 'automate' && <AutomatePhase />}
-        {activePhase === 'chat' && sid ? <ChatModule sid={sid} /> : activePhase === 'chat' ? <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--ink-mid)' }}>Loading session...</div> : null}
-        {activePhase === 'observe' && <ObserveModuleWrapper />}
+        {activePhase.startsWith('recording-') && <RecordingsModule selectedRecordingId={activePhase.replace('recording-', '')} />}
+        {activePhase.startsWith('session-') && (
+          <WorkflowSessionView 
+            selectedSessionId={activePhase.replace('session-', '')} 
+            onEventsUpdate={setCurrentSessionEvents}
+            onVideoTimeUpdate={setCurrentVideoTime}
+          />
+        )}
+        {activePhase === 'chat' && sid && <ChatModule sid={sid} />}
+        {activePhase === 'chat' && !sid && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--ink-mid)' }}>
+            Loading session...
+          </div>
+        )}
+        {!activePhase.startsWith('recording-') && !activePhase.startsWith('session-') && activePhase !== 'watch' && activePhase !== 'chat' && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--ink-mid)' }}>
+            Select a recording or session from the sidebar
+          </div>
+        )}
       </div>
 
       {/* Right Sidebar - Fixed Position */}

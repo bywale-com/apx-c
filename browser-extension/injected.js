@@ -112,14 +112,26 @@
     return selector;
   }
   
+  // Lightweight FNV-1a hash for short selector hashes
+  function fnv1a(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return h >>> 0;
+  }
+
   // Function to get element info
   function getElementInfo(element) {
+    const selector = getElementSelector(element);
     return {
       tag: element.tagName.toLowerCase(),
       id: element.id || null,
       className: element.className || null,
       text: element.textContent?.slice(0, 100) || null,
-      selector: getElementSelector(element),
+      selector: selector,
+      selHash: selector ? fnv1a(selector).toString(36) : null,
       role: element.getAttribute('role') || null,
       type: element.type || null,
       name: element.name || null,
@@ -138,7 +150,7 @@
     sendEvent({
       type: 'click',
       element: elementInfo,
-      coordinates: { x: event.clientX, y: event.clientY },
+      coordinates: { x: Math.round(event.clientX/10)*10, y: Math.round(event.clientY/10)*10 },
       timestamp: Date.now(),
       sessionId: sessionId,
       url: pageUrl
@@ -236,6 +248,21 @@
         // @ts-ignore
         y = el.scrollTop || 0;
       }
+      // viewport fraction (0-100) where possible
+      let vf = null;
+      try {
+        const vpH = window.innerHeight || document.documentElement.clientHeight || 0;
+        const docH = Math.max(
+          document.body.scrollHeight || 0,
+          document.documentElement.scrollHeight || 0,
+          document.body.offsetHeight || 0,
+          document.documentElement.offsetHeight || 0,
+          document.body.clientHeight || 0,
+          document.documentElement.clientHeight || 0
+        );
+        const denom = Math.max(1, (docH - vpH));
+        vf = Math.max(0, Math.min(100, Math.round((y / denom) * 100)));
+      } catch (_) {}
       const lastPos = lastScrollPosByEl.get(el) || { x: NaN, y: NaN };
       const dx = Math.abs((x || 0) - (lastPos.x || 0));
       const dy = Math.abs((y || 0) - (lastPos.y || 0));
@@ -249,6 +276,7 @@
           scrollY: y,
           scrollX: x,
           element: elInfo,
+          vf: vf,
           timestamp: now,
           sessionId: sessionId,
           url: pageUrl

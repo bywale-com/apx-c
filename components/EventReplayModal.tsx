@@ -16,9 +16,12 @@ interface EventReplayModalProps {
   recordingStartTimestamp?: number | null;
   inline?: boolean; // New prop for inline mode
   sessionId?: string;
+  onPruneWorkflow?: () => void;
+  onOpenWorkflow?: () => void;
+  pruning?: boolean;
 }
 
-export default function EventReplayModal({ open, onClose, videoUrl, events, recordingStartTimestamp, inline = false, sessionId }: EventReplayModalProps) {
+export default function EventReplayModal({ open, onClose, videoUrl, events, recordingStartTimestamp, inline = false, sessionId, onPruneWorkflow, onOpenWorkflow, pruning }: EventReplayModalProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [currentTime, setCurrentTime] = useState(0); // seconds
   const [duration, setDuration] = useState(0); // seconds
@@ -28,12 +31,13 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
   const [chatInput, setChatInput] = useState<string>('');
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
   const [assistantOpen, setAssistantOpen] = useState<boolean>(false);
+  const [assistantWidth, setAssistantWidth] = useState<number>(420);
   const [mode, setMode] = useState<'focus'|'builder'>('builder');
   const [split, setSplit] = useState<number>(0.7); // proportion for replay pane in builder mode
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
   const draggingRef = useRef<boolean>(false);
+  const assistantDraggingRef = useRef<boolean>(false);
   const primedRef = useRef<boolean>(false);
-  const eventsListRef = useRef<HTMLDivElement>(null);
-  const [rowHeight, setRowHeight] = useState<number>(56);
 
   useEffect(() => {
     if (!open) {
@@ -53,6 +57,7 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
       const savedMode = localStorage.getItem('apx.canvas.mode');
       const savedSplit = localStorage.getItem('apx.canvas.split');
       const savedAssistant = localStorage.getItem('apx.canvas.assistant');
+      const savedAssistantWidth = localStorage.getItem('apx.canvas.assistantWidth');
       if (savedMode === 'focus' || savedMode === 'builder') {
         setMode(savedMode as 'focus'|'builder');
       }
@@ -62,6 +67,10 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
       }
       if (savedAssistant === '1' || savedAssistant === '0') {
         setAssistantOpen(savedAssistant === '1');
+      }
+      if (savedAssistantWidth) {
+        const w = parseInt(savedAssistantWidth, 10);
+        if (!Number.isNaN(w) && w >= 280 && w <= 720) setAssistantWidth(w);
       }
     } catch {}
   }, []);
@@ -77,6 +86,10 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
   useEffect(() => {
     try { localStorage.setItem('apx.canvas.assistant', assistantOpen ? '1' : '0'); } catch {}
   }, [assistantOpen]);
+
+  useEffect(() => {
+    try { localStorage.setItem('apx.canvas.assistantWidth', String(assistantWidth)); } catch {}
+  }, [assistantWidth]);
 
   const sorted = useMemo(() => [...events].sort((a, b) => a.timestamp - b.timestamp), [events]);
   const startTs = useMemo(() => recordingStartTimestamp ?? (sorted[0]?.timestamp ?? 0), [recordingStartTimestamp, sorted]);
@@ -239,40 +252,81 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     setChatInput('');
     try {
       const recentUrls = Array.from(new Set(relative.slice(-20).map(e => e.url).filter(Boolean))) as string[];
-      const compact = relative.slice(0, 800).map(e => ({
-        t: e.t,
-        type: e.type,
-        selector: e.element?.selector ? String(e.element.selector).slice(0, 120) : undefined,
-        tag: e.element?.tag,
-        text: e.element?.text ? String(e.element.text).slice(0, 80) : undefined,
-        value: (e as any).value ?? (e as any).element?.value,
-        key: (e as any).key,
-        url: e.url
-      }));
+      const compactResp = await fetch(`/api/extension-events?action=get_session_compact&sessionId=${encodeURIComponent(sessionId||'')}`);
+      const compactJson = await compactResp.json();
+      const compact = Array.isArray(compactJson?.compact) ? compactJson.compact.slice(-800) : [];
       const resp = await fetch('/api/intent-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, messages: next, context: { events: compact, recentUrls } })
+        body: JSON.stringify({ 
+          sessionId, 
+          messages: next, 
+          context: { 
+            events: compact, 
+            recentUrls,
+            sessionId: sessionId
+          } 
+        })
       });
       const data = await resp.json();
       const reply = data?.reply || 'Okay.';
+      
+      // Check for workflow canvas modification commands
+      if (reply.includes('ADD_STEP:') || reply.includes('UPDATE_STEP:') || reply.includes('REMOVE_STEP:') || reply.includes('GENERATE_WORKFLOW:') || reply.includes('GENERATE_BPMN:')) {
+        // Parse and execute workflow canvas commands
+        try {
+          if (reply.includes('ADD_STEP:')) {
+            const stepMatch = reply.match(/ADD_STEP:\s*({[^}]+})/);
+            if (stepMatch) {
+              const stepData = JSON.parse(stepMatch[1]);
+              const newStep = {
+                id: `step_${Date.now()}`,
+                label: stepData.action || 'New Step',
+                action: stepData.action,
+                details: stepData.details,
+                timestamp: stepData.timestamp,
+                start: stepData.timestamp ? stepData.timestamp / 1000 : undefined,
+                x: Math.random() * 400 + 100,
+                y: Math.random() * 300 + 100,
+                type: stepData.type || 'process'
+              };
+              setSteps(s => [...s, newStep]);
+            }
+          } else if (reply.includes('UPDATE_STEP:')) {
+            const stepMatch = reply.match(/UPDATE_STEP:\s*({[^}]+})/);
+            if (stepMatch) {
+              const stepData = JSON.parse(stepMatch[1]);
+              setSteps(s => s.map(step => 
+                step.id === stepData.id 
+                  ? { ...step, action: stepData.action, details: stepData.details }
+                  : step
+              ));
+            }
+          } else if (reply.includes('REMOVE_STEP:')) {
+            const stepMatch = reply.match(/REMOVE_STEP:\s*({[^}]+})/);
+            if (stepMatch) {
+              const stepData = JSON.parse(stepMatch[1]);
+              setSteps(s => s.filter(step => step.id !== stepData.id));
+            }
+              } else if (reply.includes('GENERATE_WORKFLOW:') || reply.includes('GENERATE_BPMN:')) {
+                // Trigger workflow generation
+                const generateButton = document.querySelector('button[onclick*="generateWorkflow"]') as HTMLButtonElement;
+                if (generateButton) {
+                  generateButton.click();
+                }
+              }
+        } catch (e) {
+          console.log('Failed to parse workflow command:', e);
+        }
+      }
+      
       setChat(c => [...c, { role: 'assistant', content: reply }]);
     } catch (e) {
       setChat(c => [...c, { role: 'assistant', content: 'Sorry—there was a problem reaching the assistant.' }]);
     }
   }
 
-  // Measure row height (approx) once list renders
-  useEffect(() => {
-    const el = eventsListRef.current;
-    if (!el) return;
-    const firstItem = el.querySelector('[data-ev-item="1"]') as HTMLElement;
-    if (firstItem && firstItem.offsetHeight) {
-      setRowHeight(firstItem.offsetHeight + 8 /*gap*/);
-    }
-  }, [visible.length]);
 
-  const onEventsScroll = () => {};
 
   const handleLoaded = () => {
     if (videoRef.current) {
@@ -283,6 +337,17 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
+    }
+  };
+
+  const handlePlay = () => {
+    // Video started playing
+  };
+
+  const handlePause = () => {
+    // Stop demo mode if video is paused manually
+    if (isDemoMode) {
+      setIsDemoMode(false);
     }
   };
 
@@ -302,7 +367,27 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     setCurrentTime(seek);
   };
 
-  // Prime assistant with full session context once per session open
+  const handleToggleDemo = () => {
+    setIsDemoMode(prev => {
+      const newDemoMode = !prev;
+      
+      if (newDemoMode) {
+        // Start demo mode - begin video playback
+        if (videoRef.current) {
+          videoRef.current.play();
+        }
+      } else {
+        // Stop demo mode - pause video
+        if (videoRef.current) {
+          videoRef.current.pause();
+        }
+      }
+      
+      return newDemoMode;
+    });
+  };
+
+  // Prime assistant with compact session context once per session open
   useEffect(() => {
     if (!open || primedRef.current) return;
     if (!sessionId) return;
@@ -311,16 +396,10 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     primedRef.current = true;
     (async () => {
       try {
-        const compact = relative.map(e => ({
-          t: e.t,
-          type: e.type,
-          selector: e.element?.selector ? String(e.element.selector).slice(0, 120) : undefined,
-          tag: e.element?.tag,
-          text: e.element?.text ? String(e.element.text).slice(0, 80) : undefined,
-          value: (e as any).value ?? (e as any).element?.value,
-          key: (e as any).key,
-          url: e.url
-        }));
+        // Fetch compact events from server instead of sending full list
+        const compactResp = await fetch(`/api/extension-events?action=get_session_compact&sessionId=${encodeURIComponent(sessionId)}`);
+        const compactJson = await compactResp.json();
+        const compact = Array.isArray(compactJson?.compact) ? compactJson.compact.slice(-800) : [];
         const recentUrls = Array.from(new Set(relative.slice(-20).map(e => e.url).filter(Boolean))) as string[];
         const seed = [{ role: 'user' as const, content: 'Please analyze the following session context and start by asking: What task was this session about?' }];
         const resp = await fetch('/api/intent-chat', {
@@ -342,23 +421,52 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     return (
       <div style={{ position:'relative', width: '100%', height: '100%', background: '#111', color: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontWeight: 600 }}>Event Replay</div>
+          <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            Event Replay
+            {isDemoMode && (
+              <div style={{ 
+                fontSize: 10, 
+                padding: '2px 6px', 
+                borderRadius: 4, 
+                background: 'rgba(56,225,255,0.2)', 
+                color: 'rgba(56,225,255,0.9)',
+                border: '1px solid rgba(56,225,255,0.4)'
+              }}>
+                DEMO MODE
+              </div>
+            )}
+          </div>
           <div style={{ display:'flex', gap:8 }}>
             <button onClick={() => setMode('focus')} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background: mode==='focus'?'rgba(56,225,255,0.16)':'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>Focus</button>
             <button onClick={() => setMode('builder')} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background: mode==='builder'?'rgba(56,225,255,0.16)':'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>Builder</button>
             <button onClick={() => setAssistantOpen(v=>!v)} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background:'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>{assistantOpen?'Hide Assistant':'Assistant'}</button>
+            {onPruneWorkflow && (
+              <button onClick={onPruneWorkflow} disabled={pruning} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background:'rgba(255,255,255,0.06)', color:'#fff', cursor: pruning ? 'not-allowed' : 'pointer', fontSize:12, opacity: pruning ? 0.6 : 1 }}>
+                {pruning ? 'Pruning…' : 'Prune Workflow'}
+              </button>
+            )}
+            {onOpenWorkflow && (
+              <button onClick={onOpenWorkflow} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background:'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>
+                Workflow
+              </button>
+            )}
           </div>
         </div>
 
         <div style={{ position:'relative', display: 'flex', flex: 1, minHeight: 0 }}
           onMouseMove={(e)=>{
-            if (!draggingRef.current) return;
             const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const next = Math.min(0.9, Math.max(0.1, x / rect.width));
-            setSplit(next);
+            if (draggingRef.current) {
+              const x = e.clientX - rect.left;
+              const next = Math.min(0.9, Math.max(0.1, x / rect.width));
+              setSplit(next);
+            } else if (assistantDraggingRef.current) {
+              const fromRight = rect.right - e.clientX;
+              const w = Math.min(720, Math.max(280, Math.round(fromRight)));
+              setAssistantWidth(w);
+            }
           }}
-          onMouseUp={()=>{ draggingRef.current=false; }}
+          onMouseUp={()=>{ draggingRef.current=false; assistantDraggingRef.current=false; }}
         >
           {/* Left: Replay (resizable in builder mode, full in focus) */}
           <div style={{ flex: mode==='focus'?1: split, padding: 16, display: 'flex', flexDirection: 'column', transition:'flex 180ms ease' }}>
@@ -368,6 +476,8 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
               controls
               onLoadedMetadata={handleLoaded}
               onTimeUpdate={handleTimeUpdate}
+              onPlay={handlePlay}
+              onPause={handlePause}
               style={{ width: '100%', height: 'auto', background: '#000', borderRadius: 6 }}
             />
             <div style={{ marginTop: 14 }}>
@@ -397,96 +507,72 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
                 steps={steps}
                 currentTime={currentTime}
                 onAdd={() => setSteps(s => [...s, { id: `step_${Date.now()}`, label: 'New Step', start: currentTime }])}
+                onUpdateSteps={setSteps}
+                events={events}
+                onSeekToTime={(time) => {
+                  if (videoRef.current) {
+                    videoRef.current.currentTime = time;
+                    setCurrentTime(time);
+                  }
+                }}
+                sessionId={sessionId}
+                isDemoMode={isDemoMode}
+                onToggleDemo={handleToggleDemo}
+                recordingStartTimestamp={recordingStartTimestamp}
               />
             </div>
           )}
         </div>
 
+        {/* Assistant Drawer Resizer (visible when open) */}
+        {assistantOpen && (
+          <div
+            onMouseDown={()=>{ assistantDraggingRef.current = true; }}
+            style={{ position:'absolute', top:48, bottom:0, right: assistantOpen ? assistantWidth : 0, width: 6, cursor:'col-resize', background:'rgba(255,255,255,0.06)' }}
+          />
+        )}
         {/* Assistant Drawer Overlay */}
-        <div style={{ position:'absolute', top:48, right:0, bottom:0, width: assistantOpen? 420 : 0, transition:'width 200ms ease', overflow:'hidden', borderLeft: assistantOpen? '1px solid rgba(255,255,255,0.12)':'none', background:'rgba(17,17,17,0.98)' }}>
+        <div style={{ position:'absolute', top:48, right:0, bottom:0, width: assistantOpen? assistantWidth : 0, transition:'width 200ms ease', overflow:'hidden', borderLeft: assistantOpen? '1px solid rgba(255,255,255,0.12)':'none', background:'rgba(17,17,17,0.98)' }}>
           <div style={{ height:'100%', padding: assistantOpen? 14: 0, display:'flex', flexDirection:'column', gap:12 }}>
-            {/* Chat Panel */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Assistant</div>
-              <div style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: 8, background: 'rgba(255,255,255,0.03)', maxHeight: 220, overflowY: 'auto' }}>
-                {chat.length === 0 ? (
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
-                    Ask about intent or let the assistant prompt you as events appear.
-                  </div>
-                ) : (
-                  chat.map((m, i) => (
-                    <div key={i} style={{ marginBottom: 6, display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                      <div style={{
-                        maxWidth: '85%',
-                        padding: '6px 8px',
-                        borderRadius: 6,
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        background: m.role === 'user' ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.05)',
-                        fontSize: 12,
-                        color: 'rgba(255,255,255,0.9)'
-                      }}>
-                        {m.content}
-                      </div>
+            {/* Assistant Header */}
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>Assistant</div>
+            
+            {/* Chat Messages - Takes up remaining space */}
+            <div style={{ border: '1px solid rgba(255,255,255,0.12)', borderRadius: 6, padding: 8, background: 'rgba(255,255,255,0.03)', flex: 1, overflowY: 'auto' }}>
+              {chat.length === 0 ? (
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>
+                  Ask about intent or let the assistant prompt you as events appear.
+                </div>
+              ) : (
+                chat.map((m, i) => (
+                  <div key={i} style={{ marginBottom: 6, display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                    <div style={{
+                      maxWidth: '85%',
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      background: m.role === 'user' ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.05)',
+                      fontSize: 12,
+                      color: 'rgba(255,255,255,0.9)'
+                    }}>
+                      {m.content}
                     </div>
-                  ))
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Type a message..."
-                  style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid rgba(255,255,255,0.18)', background: '#0f0f0f', color: '#fff', fontSize: 12 }}
-                />
-                <button onClick={sendChat} style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.22)', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 12, cursor: 'pointer' }}>Send</button>
-              </div>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            {/* Chat Input - Fixed at bottom */}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Type a message..."
+                style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid rgba(255,255,255,0.18)', background: '#0f0f0f', color: '#fff', fontSize: 12 }}
+              />
+              <button onClick={sendChat} style={{ padding: '6px 10px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.22)', background: 'rgba(255,255,255,0.12)', color: '#fff', fontSize: 12, cursor: 'pointer' }}>Send</button>
             </div>
 
-            {/* Events Panel (newest-first, vanishing scroll) */}
-            <div
-              ref={eventsListRef}
-              onScroll={onEventsScroll}
-              style={{
-                height: `${Math.max(4 * rowHeight, 220)}px`,
-                overflowY: 'auto',
-                position: 'relative',
-                borderRadius: 6,
-                border: '1px solid rgba(255,255,255,0.12)'
-              }}
-            >
-              {/* Top gradient fade */}
-              <div style={{ position: 'sticky', top: 0, height: 16, background: 'linear-gradient(180deg, rgba(17,17,17,0.9) 0%, rgba(17,17,17,0) 100%)', zIndex: 10 }} />
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 6, padding: '0 14px' }}>Events up to {currentTime.toFixed(1)}s</div>
-              {visible.length === 0 ? (
-                <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, padding: '0 14px' }}>No events yet at this time.</div>
-              ) : (
-                [...visible]
-                  .sort((a,b)=> b.t - a.t)
-                  .map((ev, idx) => (
-                    <div
-                      key={`${ev.t}-${idx}`}
-                      style={{
-                        padding: '8px 10px',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 6,
-                        marginBottom: 8,
-                        background: 'rgba(255,255,255,0.03)',
-                        cursor: 'pointer',
-                        opacity: 1,
-                        marginLeft: 14,
-                        marginRight: 14
-                      }}
-                      onClick={() => seekToEvent(ev.t)}
-                    >
-                      <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{ev.t.toFixed(1)}s • {ev.type}</div>
-                      {ev.element?.selector && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{ev.element.selector}</div>}
-                      {ev.url && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>{ev.url}</div>}
-                    </div>
-                  ))
-              )}
-              {/* Bottom gradient fade */}
-              <div style={{ position: 'sticky', bottom: 0, height: 16, background: 'linear-gradient(0deg, rgba(17,17,17,0.9) 0%, rgba(17,17,17,0) 100%)', zIndex: 10 }} />
-            </div>
           </div>
         </div>
       </div>
@@ -510,6 +596,8 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
               controls
               onLoadedMetadata={handleLoaded}
               onTimeUpdate={handleTimeUpdate}
+              onPlay={handlePlay}
+              onPause={handlePause}
               style={{ width: '100%', height: 'auto', background: '#000', borderRadius: 6 }}
             />
             <div style={{ marginTop: 14 }}>

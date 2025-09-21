@@ -3,7 +3,52 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 // In-memory buffers for chunk reassembly (OK for dev; consider Redis/S3 in prod)
 const buffers: Record<string, { chunks: string[]; total: number; mimeType: string; startedAt: number; recordingStartTimestamp?: number }> = {};
 const events: any[] = [];
+// Simple per-session LRU dedup cache keyed by __apxFp
+const dedupCacheBySession: Record<string, Map<string, number>> = {};
+const DEDUP_TTL_MS = 10_000;
 const recordings: Array<{ recordingId: string; data: string; mimeType: string; timestamp: number; duration?: number; recordingStartTimestamp?: number }> = [];
+
+// Session cleanup function to prevent sharding
+function cleanupOrphanedSessions() {
+  const now = Date.now();
+  const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+  
+  for (const [sessionId, session] of Object.entries(workflowSessions)) {
+    const lastActivity = session.lastEventTime || session.startTime;
+    const isOrphaned = (now - lastActivity) > SESSION_TIMEOUT_MS;
+    
+    if (isOrphaned && !session.recordingId) {
+      console.log(`🧹 Cleaning up orphaned session: ${sessionId}`);
+      delete workflowSessions[sessionId];
+    }
+  }
+}
+
+// Validate session integrity to prevent sharding
+function validateSessionIntegrity(sessionId: string, event: any) {
+  const session = workflowSessions[sessionId];
+  if (!session) return true;
+  
+  // Check for duplicate events
+  const isDuplicate = session.events.some((existingEvent: any) => 
+    existingEvent.timestamp === event.timestamp && 
+    existingEvent.type === event.type &&
+    JSON.stringify(existingEvent.element) === JSON.stringify(event.element)
+  );
+  
+  if (isDuplicate) {
+    console.log(`⚠️ Duplicate event detected in session ${sessionId}, skipping`);
+    return false;
+  }
+  
+  // Check for timestamp consistency
+  if (event.timestamp < session.startTime - 5000) { // Allow 5s grace period
+    console.log(`⚠️ Event timestamp ${event.timestamp} is before session start ${session.startTime}, potential sharding issue`);
+    return false;
+  }
+  
+  return true;
+}
 
 // Workflow session storage
 type WorkflowSession = {
@@ -13,6 +58,15 @@ type WorkflowSession = {
   recordingId?: string;
   cleanedEvents?: any[];
   cleanedAt?: number;
+  workflowSteps?: Array<{
+    id: string;
+    action: string;
+    details?: string;
+    timestamp: number;
+    duration?: number;
+    metadata?: any;
+    element?: any;
+  }>;
   tasks?: Array<{
     type: string;
     label: string;
@@ -47,6 +101,9 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Clean up orphaned sessions periodically
+  cleanupOrphanedSessions();
+  
   if (req.method === 'GET') {
     const action = req.query.action;
     if (action === 'get_recent') {
@@ -69,8 +126,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         recordings: recordings.length
       });
     }
+    
+    if (action === 'session_integrity') {
+      const integrityReport = Object.keys(workflowSessions).map(sessionId => {
+        const session = workflowSessions[sessionId];
+        const events = session.events || [];
+        
+        // Check for potential sharding issues
+        const timestamps = events.map((e: any) => e.timestamp).sort((a: number, b: number) => a - b);
+        const hasGaps = timestamps.some((ts: number, i: number) => 
+          i > 0 && (ts - timestamps[i-1]) > 30000 // 30 second gaps
+        );
+        
+        const duplicateEvents = events.filter((event: any, i: number) => 
+          events.slice(i + 1).some((other: any) => 
+            event.timestamp === other.timestamp && 
+            event.type === other.type
+          )
+        );
+        
+        return {
+          sessionId,
+          eventCount: events.length,
+          hasGaps,
+          duplicateCount: duplicateEvents.length,
+          timeSpan: events.length > 0 ? 
+            (Math.max(...timestamps) - Math.min(...timestamps)) / 1000 : 0,
+          recordingId: session.recordingId,
+          status: hasGaps || duplicateEvents.length > 0 ? 'POTENTIAL_SHARDING' : 'OK'
+        };
+      });
+      
+      return res.status(200).json({
+        integrityReport,
+        totalSessions: Object.keys(workflowSessions).length,
+        sessionsWithIssues: integrityReport.filter(r => r.status === 'POTENTIAL_SHARDING').length
+      });
+    }
+    
     if (action === 'get_recordings') {
       return res.status(200).json(recordings.slice(-10));
+    }
+    if (action === 'list_buffers') {
+      const list = Object.entries(buffers).map(([id, b]) => ({
+        recordingId: id,
+        total: b.total,
+        received: b.chunks.filter((c)=>c!==null).length,
+        missing: b.chunks.map((c,i)=>c===null?i:null).filter(i=>i!==null),
+        mimeType: b.mimeType,
+        startedAt: b.startedAt,
+        recordingStartTimestamp: b.recordingStartTimestamp
+      }));
+      return res.status(200).json({ buffers: list });
     }
     if (action === 'get_workflow_sessions') {
       const sessions = Object.entries(workflowSessions).map(([sessionId, session]) => {
@@ -131,6 +238,135 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ...session,
         recordingStartTimestamp: recording?.recordingStartTimestamp
       });
+    }
+    if (action === 'get_session_compact') {
+      const sessionId = req.query.sessionId as string;
+      const sess = workflowSessions[sessionId];
+      if (!sess) return res.status(404).json({ error: 'Session not found' });
+      // Stage-1 compaction (online, idempotent)
+      const startTs = sess.startTime || (sess.events[0]?.timestamp || 0);
+      const kompact: any[] = [];
+      const byField: Record<string, { firstT:number; lastT:number; finalValue:string; changeCount:number; tag?:string }> = {};
+      const SPECIAL = new Set(['Enter','Tab','Escape','Backspace','ArrowLeft','ArrowRight','ArrowUp','ArrowDown']);
+      const firstKeySeenFor: Set<string> = new Set();
+      let lastUrl: string | undefined = undefined;
+      let lastScroll: { t:number; f:number; dir:number } | null = null;
+      for (const e of sess.events) {
+        const t = Math.max(0, (e.timestamp - startTs));
+        if (e.type === 'navigate') {
+          if (e.url && e.url !== lastUrl) {
+            kompact.push({ t, k:'nav', u:e.url });
+            lastUrl = e.url;
+          }
+          continue;
+        }
+        if (e.type === 'scroll') {
+          const f = typeof e.vf === 'number' ? e.vf : undefined;
+          if (typeof f === 'number') {
+            if (!lastScroll) { lastScroll = { t, f, dir: 0 }; kompact.push({ t, k:'scr', f }); }
+            else {
+              const dir = Math.sign(f - lastScroll.f);
+              const idle = t - lastScroll.t >= 600;
+              const flip = lastScroll.dir !== 0 && dir !== 0 && dir !== lastScroll.dir;
+              if (idle || flip) { kompact.push({ t, k:'scr', f }); lastScroll = { t, f, dir: dir||lastScroll.dir }; }
+              else { lastScroll.f = f; lastScroll.t = t; }
+            }
+          }
+          continue;
+        }
+        if (e.type === 'key') {
+          const sel = e.element?.selHash || e.element?.selector;
+          const keep = SPECIAL.has(String(e.key)) || (sel && !firstKeySeenFor.has(sel));
+          if (keep) {
+            if (sel) firstKeySeenFor.add(sel);
+            kompact.push({ t, k:'key', v:e.key, s: e.element?.selHash });
+          }
+          continue;
+        }
+        if (e.type === 'input') {
+          const sel = e.element?.selHash || e.element?.selector || `#f_${e.element?.id || 'unknown'}`;
+          const rec = byField[sel] || { firstT: t, lastT: t, finalValue: '', changeCount: 0, tag: e.element?.tag };
+          rec.lastT = t; rec.changeCount += 1; if (typeof e.value === 'string') rec.finalValue = e.value; byField[sel] = rec;
+          continue;
+        }
+        if (e.type === 'click') {
+          kompact.push({ t, k:'clk', s: e.element?.selHash, g: e.element?.tag, v: (e.element?.text||'').slice(0,40), x: e.coordinates?.x, y: e.coordinates?.y });
+          continue;
+        }
+        if (e.type === 'submit') { kompact.push({ t, k:'sub', s: e.element?.selHash || e.element?.selector }); continue; }
+        if (e.type === 'page_load') { kompact.push({ t, k:'pl', u: e.url }); continue; }
+      }
+      // Emit coalesced inputs
+      for (const [s, rec] of Object.entries(byField)) {
+        kompact.push({ t: rec.firstT, k:'inp', s, g: rec.tag, v: rec.finalValue, lastT: rec.lastT, changes: rec.changeCount });
+      }
+      kompact.sort((a,b)=>a.t-b.t);
+      return res.status(200).json({ sessionId, compact: kompact });
+    }
+    if (action === 'get_session_actions') {
+      const sessionId = req.query.sessionId as string;
+      const sess = workflowSessions[sessionId];
+      if (!sess) return res.status(404).json({ error: 'Session not found' });
+      // Build compact first (reuse logic) then derive simple action units
+      const startTs = sess.startTime || (sess.events[0]?.timestamp || 0);
+      const compact: any[] = [];
+      const byField: Record<string, { firstT:number; lastT:number; finalValue:string; changeCount:number; specials:Set<string>; tag?:string }> = {};
+      const SPECIAL = new Set(['Enter','Tab','Escape','Backspace','ArrowLeft','ArrowRight','ArrowUp','ArrowDown']);
+      let lastUrl: string | undefined = undefined;
+      let scrollSegs: Array<{startT:number; endT:number}> = [];
+      let curScroll: {startT:number; lastT:number; lastF?:number; dir?:number} | null = null;
+      for (const e of sess.events) {
+        const t = Math.max(0, (e.timestamp - startTs));
+        if (e.type === 'navigate') {
+          if (e.url && e.url !== lastUrl) { compact.push({ t, k:'nav', u:e.url }); lastUrl = e.url; }
+          continue;
+        }
+        if (e.type === 'scroll') {
+          const f = typeof e.vf === 'number' ? e.vf : undefined;
+          if (typeof f === 'number') {
+            if (!curScroll) { curScroll = { startT: t, lastT: t, lastF: f, dir: 0 }; }
+            else {
+              const dir = Math.sign(f - (curScroll.lastF ?? f));
+              const idle = t - curScroll.lastT >= 600;
+              const flip = (curScroll.dir ?? 0) !== 0 && dir !== 0 && dir !== curScroll.dir;
+              if (idle || flip) { scrollSegs.push({ startT: curScroll.startT, endT: curScroll.lastT }); curScroll = { startT: t, lastT: t, lastF: f, dir: dir||curScroll.dir }; }
+              else { curScroll.lastT = t; curScroll.lastF = f; curScroll.dir = dir||curScroll.dir; }
+            }
+          }
+          continue;
+        }
+        if (e.type === 'key') {
+          const sel = e.element?.selHash || e.element?.selector || '';
+          if (!byField[sel]) byField[sel] = { firstT: t, lastT: t, finalValue: '', changeCount: 0, specials: new Set(), tag: e.element?.tag };
+          if (SPECIAL.has(String(e.key))) byField[sel].specials.add(String(e.key));
+          continue;
+        }
+        if (e.type === 'input') {
+          const sel = e.element?.selHash || e.element?.selector || `#f_${e.element?.id || 'unknown'}`;
+          const rec = byField[sel] || { firstT: t, lastT: t, finalValue: '', changeCount: 0, specials: new Set(), tag: e.element?.tag };
+          rec.lastT = t; rec.changeCount += 1; if (typeof e.value === 'string') rec.finalValue = e.value; byField[sel] = rec;
+          continue;
+        }
+        if (e.type === 'click') { compact.push({ t, k:'clk', s: e.element?.selHash, g: e.element?.tag, v: (e.element?.text||'').slice(0,40) }); continue; }
+        if (e.type === 'submit') { compact.push({ t, k:'sub', s: e.element?.selHash || e.element?.selector }); continue; }
+        if (e.type === 'page_load') { compact.push({ t, k:'pl', u: e.url }); continue; }
+      }
+      if (curScroll) scrollSegs.push({ startT: curScroll.startT, endT: curScroll.lastT });
+      compact.sort((a,b)=>a.t-b.t);
+
+      // Derive Action Units
+      const actions: any[] = [];
+      for (const c of compact) {
+        if (c.k === 'nav') actions.push({ type:'NAVIGATE', t: c.t, url: c.u });
+        if (c.k === 'clk') actions.push({ type:'CLICK', t: c.t, selector: c.s, tag: c.g, text: c.v });
+        if (c.k === 'sub') actions.push({ type:'FORM_SUBMIT', t: c.t, selector: c.s });
+      }
+      for (const [sel, rec] of Object.entries(byField)) {
+        actions.push({ type:'TYPE', selector: sel, fieldKind: rec.tag, durationMs: (rec.lastT - (rec.firstT)), finalLen: (rec.finalValue||'').length, changeCount: rec.changeCount, usedSpecialKeys: Array.from(rec.specials) });
+      }
+      if (scrollSegs.length > 0) actions.push({ type:'SCROLL', segments: scrollSegs.length, totalIdleMs: 0 });
+      actions.sort((a,b)=> (a.t??0)-(b.t??0));
+      return res.status(200).json({ sessionId, actions });
     }
     if (action === 'prune_session') {
       const sessionId = req.query.sessionId as string;
@@ -311,6 +547,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ ok: true });
     }
 
+    if (type === 'save_workflow_steps') {
+      const { sessionId, workflowSteps } = body as { sessionId: string; workflowSteps: any[] };
+      if (!sessionId || !workflowSessions[sessionId] || !Array.isArray(workflowSteps)) {
+        return res.status(400).json({ error: 'invalid_workflow_steps_payload' });
+      }
+      const session = workflowSessions[sessionId];
+      session.workflowSteps = workflowSteps;
+      console.log(`💾 Saved ${workflowSteps.length} workflow steps for session ${sessionId}`);
+      return res.status(200).json({ ok: true, stepsCount: workflowSteps.length });
+    }
+
     if (type === 'start_monitoring') {
       // Forward to browser extension via HTTP (if extension is running)
       console.log('🚀 Web app requesting browser extension to start monitoring');
@@ -345,57 +592,116 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       events.push(body);
       
       // Store browser events in workflow sessions
-      if (type === 'browser_event' && body.event && body.event.sessionId) {
-        const sessionId = body.event.sessionId;
+      if (type === 'browser_event' && body.event) {
+        // Handle events with null sessionId by creating a temporary session
+        const sessionId = body.event.sessionId || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        body.event.sessionId = sessionId; // Assign the generated sessionId
         const event = body.event;
         
         console.log('📝 Storing browser event:', event.type, 'for session:', sessionId);
+
+        // Inline dedup by __apxFp per session (10s TTL)
+        const fp = String(event.__apxFp || '');
+        if (fp) {
+          const now = Date.now();
+          const cache = dedupCacheBySession[sessionId] || (dedupCacheBySession[sessionId] = new Map());
+          // purge expired
+          for (const [k, ts] of cache) { if (now - ts > DEDUP_TTL_MS) cache.delete(k); }
+          if (cache.has(fp)) {
+            return res.status(200).json({ ok: true, deduped: true });
+          }
+          cache.set(fp, now);
+        }
         
         // Check if this is a temporary session that should be merged with a global session
         if (sessionId.startsWith('temp_')) {
-          const eventTime = event.timestamp as number;
-          const graceMs = 60_000; // allow wide overlap window
+          const tempEventTime = event.timestamp as number;
+          const tempGraceMs = 60_000; // allow wide overlap window
 
           // If we already mapped this temp session, route to the mapped global session
           const mapped = tempToGlobal[sessionId];
           if (mapped && workflowSessions[mapped]) {
             const globalSession = workflowSessions[mapped];
             globalSession.events.push(event);
-            globalSession.lastEventTime = Math.max(globalSession.lastEventTime, eventTime);
+            globalSession.lastEventTime = Math.max(globalSession.lastEventTime, tempEventTime);
             console.log(`➡️ Routed temp ${sessionId} event to mapped session ${mapped}`);
             return res.status(200).json({ ok: true });
           }
 
-          // Find best overlapping global session based on window inclusion/overlap
-          let bestId: string | null = null;
-          let bestOverlap = -1;
-          for (const [globalSessionId, globalSession] of Object.entries(workflowSessions)) {
-            if (!globalSessionId.startsWith('session_')) continue;
-            const sStart = Math.max(0, (globalSession.startTime ?? 0) - graceMs);
-            const sEnd = (globalSession.lastEventTime ?? globalSession.startTime) + graceMs;
-            const overlap = Math.max(0, Math.min(sEnd, eventTime) - Math.max(sStart, eventTime));
-            const withinWindow = eventTime >= sStart && eventTime <= sEnd;
-            const score = withinWindow ? 1_000_000 : overlap; // strongly prefer inclusion
-            if (score > bestOverlap) { bestOverlap = score; bestId = globalSessionId; }
-          }
-
-          if (bestId) {
-            console.log(`🔄 Merging temp session ${sessionId} into global session ${bestId}`);
-            // Move any accumulated events from temp session to global
-            if (workflowSessions[sessionId]) {
-              workflowSessions[bestId].events.push(...workflowSessions[sessionId].events);
-              workflowSessions[bestId].events.sort((a:any,b:any)=>a.timestamp-b.timestamp);
-              workflowSessions[bestId].startTime = Math.min(workflowSessions[bestId].startTime, workflowSessions[sessionId].startTime);
-              workflowSessions[bestId].lastEventTime = Math.max(workflowSessions[bestId].lastEventTime, workflowSessions[sessionId].lastEventTime);
-              delete workflowSessions[sessionId];
+        // Smart session merging: ONLY merge sessions that are part of the same user session
+        // NEVER merge sessions that already have recordings - they are complete and isolated
+        const eventTime = event.timestamp as number;
+        const graceMs = 30_000; // 30 seconds - reasonable time for user to navigate
+        
+        // If current session already has a recording, don't merge with anything
+        if (workflowSessions[sessionId]?.recordingId) {
+          console.log(`🚫 Session ${sessionId} already has recording, skipping merge`);
+          // Just add the event to the existing session
+          workflowSessions[sessionId].events.push(event);
+          workflowSessions[sessionId].lastEventTime = Math.max(workflowSessions[sessionId].lastEventTime, event.timestamp);
+          return res.status(200).json({ ok: true });
+        }
+        
+        // Find sessions that could be part of the same user session
+        let bestMergeCandidate: string | null = null;
+        let bestScore = 0;
+        
+        for (const [existingSessionId, existingSession] of Object.entries(workflowSessions)) {
+          // NEVER merge with sessions that already have recordings - they are complete and isolated
+          if (existingSession.recordingId) continue;
+          
+          // Also skip if the current event's session already has a recording
+          if (workflowSessions[sessionId]?.recordingId) continue;
+          
+          const sessionStart = existingSession.startTime;
+          const sessionEnd = existingSession.lastEventTime || existingSession.startTime;
+          
+          // Check if this event is within reasonable time of the session
+          const timeGap = Math.min(
+            Math.abs(eventTime - sessionStart),
+            Math.abs(eventTime - sessionEnd)
+          );
+          
+          // Check if URLs are similar (same domain)
+          const currentUrl = event.url || '';
+          const sessionUrls = existingSession.events.map((e: any) => e.url || '').filter(Boolean);
+          const hasSimilarUrl = sessionUrls.some((url: string) => {
+            try {
+              const currentDomain = new URL(currentUrl).hostname;
+              const sessionDomain = new URL(url).hostname;
+              return currentDomain === sessionDomain;
+            } catch {
+              return false;
             }
-            // Route current event to global
-            workflowSessions[bestId].events.push(event);
-            workflowSessions[bestId].lastEventTime = Math.max(workflowSessions[bestId].lastEventTime, event.timestamp);
-            tempToGlobal[sessionId] = bestId;
-            console.log('📊 Global session', bestId, 'now has', workflowSessions[bestId].events.length, 'events');
-            return res.status(200).json({ ok: true });
+          });
+          
+          // Score based on time proximity and URL similarity
+          const timeScore = timeGap < graceMs ? (graceMs - timeGap) / graceMs : 0;
+          const urlScore = hasSimilarUrl ? 0.5 : 0;
+          const totalScore = timeScore + urlScore;
+          
+          if (totalScore > bestScore && totalScore > 0.3) { // Require minimum score
+            bestScore = totalScore;
+            bestMergeCandidate = existingSessionId;
           }
+        }
+        
+        if (bestMergeCandidate) {
+          console.log(`🔄 Merging session ${sessionId} into ${bestMergeCandidate} (score: ${bestScore.toFixed(2)})`);
+          // Move events from temp session to existing session
+          if (workflowSessions[sessionId]) {
+            workflowSessions[bestMergeCandidate].events.push(...workflowSessions[sessionId].events);
+            workflowSessions[bestMergeCandidate].events.sort((a: any, b: any) => a.timestamp - b.timestamp);
+            workflowSessions[bestMergeCandidate].startTime = Math.min(workflowSessions[bestMergeCandidate].startTime, workflowSessions[sessionId].startTime);
+            workflowSessions[bestMergeCandidate].lastEventTime = Math.max(workflowSessions[bestMergeCandidate].lastEventTime, workflowSessions[sessionId].lastEventTime);
+            delete workflowSessions[sessionId];
+          }
+          // Add current event to merged session
+          workflowSessions[bestMergeCandidate].events.push(event);
+          workflowSessions[bestMergeCandidate].lastEventTime = Math.max(workflowSessions[bestMergeCandidate].lastEventTime, event.timestamp);
+          console.log('📊 Merged session', bestMergeCandidate, 'now has', workflowSessions[bestMergeCandidate].events.length, 'events');
+          return res.status(200).json({ ok: true, merged: true });
+        }
         }
         
         if (!workflowSessions[sessionId]) {
@@ -405,6 +711,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             lastEventTime: event.timestamp
           };
           console.log('🆕 Created new workflow session:', sessionId);
+        }
+        
+        // Validate session integrity before adding event
+        if (!validateSessionIntegrity(sessionId, event)) {
+          console.log(`❌ Event validation failed for session ${sessionId}, skipping event`);
+          return res.status(200).json({ ok: true, skipped: true });
         }
         
         workflowSessions[sessionId].events.push(event);
@@ -471,21 +783,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           continue;
         }
         
-        // session window
+        // More strict session window matching - require significant overlap
         const sStart = Math.max(0, (sess.startTime ?? 0) - graceMs);
         const sEnd = (sess.lastEventTime ?? sess.startTime) + graceMs;
         const overlap = Math.max(0, Math.min(recEnd, sEnd) - Math.max(recStart, sStart));
-        if (overlap > bestOverlap) {
+        
+        // Require at least 80% overlap to prevent incorrect linking
+        const sessionDuration = sEnd - sStart;
+        const recordingDuration = recEnd - recStart;
+        const overlapPercentage = overlap / Math.min(sessionDuration, recordingDuration);
+        
+        if (overlap > bestOverlap && overlapPercentage > 0.8) {
           bestOverlap = overlap;
           bestSessionId = sid;
         }
       }
 
-      if (bestSessionId && bestOverlap > 500) { // require >=0.5s overlap to consider a match
+      if (bestSessionId && bestOverlap > 2000) { // require >=2s overlap to consider a match
         workflowSessions[bestSessionId].recordingId = recordingId;
         console.log(`🔗 Linked recording ${recordingId} to session ${bestSessionId} (overlap: ${bestOverlap}ms)`);
       } else {
-        console.log(`❌ No suitable session found for recording ${recordingId} (best overlap: ${bestOverlap}ms)`);
+        console.log(`❌ No suitable session found for recording ${recordingId} (best overlap: ${bestOverlap}ms, threshold: 2000ms)`);
       }
       
       delete buffers[recordingId];

@@ -378,6 +378,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }).then((result) => {
       if (result && result.ok) {
         rec.acked.add(message.index);
+        console.log(`📦 Chunk ${message.index} acked for ${message.recordingId}. Progress: ${rec.acked.size}/${rec.total}`);
         // If completion info already known, attempt completion when all acked
         tryComplete(message.recordingId);
       }
@@ -393,6 +394,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       mimeType: message.mimeType,
       timestamp: message.timestamp
     };
+    console.log(`📋 Completion metadata set for ${message.recordingId}. Chunks acked: ${rec.acked.size}/${rec.total}`);
     // Try completion now; will only fire when all chunks acked
     tryComplete(message.recordingId);
   }
