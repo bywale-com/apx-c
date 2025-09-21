@@ -34,6 +34,7 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
   const [assistantWidth, setAssistantWidth] = useState<number>(420);
   const [mode, setMode] = useState<'focus'|'builder'>('builder');
   const [split, setSplit] = useState<number>(0.7); // proportion for replay pane in builder mode
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
   const draggingRef = useRef<boolean>(false);
   const assistantDraggingRef = useRef<boolean>(false);
   const primedRef = useRef<boolean>(false);
@@ -339,6 +340,17 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     }
   };
 
+  const handlePlay = () => {
+    // Video started playing
+  };
+
+  const handlePause = () => {
+    // Stop demo mode if video is paused manually
+    if (isDemoMode) {
+      setIsDemoMode(false);
+    }
+  };
+
   const handleSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
     const t = parseFloat(e.target.value);
     setCurrentTime(t);
@@ -353,6 +365,26 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
       videoRef.current.currentTime = seek;
     }
     setCurrentTime(seek);
+  };
+
+  const handleToggleDemo = () => {
+    setIsDemoMode(prev => {
+      const newDemoMode = !prev;
+      
+      if (newDemoMode) {
+        // Start demo mode - begin video playback
+        if (videoRef.current) {
+          videoRef.current.play();
+        }
+      } else {
+        // Stop demo mode - pause video
+        if (videoRef.current) {
+          videoRef.current.pause();
+        }
+      }
+      
+      return newDemoMode;
+    });
   };
 
   // Prime assistant with compact session context once per session open
@@ -389,7 +421,21 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
     return (
       <div style={{ position:'relative', width: '100%', height: '100%', background: '#111', color: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '10px 12px', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ fontWeight: 600 }}>Event Replay</div>
+          <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            Event Replay
+            {isDemoMode && (
+              <div style={{ 
+                fontSize: 10, 
+                padding: '2px 6px', 
+                borderRadius: 4, 
+                background: 'rgba(56,225,255,0.2)', 
+                color: 'rgba(56,225,255,0.9)',
+                border: '1px solid rgba(56,225,255,0.4)'
+              }}>
+                DEMO MODE
+              </div>
+            )}
+          </div>
           <div style={{ display:'flex', gap:8 }}>
             <button onClick={() => setMode('focus')} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background: mode==='focus'?'rgba(56,225,255,0.16)':'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>Focus</button>
             <button onClick={() => setMode('builder')} style={{ padding:'6px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.22)', background: mode==='builder'?'rgba(56,225,255,0.16)':'rgba(255,255,255,0.06)', color:'#fff', cursor:'pointer', fontSize:12 }}>Builder</button>
@@ -430,6 +476,8 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
               controls
               onLoadedMetadata={handleLoaded}
               onTimeUpdate={handleTimeUpdate}
+              onPlay={handlePlay}
+              onPause={handlePause}
               style={{ width: '100%', height: 'auto', background: '#000', borderRadius: 6 }}
             />
             <div style={{ marginTop: 14 }}>
@@ -468,6 +516,9 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
                   }
                 }}
                 sessionId={sessionId}
+                isDemoMode={isDemoMode}
+                onToggleDemo={handleToggleDemo}
+                recordingStartTimestamp={recordingStartTimestamp}
               />
             </div>
           )}
@@ -545,6 +596,8 @@ export default function EventReplayModal({ open, onClose, videoUrl, events, reco
               controls
               onLoadedMetadata={handleLoaded}
               onTimeUpdate={handleTimeUpdate}
+              onPlay={handlePlay}
+              onPause={handlePause}
               style={{ width: '100%', height: 'auto', background: '#000', borderRadius: 6 }}
             />
             <div style={{ marginTop: 14 }}>

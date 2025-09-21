@@ -26,6 +26,9 @@ interface WorkflowBuilderProps {
   events?: any[];
   onSeekToTime?: (timeInSeconds: number) => void;
   sessionId?: string;
+  isDemoMode?: boolean;
+  onToggleDemo?: () => void;
+  recordingStartTimestamp?: number; // When the video recording actually started
 }
 
 // N8N-Style Node Helper Functions
@@ -59,7 +62,7 @@ const getActionIcon = (step: WorkflowStep) => {
   return '⚡';
 };
 
-export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, onUpdateSteps, events, onSeekToTime, sessionId }: WorkflowBuilderProps) {
+export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, onUpdateSteps, events, onSeekToTime, sessionId, isDemoMode = false, onToggleDemo, recordingStartTimestamp }: WorkflowBuilderProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -70,14 +73,42 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
   const [hoveredStep, setHoveredStep] = useState<string | null>(null);
   const [showMetadata, setShowMetadata] = useState<string | null>(null);
 
-  // Initialize node positions if they don't exist
+  // Smart auto-layout algorithm for workflow nodes with VERY generous spacing
+  const calculateOptimalLayout = (steps: WorkflowStep[]) => {
+    const NODE_WIDTH = 280;
+    const NODE_HEIGHT = 80;
+    const HORIZONTAL_SPACING = 400; // HUGE space between nodes horizontally
+    const VERTICAL_SPACING = 250;   // HUGE space between nodes vertically
+    const START_X = 100;
+    const START_Y = 100;
+    
+    // Force maximum 2 nodes per row for very spacious layout
+    const stepsPerRow = 2; // Always 2 columns max
+    const maxRows = Math.ceil(steps.length / stepsPerRow);
+    
+    return steps.map((step, index) => {
+      const row = Math.floor(index / stepsPerRow);
+      const col = index % stepsPerRow;
+      
+      // Center the last row if it has fewer items
+      const itemsInLastRow = steps.length - (maxRows - 1) * stepsPerRow;
+      const isLastRow = row === maxRows - 1;
+      const offsetX = isLastRow && itemsInLastRow < stepsPerRow 
+        ? (stepsPerRow - itemsInLastRow) * (NODE_WIDTH + HORIZONTAL_SPACING) / 2 
+        : 0;
+      
+      return {
+        ...step,
+        x: START_X + col * (NODE_WIDTH + HORIZONTAL_SPACING) + offsetX,
+        y: START_Y + row * (NODE_HEIGHT + VERTICAL_SPACING)
+      };
+    });
+  };
+
+  // Initialize node positions with smart auto-layout
   useEffect(() => {
     if (onUpdateSteps && steps.some(step => step.x === undefined || step.y === undefined)) {
-      const updatedSteps = steps.map((step, index) => ({
-        ...step,
-        x: step.x ?? 50 + (index % 3) * 200,
-        y: step.y ?? 50 + Math.floor(index / 3) * 120
-      }));
+      const updatedSteps = calculateOptimalLayout(steps);
       onUpdateSteps(updatedSteps);
     }
   }, [steps, onUpdateSteps]);
@@ -149,8 +180,7 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
         duration: step.duration,
         metadata: step.metadata,
         element: step.element,
-        x: 50 + (index % 3) * 200,
-        y: 50 + Math.floor(index / 3) * 120,
+        // Don't set x,y here - let the auto-layout algorithm handle positioning
         start: step.timestamp ? step.timestamp / 1000 : undefined,
         end: step.duration ? (step.timestamp ? (step.timestamp + step.duration * 1000) / 1000 : undefined) : undefined
       }));
@@ -169,6 +199,78 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
     setShowMetadata(showMetadata === step.id ? null : step.id);
   }, [showMetadata]);
 
+  // Function to render arrows between nodes with smart routing
+  const renderArrows = () => {
+    const arrows = [];
+    
+    // Add marker definition once
+    arrows.push(
+      <defs key="arrow-defs">
+        <marker
+          id="arrowhead"
+          markerWidth="12"
+          markerHeight="8"
+          refX="10"
+          refY="4"
+          orient="auto"
+        >
+          <polygon
+            points="0 0, 12 4, 0 8"
+            fill="rgba(56,225,255,1)"
+            stroke="rgba(56,225,255,0.8)"
+            strokeWidth="1"
+          />
+        </marker>
+      </defs>
+    );
+    
+    // Add arrow paths with intelligent routing
+    for (let i = 0; i < steps.length - 1; i++) {
+      const currentStep = steps[i];
+      const nextStep = steps[i + 1];
+      
+      if (!currentStep.x || !currentStep.y || !nextStep.x || !nextStep.y) continue;
+      
+      // Calculate arrow positions
+      const startX = currentStep.x + 280; // Right edge of current node
+      const startY = currentStep.y + 40; // Middle of current node
+      const endX = nextStep.x; // Left edge of next node
+      const endY = nextStep.y + 40; // Middle of next node
+      
+      // Smart routing based on relative positions
+      let path;
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
+      
+      if (Math.abs(deltaY) < 20) {
+        // Horizontal connection - straight line
+        path = `M ${startX} ${startY} L ${endX} ${endY}`;
+      } else if (deltaX > 0) {
+        // Rightward flow - L-shaped path
+        const midX = startX + deltaX * 0.5;
+        path = `M ${startX} ${startY} L ${midX} ${startY} L ${midX} ${endY} L ${endX} ${endY}`;
+      } else {
+        // Upward/downward flow - U-shaped path
+        const midY = (startY + endY) / 2;
+        const offsetX = 60; // Offset for U-shape
+        path = `M ${startX} ${startY} L ${startX + offsetX} ${startY} L ${startX + offsetX} ${midY} L ${endX - offsetX} ${midY} L ${endX - offsetX} ${endY} L ${endX} ${endY}`;
+      }
+      
+      arrows.push(
+        <path
+          key={`arrow-${i}`}
+          d={path}
+          stroke="rgba(56,225,255,0.9)"
+          strokeWidth="3"
+          fill="none"
+          markerEnd="url(#arrowhead)"
+          style={{ filter: 'drop-shadow(0 0 4px rgba(56,225,255,0.3))' }}
+        />
+      );
+    }
+    return arrows;
+  };
+
   return (
     <>
       <style>{`
@@ -176,6 +278,15 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
           0% { opacity: 1; }
           50% { opacity: 0.5; }
           100% { opacity: 1; }
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes loadingPulse {
+          0% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.05); }
+          100% { opacity: 0.6; transform: scale(1); }
         }
       `}</style>
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -194,6 +305,44 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
           </button>
           <button onClick={resetView} style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.22)', background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 12 }}>
             Reset
+          </button>
+          <button 
+            onClick={() => {
+              if (onUpdateSteps) {
+                const reorganizedSteps = calculateOptimalLayout(steps);
+                onUpdateSteps(reorganizedSteps);
+              }
+            }}
+            style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.22)', background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 12 }}
+          >
+            ↻ Reorganize
+          </button>
+          <button 
+            onClick={() => {
+              if (onToggleDemo) {
+                onToggleDemo();
+              }
+            }}
+            style={{ 
+              padding: '6px 10px', 
+              borderRadius: 6, 
+              border: `1px solid ${isDemoMode ? 'rgba(56,225,255,0.8)' : 'rgba(56,225,255,0.4)'}`, 
+              background: isDemoMode ? 'rgba(56,225,255,0.25)' : 'rgba(56,225,255,0.15)', 
+              color: '#fff', 
+              cursor: 'pointer', 
+              fontSize: 12 
+            }}
+          >
+            {isDemoMode ? '⏸ Stop Demo' : '▶ Demo'}
+          </button>
+          <button 
+            onClick={() => {
+              // TODO: Implement run mode
+              console.log('Run mode toggled');
+            }}
+            style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(40,167,69,0.4)', background: 'rgba(40,167,69,0.15)', color: '#fff', cursor: 'pointer', fontSize: 12 }}
+          >
+            🚀 Run
           </button>
           <button onClick={onAdd} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.22)', background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontSize: 12 }}>
             + Add Step
@@ -226,7 +375,8 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
           background: 'linear-gradient(45deg, rgba(255,255,255,0.02) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,0.02) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.02) 75%), linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.02) 75%)',
           backgroundSize: '20px 20px',
           backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-          cursor: isDragging ? 'grabbing' : 'grab'
+          cursor: isDragging ? 'grabbing' : 'grab',
+          zIndex: 1 // Ensure canvas is above SVG
         }}
       >
         <div
@@ -238,6 +388,22 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
             position: 'relative'
           }}
         >
+          {/* SVG overlay for arrows */}
+          {steps.length > 1 && (
+            <svg
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                pointerEvents: 'none',
+                zIndex: 0 // Lower z-index so it doesn't interfere
+              }}
+            >
+              {renderArrows()}
+            </svg>
+          )}
           {steps.length === 0 ? (
             <div style={{ 
               position: 'absolute', 
@@ -254,9 +420,24 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
           ) : (
             steps.map((step) => {
               // Calculate if step is currently active based on timestamp
-              const stepStartTime = step.timestamp ? step.timestamp / 1000 : 0;
+              // Convert absolute timestamps to relative video time
+              const videoStartTime = recordingStartTimestamp ? recordingStartTimestamp / 1000 : 0;
+              const stepStartTime = step.timestamp ? (step.timestamp / 1000) - videoStartTime : 0;
               const stepEndTime = stepStartTime + (step.duration ? step.duration / 1000 : 1);
               const active = currentTime >= stepStartTime && currentTime <= stepEndTime;
+              const isDemoActive = isDemoMode && active;
+              
+              // Debug logging for demo mode
+              if (isDemoMode && step.timestamp) {
+                console.log(`Step ${step.id}:`, {
+                  absoluteTimestamp: step.timestamp,
+                  videoStartTime,
+                  stepStartTime,
+                  currentTime,
+                  active,
+                  duration: step.duration
+                });
+              }
               const isHovered = hoveredStep === step.id;
               const showMeta = showMetadata === step.id;
               const hasMetadata = step.metadata || step.element;
@@ -265,7 +446,7 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
               const nodeStyle = getN8NNodeStyle(step, active, isHovered);
               
               return (
-                <div key={step.id} style={{ position: 'relative' }}>
+                <div key={step.id} style={{ position: 'relative', zIndex: 10 }}>
                   <div
                     onMouseDown={(e) => handleNodeMouseDown(e, step.id)}
                     onMouseMove={(e) => handleNodeMouseMove(e, step.id)}
@@ -277,7 +458,7 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
                       position: 'absolute',
                       left: step.x || 50,
                       top: step.y || 50,
-                      width: 240,
+                      width: 280,
                       padding: '16px 20px',
                       border: `2px solid ${nodeStyle.borderColor}`,
                       background: nodeStyle.backgroundColor,
@@ -290,9 +471,15 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
                       backdropFilter: 'blur(10px)',
                       transition: 'all 0.3s ease',
                       userSelect: 'none',
-                      transform: active ? 'scale(1.05)' : isHovered ? 'scale(1.02)' : 'scale(1)',
-                      // Add pulsing animation for active scroll nodes
-                      animation: active && isScrollAction ? 'pulse 1s infinite' : 'none'
+                      transform: isDemoActive ? 'scale(1.08)' : active ? 'scale(1.05)' : isHovered ? 'scale(1.02)' : 'scale(1)',
+                      // Add pulsing animation for active scroll nodes or demo mode
+                      animation: isDemoActive ? 'loadingPulse 1.5s infinite' : 
+                                 active && isScrollAction ? 'pulse 1s infinite' : 'none',
+                      // Enhanced glow for demo mode
+                      boxShadow: isDemoActive ? '0 0 20px rgba(56,225,255,0.8), 0 8px 25px rgba(0,0,0,0.5)' :
+                                 active ? '0 8px 25px rgba(0,0,0,0.5)' : 
+                                 isHovered ? '0 6px 20px rgba(0,0,0,0.4)' : 
+                                 '0 4px 12px rgba(0,0,0,0.3)'
                     }}
                   >
                     {/* Action Icon */}
@@ -303,7 +490,17 @@ export default function WorkflowBuilder({ steps, currentTime, onAdd, onRename, o
                       fontSize: 16,
                       opacity: active ? 1 : 0.7
                     }}>
-                      {getActionIcon(step)}
+                      {isDemoActive ? (
+                        <div style={{ 
+                          animation: 'spin 1s linear infinite',
+                          fontSize: 14,
+                          color: 'rgba(56,225,255,0.9)'
+                        }}>
+                          ⟳
+                        </div>
+                      ) : (
+                        getActionIcon(step)
+                      )}
                     </div>
 
                     {/* Main Action */}
