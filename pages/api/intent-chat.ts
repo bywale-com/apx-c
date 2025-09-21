@@ -22,51 +22,135 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const openAIKey = process.env.OPENAI_API_KEY;
 
-  // Minimal prompt scaffolding
+  // Enhanced prompt scaffolding with workflow canvas capabilities
   const systemPrompt: ChatMessage = {
     role: 'system',
-    content: `You are Apex's Workflow Analyst and coach.
-Style:
+    content: `You are Apex's Advanced Workflow Analyst and Canvas Controller.
+
+CAPABILITIES:
+- Analyze session data with full context (recording status, session integrity, metadata)
+- Modify workflow canvas in real-time
+- Generate BPMN-style workflow steps
+- Identify technical issues (session sharding, recording problems)
+- Provide deep insights into user behavior and intent
+
+STYLE:
 - Conversational, warm, and natural. Use contractions. No corporate tone.
-- One question per turn. Keep it short and easy to answer.
+- Provide comprehensive analysis when requested
 - Be specific to the user's session context (events/URLs), not generic.
-- Avoid restating obvious UI steps; focus on intent and decisions.
-- When helpful, suggest a concise option to choose from.
-Goal:
-- Elicit the user's workflow intent and constraints.
- - Help segment steps and outcomes without overwhelming the user.
+- Focus on intent, decisions, and workflow patterns.
+- When helpful, suggest workflow improvements or automation opportunities.
 
-Examples:
-- If input value length shrinks over time or backspace bursts occur, infer deletion/editing rather than fresh typing. Ask to confirm only if unclear.
-- If URL changes host/path, treat it as navigation. Reference the domain in your question.
-- If rapid, repeated clicks on +/- controls occur, summarize as counter adjustments rather than listing each click.
+WORKFLOW CANVAS CONTROL:
+- You can modify workflow steps by responding with special commands:
+  - "ADD_STEP: {action: 'Navigate to Website', details: 'domain.com', timestamp: 1234, type: 'start'|'process'|'decision'|'end'}"
+  - "UPDATE_STEP: {id: 'step_1', action: 'Fill Form Field', details: 'Email input'}"
+  - "REMOVE_STEP: {id: 'step_1'}"
+  - "GENERATE_BPMN: Create complete BPMN flowchart with proper shapes and sharp action titles"
 
-Use the provided structured context when available:
-- Context(JSON): raw compact events.
-- Interpretation(JSON): derived signals such as input.value deltas (typing vs deleting), key intent (confirm/navigate/edit), and click.actionable.
+BPMN SHAPE TYPES:
+- "start": Start event (circle)
+- "process": Process/activity (rectangle) 
+- "decision": Decision gateway (diamond)
+- "end": End event (circle)
+- "parallel": Parallel gateway (diamond with +)
+- "exclusive": Exclusive gateway (diamond with X)
 
-Guidelines:
-- Cite concrete evidence briefly (e.g., "value shrank from X to Y", "Backspace keys", "navigated to <domain>").
-- Prefer a clarifying yes/no or short answer when confidence is low.
-- Never invent steps or data not present in context.
-- End with a single, direct question.
-`
+ENHANCED CONTEXT:
+- Context(JSON): raw compact events + session metadata
+- Interpretation(JSON): derived signals + session metadata including:
+  - hasRecording: boolean (whether session has video)
+  - eventCount: number of total events
+  - duration: session duration in seconds
+  - urls: array of visited domains
+  - eventTypes: breakdown of event types
+  - sessionId: unique session identifier
+  - workflowSteps: array of n8n-generated workflow steps (preferred over raw events)
+
+ANALYSIS GUIDELINES:
+- PRIORITIZE workflowSteps over raw events for analysis (workflowSteps contain n8n's intelligent synthesis)
+- Identify workflow patterns and user intent from structured workflow steps
+- Detect technical issues (missing recordings, session fragmentation)
+- Suggest workflow optimizations and automation opportunities
+- Generate human-readable BPMN-style workflow descriptions
+- Provide actionable insights for workflow improvement
+- When workflowSteps are available, use them as the primary source of truth for workflow analysis
+
+BPMN GENERATION TRIGGERS:
+- When user asks "walk me through what happened" → Generate BPMN flowchart
+- When user asks "analyze this session" → Generate BPMN flowchart  
+- When user asks "what was the workflow" → Generate BPMN flowchart
+- When user asks "create a flowchart" → Generate BPMN flowchart
+- Always include GENERATE_BPMN command when providing detailed session analysis
+
+EXAMPLES:
+- "I notice this session has 141 events over 2.3 minutes but no recording linked. This suggests a session ID fragmentation issue."
+- "Based on the workflow steps, I can see this was a job application process: Google search → Indeed navigation → job selection → Accenture application → account creation. Let me generate a BPMN flow for this."
+- "GENERATE_BPMN: Create BPMN flowchart for job application workflow based on the 19 workflow steps"
+- "ADD_STEP: {action: 'Search Job Platform', details: 'Google search for Indeed', timestamp: 1758457045004, type: 'start'}"
+- "ADD_STEP: {action: 'Browse Job Listings', details: 'Scroll through Indeed results', timestamp: 1758457050055, type: 'process'}"
+- "ADD_STEP: {action: 'Select Target Position', details: 'Click Senior Agency Inside Sales Account Representative', timestamp: 1758457065381, type: 'process'}"
+- "ADD_STEP: {action: 'Navigate to Company Site', details: 'Redirect to Accenture Workday portal', timestamp: 1758457075005, type: 'process'}"
+- "ADD_STEP: {action: 'Accept Site Policies', details: 'Click Accept All cookies', timestamp: 1758457091073, type: 'process'}"
+- "ADD_STEP: {action: 'Initiate Application', details: 'Click Apply Now button', timestamp: 1758457096567, type: 'process'}"
+- "ADD_STEP: {action: 'Choose Resume Option', details: 'Select Autofill with Resume', timestamp: 1758457115126, type: 'decision'}"
+- "ADD_STEP: {action: 'Create Account Credentials', details: 'Enter email and secure password with CapsLock usage', timestamp: 1758457134055, type: 'process'}"
+- "ADD_STEP: {action: 'Accept Terms', details: 'Check terms acceptance checkbox', timestamp: 1758457157016, type: 'process'}"
+- "ADD_STEP: {action: 'Submit Account Creation', details: 'Submit registration form', timestamp: 1758457158592, type: 'process'}"
+- "ADD_STEP: {action: 'Attempt Login', details: 'Login with newly created credentials', timestamp: 1758457181069, type: 'end'}"
+
+Always provide deep, contextual analysis and be ready to modify the workflow canvas when requested.
+
+IMPORTANT: 
+- When workflowSteps are available in the session metadata, use them as the primary source for analysis instead of raw events
+- When analyzing a session with workflow steps, ALWAYS generate a BPMN flowchart using GENERATE_BPMN command followed by individual ADD_STEP commands for each major workflow step
+- This is your primary function as a Workflow Analyst.`
   };
 
   const payloadMessages: ChatMessage[] = [systemPrompt, ...(messages as ChatMessage[])];
-  // Lightweight server-side interpreters to enrich context
+  // Enhanced server-side interpreters with rich session context
   let interpreted: any = null;
+  let sessionMetadata: any = null;
+  
   if (context) {
     try {
+      // Get full session metadata from extension-events API
+      const contextSessionId = (context as any).sessionId || sessionId;
+      if (contextSessionId) {
+        try {
+          const metadataResp = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/extension-events?action=get_workflow_session&sessionId=${encodeURIComponent(contextSessionId)}`);
+          const metadataJson = await metadataResp.json();
+          sessionMetadata = {
+            sessionId: metadataJson.sessionId,
+            eventCount: metadataJson.events?.length || 0,
+            hasRecording: !!metadataJson.recordingId,
+            recordingId: metadataJson.recordingId,
+            startTime: metadataJson.startTime,
+            lastEventTime: metadataJson.lastEventTime,
+            duration: metadataJson.lastEventTime ? (metadataJson.lastEventTime - metadataJson.startTime) / 1000 : 0,
+            urls: [...new Set(metadataJson.events?.map((e: any) => e.url).filter(Boolean))],
+            eventTypes: metadataJson.events?.reduce((acc: any, event: any) => {
+              acc[event.type] = (acc[event.type] || 0) + 1;
+              return acc;
+            }, {}) || {},
+            workflowSteps: metadataJson.workflowSteps || []
+          };
+        } catch (e) {
+          console.log('Failed to fetch session metadata:', e);
+        }
+      }
+
       const evs: Array<any> = Array.isArray((context as any).events) ? (context as any).events : [];
       const bySelector: Record<string, { lastValue?: string; lastT?: number }> = {};
       const results: Array<any> = [];
+      
       for (let i = 0; i < evs.length; i++) {
         const e = evs[i];
         const selector = e.selector || '';
         const tag = (e.tag || '').toLowerCase();
         const prev = bySelector[selector] || {};
         const record: any = { t: e.t, type: e.type, url: e.url };
+        
         if (e.type === 'input') {
           const curVal = typeof e.value === 'string' ? e.value : '';
           const prevVal = typeof prev.lastValue === 'string' ? prev.lastValue : undefined;
@@ -94,12 +178,24 @@ Guidelines:
         }
         results.push(record);
       }
-      interpreted = { derived: results.slice(-400) }; // keep recent to save tokens
-    } catch {}
+      
+      interpreted = { 
+        derived: results.slice(-400), // keep recent to save tokens
+        sessionMetadata: sessionMetadata
+      };
+    } catch (e) {
+      console.log('Context processing error:', e);
+    }
 
-    payloadMessages.push({ role: 'system', content: `Context(JSON): ${JSON.stringify(context).slice(0, 4000)}` });
+    // Enhanced context with session metadata
+    const enhancedContext = {
+      ...context,
+      sessionMetadata: sessionMetadata
+    };
+    
+    payloadMessages.push({ role: 'system', content: `Context(JSON): ${JSON.stringify(enhancedContext).slice(0, 6000)}` });
     if (interpreted) {
-      payloadMessages.push({ role: 'system', content: `Interpretation(JSON): ${JSON.stringify(interpreted).slice(0, 4000)}` });
+      payloadMessages.push({ role: 'system', content: `Interpretation(JSON): ${JSON.stringify(interpreted).slice(0, 6000)}` });
     }
   }
 
